@@ -1,0 +1,186 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/leaderboard_ui.gd" id="1_leaderboard_ui"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.06, 0.08, 0.13, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.25, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[node name="LeaderboardModal" type="Control"]
+process_mode = 2
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_leaderboard_ui")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.8)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="DialogPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(980, 560)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/DialogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderBar" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 18
+text = "🏆 ĐẠI HỘI VÕ LÂM - BẢNG VÀNG ANH HÙNG 🏆"
+horizontal_alignment = 1
+
+[node name="HeaderCloseButton" type="Button" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 13
+text = "✖ ĐÓNG (ESC)"
+
+[node name="TopControls" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TabTournamentBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+custom_minimum_size = Vector2(210, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "🏆 BẢNG XẾP HẠNG TOP 10"
+
+[node name="TabDailyBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+custom_minimum_size = Vector2(210, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "📅 THỬ THÁCH HẰNG NGÀY"
+
+[node name="Spacer" type="Control" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_font_sizes/font_size = 12
+text = "Danh Xưng:"
+
+[node name="NicknameEdit" type="LineEdit" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+placeholder_text = "Nhập danh xưng..."
+max_length = 20
+
+[node name="SaveNameBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TopControls"]
+custom_minimum_size = Vector2(75, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Đổi Tên"
+
+[node name="ContentArea" type="Control" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TournamentView" type="ScrollContainer" parent="CenterContainer/DialogPanel/VBox/ContentArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="EntriesContainer" type="VBoxContainer" parent="CenterContainer/DialogPanel/VBox/ContentArea/TournamentView"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DailyView" type="VBoxContainer" parent="CenterContainer/DialogPanel/VBox/ContentArea"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="DailyDateLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/ContentArea/DailyView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="DailyTitleLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/ContentArea/DailyView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+
+[node name="DailyDescLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/ContentArea/DailyView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 15
+horizontal_alignment = 1
+
+[node name="DailyRewardLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/ContentArea/DailyView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="DailyStatusLbl" type="Label" parent="CenterContainer/DialogPanel/VBox/ContentArea/DailyView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
+[node name="BottomBar" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="CloseButton" type="Button" parent="CenterContainer/DialogPanel/VBox/BottomBar"]
+custom_minimum_size = Vector2(300, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.95, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "✓ Trở Về Trò Chơi (ESC / L)"

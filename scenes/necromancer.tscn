@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/gem.tscn" id="2_gem"]
+[ext_resource type="Texture2D" path="res://assets/textures/necromancer.png" id="3_tex"]
+[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="4_coin"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_projectile.tscn" id="5_proj"]
+[ext_resource type="PackedScene" path="res://scenes/powerup.tscn" id="6_pup"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_necro"]
+radius = 14.0
+
+[node name="Necromancer" type="CharacterBody2D" groups=["enemies"]]
+scale = Vector2(1.5, 1.5)
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_script")
+max_health = 60.0
+move_speed = 70.0
+contact_damage = 12.0
+knockback_resistance = 0.35
+gem_scene = ExtResource("2_gem")
+coin_scene = ExtResource("4_coin")
+coin_drop_chance = 0.85
+coin_value = 3
+powerup_scene = ExtResource("6_pup")
+is_ranged = true
+projectile_scene = ExtResource("5_proj")
+shoot_interval = 2.2
+preferred_distance = 240.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_necro")

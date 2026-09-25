@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/axe_weapon.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/axe_projectile.tscn" id="2_axe"]
+
+[node name="AxeWeapon" type="Node2D"]
+script = ExtResource("1_script")
+axe_scene = ExtResource("2_axe")

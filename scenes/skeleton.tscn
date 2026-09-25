@@ -1,0 +1,31 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/gem.tscn" id="2_gem"]
+[ext_resource type="Texture2D" path="res://assets/textures/skeleton.png" id="3_tex"]
+[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="4_coin"]
+[ext_resource type="PackedScene" path="res://scenes/powerup.tscn" id="5_pup"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_skel"]
+radius = 14.0
+
+[node name="Skeleton" type="CharacterBody2D" groups=["enemies"]]
+scale = Vector2(1.4, 1.4)
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_script")
+max_health = 32.0
+move_speed = 95.0
+contact_damage = 14.0
+knockback_resistance = 0.45
+gem_scene = ExtResource("2_gem")
+coin_scene = ExtResource("4_coin")
+coin_drop_chance = 0.60
+coin_value = 2
+powerup_scene = ExtResource("5_pup")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_skel")

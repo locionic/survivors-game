@@ -1,0 +1,434 @@
+class_name EnemySpawner
+extends Node2D
+
+## Spawns dynamic waves of Bats, Skeletons, Necromancers, swarms, and Boss encounters.
+
+signal wave_event_announced(message: String, is_boss: bool)
+
+@export var bat_scene: PackedScene
+@export var skeleton_scene: PackedScene
+@export var necromancer_scene: PackedScene
+@export var boss_scene: PackedScene
+@export var behemoth_scene: PackedScene
+@export var powerup_scene: PackedScene
+@export var goblin_scene: PackedScene = preload("res://scenes/goblin.tscn")
+
+@export var demon_emperor_scene: PackedScene = preload("res://scenes/demon_emperor.tscn")
+
+@export var spawn_interval: float = 0.70
+@export var spawn_distance: float = 460.0
+
+var timer: float = 0.0
+var powerup_timer: float = 12.0
+var boss_1_spawned: bool = false
+var boss_2_spawned: bool = false
+var swarm_1_triggered: bool = false
+var swarm_2_triggered: bool = false
+var goblin_1_spawned: bool = false
+var goblin_2_spawned: bool = false
+var blood_moon_triggered: bool = false
+var hermit_spawned: bool = false
+var swarm_3_triggered: bool = false
+var goblin_3_spawned: bool = false
+var swarm_4_triggered: bool = false
+var blood_moon_2_triggered: bool = false
+var boss_3_spawned: bool = false
+var hermit_2_spawned: bool = false
+var swarm_5_triggered: bool = false
+var demon_emperor_spawned: bool = false
+var elite_champion_1_spawned: bool = false
+var elite_champion_2_spawned: bool = false
+var player: Node2D = null
+
+
+func _ready() -> void:
+	add_to_group("enemy_spawner")
+	player = get_tree().get_first_node_in_group("player")
+	if GameManager:
+		GameManager.connect("run_started", Callable(self, "_on_run_started"))
+	call_deferred("spawn_intro_ambush")
+
+func _on_run_started() -> void:
+	call_deferred("spawn_intro_ambush")
+
+func spawn_intro_ambush() -> void:
+	if not is_instance_valid(player) or not bat_scene:
+		return
+	# Instant second-0 rush: 6 bats in an encroaching frontal arc
+	for i in range(6):
+		var angle = -PI/3.0 + (float(i) / 5.0) * (2.0 * PI / 3.0)
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 320.0
+		var bat = bat_scene.instantiate()
+		if bat:
+			bat.global_position = spawn_pos
+			get_tree().current_scene.call_deferred("add_child", bat)
+
+func _process(delta: float) -> void:
+	if not GameManager.is_run_active or not is_instance_valid(player):
+		return
+		
+	var r_time = GameManager.run_time
+	timer += delta
+	powerup_timer += delta
+	
+	# Random periodic floor item drop (~22s)
+	if powerup_timer >= 22.0:
+		powerup_timer = 0.0
+		spawn_floor_powerup()
+	
+	# 30s: First Treasure Goblin Appears!
+	if r_time >= 30.0 and not goblin_1_spawned:
+		goblin_1_spawned = true
+		spawn_treasure_goblin()
+	
+	# 45s: Swarm Warning 1
+	if r_time >= 45.0 and not swarm_1_triggered:
+		swarm_1_triggered = true
+		trigger_swarm("⚠️ BAT SWARM DETECTED! ⚠️", bat_scene, 28)
+		
+	# 60s: Boss 1 (Dreadlord Malakor)
+	if r_time >= 60.0 and not boss_1_spawned:
+		boss_1_spawned = true
+		spawn_boss_1()
+		
+	# 90s (1:30): First Tinh Anh Lệnh Elite Champion
+	if r_time >= 90.0 and not elite_champion_1_spawned:
+		elite_champion_1_spawned = true
+		spawn_elite_champion()
+
+	# 75s: Blood Moon Eclipse (30s duration - 2x XP & Gold)
+	if r_time >= 75.0 and not blood_moon_triggered:
+		blood_moon_triggered = true
+		trigger_blood_moon_event()
+		
+	# 100s: Swarm Warning 2 (Armored Skeletons)
+	if r_time >= 100.0 and not swarm_2_triggered:
+		swarm_2_triggered = true
+		trigger_swarm("💀 UNDEAD SIEGE INCOMING! 💀", skeleton_scene, 22)
+		
+	# 110s: Second Treasure Goblin Appears!
+	if r_time >= 110.0 and not goblin_2_spawned:
+		goblin_2_spawned = true
+		spawn_treasure_goblin()
+		
+	# 120s (2:00): Boss 2 (Infernal Behemoth)
+	if r_time >= 120.0 and not boss_2_spawned:
+		boss_2_spawned = true
+		spawn_boss_2()
+		
+	# 150s (2:30): Wandering Hermit "Lão Ngoan Đồng" Lucky Encounter!
+	if r_time >= 150.0 and not hermit_spawned:
+		hermit_spawned = true
+		spawn_hermit()
+
+	# 180s (3:00): Second Tinh Anh Lệnh Elite Champion
+	if r_time >= 180.0 and not elite_champion_2_spawned:
+		elite_champion_2_spawned = true
+		spawn_elite_champion()
+
+	# 180s (3:00): Swarm 3 (Thi Ma Trận - Skeletal Legion)
+	if r_time >= 180.0 and not swarm_3_triggered:
+		swarm_3_triggered = true
+		trigger_swarm("💀 VẠN QUỶ XUẤT ĐỘNG: THI MA TRẬN! 💀", skeleton_scene, 28)
+		
+	# 210s (3:30): Third Treasure Goblin
+	if r_time >= 210.0 and not goblin_3_spawned:
+		goblin_3_spawned = true
+		spawn_treasure_goblin()
+		
+	# 240s (4:00): Swarm 4 (Vu Độc Ma Trận - Necromancers)
+	if r_time >= 240.0 and not swarm_4_triggered:
+		swarm_4_triggered = true
+		trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 18)
+		
+	# 270s (4:30): Blood Moon Eclipse 2 (30s duration - 2x XP & Gold)
+	if r_time >= 270.0 and not blood_moon_2_triggered:
+		blood_moon_2_triggered = true
+		trigger_blood_moon_event()
+		
+	# 300s (5:00): Boss 3 (Song Thủ Ma Tướng)
+	if r_time >= 300.0 and not boss_3_spawned:
+		boss_3_spawned = true
+		spawn_boss_3()
+		
+	# 360s (6:00): Second Hermit "Lão Ngoan Đồng" Lucky Encounter
+	if r_time >= 360.0 and not hermit_2_spawned:
+		hermit_2_spawned = true
+		spawn_hermit()
+		
+	# 390s (6:30): Apocalypse Swarm (Vạn Ma Vây Hãm)
+	if r_time >= 390.0 and not swarm_5_triggered:
+		swarm_5_triggered = true
+		trigger_swarm("⚡ ĐẠI KIẾP NẠN: VẠN MA VÂY HÃM! ĐỈNH CAO SINH TỒN! ⚡", skeleton_scene, 32)
+		
+	# 435s (7:15): Final Boss (Hắc Huyết Ma Hoàng)
+	if r_time >= 435.0 and not demon_emperor_spawned:
+		demon_emperor_spawned = true
+		spawn_demon_emperor()
+
+	var current_interval = max(0.18, spawn_interval - (r_time * 0.005))
+
+	if timer >= current_interval:
+		timer = 0.0
+		spawn_enemy_wave()
+
+const MAX_ACTIVE_ENEMIES: int = 180
+
+## WaveDirector lowers this to 80 during a Võ Đài run so the single-threaded WASM
+## web build holds 60 FPS. Unset spawners keep the legacy 180 ceiling.
+var enemy_cap: int = MAX_ACTIVE_ENEMIES
+
+func spawn_enemy_wave() -> void:
+	if not is_instance_valid(player):
+		return
+
+	# Performance Governor: Cap active concurrent enemies to prevent WebGL/HTML5 frame drops
+	var active_enemies = get_tree().get_nodes_in_group("enemies").size()
+	if active_enemies >= enemy_cap:
+		return
+
+	var count = 3 + int(GameManager.run_time / 14.0)
+	for i in range(count):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * spawn_distance
+		
+		# Dynamic enemy composition by time (0 to 480s):
+		var chosen_scene: PackedScene = bat_scene
+		var r_time = GameManager.run_time
+		
+		if r_time > 180.0:
+			var roll = randf()
+			if roll < 0.35 and necromancer_scene:
+				chosen_scene = necromancer_scene
+			elif roll < 0.75 and skeleton_scene:
+				chosen_scene = skeleton_scene
+			else:
+				chosen_scene = bat_scene
+		elif r_time > 35.0 and necromancer_scene and randf() < 0.22:
+			chosen_scene = necromancer_scene
+		elif r_time > 25.0 and skeleton_scene and randf() < 0.45:
+			chosen_scene = skeleton_scene
+				
+		if not chosen_scene:
+			chosen_scene = bat_scene
+			
+		if chosen_scene:
+			var enemy = chosen_scene.instantiate()
+			if enemy:
+				var cur_max_hp = enemy.get("max_health")
+				if cur_max_hp != null:
+					enemy.set("max_health", cur_max_hp + floor(r_time * 0.22))
+				enemy.global_position = spawn_pos
+				
+				# Champion chance: scales up to 26% late game
+				var champ_chance = 0.26 if r_time > 360.0 else (0.20 if r_time > 180.0 else (0.18 if r_time > 60.0 else (0.12 if r_time > 20.0 else 0.0)))
+				if randf() < champ_chance and enemy.has_method("make_champion"):
+					enemy.make_champion()
+					
+				get_tree().current_scene.add_child(enemy)
+
+func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> void:
+	emit_signal("wave_event_announced", msg, false)
+	SoundManager.play("boss_alarm", 0.1)
+	
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(12.0)
+		
+	if not enemy_scene or not is_instance_valid(player):
+		return
+		
+	for i in range(swarm_count):
+		var angle = (float(i) / float(swarm_count)) * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 520.0
+		var enemy = enemy_scene.instantiate()
+		if enemy:
+			enemy.global_position = spawn_pos
+			# 1 in 8 swarm enemies is a champion leader
+			if i % 8 == 0 and enemy.has_method("make_champion"):
+				enemy.make_champion()
+			get_tree().current_scene.call_deferred("add_child", enemy)
+
+func spawn_boss_1() -> void:
+	emit_signal("wave_event_announced", "☠️ DREADLORD MALAKOR EMERGES! ☠️", true)
+	SoundManager.play("boss_alarm", 0.05)
+	
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(18.0)
+		
+	if boss_scene and is_instance_valid(player):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 620.0
+		var boss = boss_scene.instantiate()
+		if boss:
+			boss.global_position = spawn_pos
+			get_tree().current_scene.add_child(boss)
+			
+			var hud = get_tree().get_first_node_in_group("hud")
+			if hud and hud.has_method("attach_boss_bar"):
+				hud.attach_boss_bar(boss)
+
+func spawn_boss_2() -> void:
+	emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
+	SoundManager.play("boss_alarm", 0.05)
+	
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(22.0)
+		
+	var b_scene = behemoth_scene if behemoth_scene else boss_scene
+	if b_scene and is_instance_valid(player):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
+		var boss = b_scene.instantiate()
+		if boss:
+			boss.global_position = spawn_pos
+			get_tree().current_scene.add_child(boss)
+			
+			var hud = get_tree().get_first_node_in_group("hud")
+			if hud and hud.has_method("attach_boss_bar"):
+				hud.attach_boss_bar(boss)
+
+func spawn_boss_3() -> void:
+	emit_signal("wave_event_announced", "👑 SONG THỦ MA TƯỚNG GIÁNG LÂM! 👑", true)
+	SoundManager.play("boss_alarm", 0.05)
+	
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(22.0)
+		
+	var b_scene = behemoth_scene if behemoth_scene else boss_scene
+	if b_scene and is_instance_valid(player):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
+		var boss = b_scene.instantiate()
+		if boss:
+			boss.global_position = spawn_pos
+			boss.set("boss_name", "👑 SONG THỦ MA TƯỚNG")
+			var cur_hp = boss.get("max_health")
+			if cur_hp != null:
+				boss.set("max_health", cur_hp * 1.8)
+			get_tree().current_scene.add_child(boss)
+			
+			var hud = get_tree().get_first_node_in_group("hud")
+			if hud and hud.has_method("attach_boss_bar"):
+				hud.attach_boss_bar(boss)
+
+func spawn_demon_emperor() -> void:
+	emit_signal("wave_event_announced", "🔥 TRÙM CUỐI: HẮC HUYẾT MA HOÀNG ĐÃ THỨC TỈNH! 🔥", true)
+	SoundManager.play("boss_alarm", 0.03)
+	
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(28.0)
+		
+	var de_scene = demon_emperor_scene if demon_emperor_scene else behemoth_scene
+	if de_scene and is_instance_valid(player):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 650.0
+		var boss = de_scene.instantiate()
+		if boss:
+			boss.global_position = spawn_pos
+			get_tree().current_scene.add_child(boss)
+			
+			var hud = get_tree().get_first_node_in_group("hud")
+			if hud and hud.has_method("attach_boss_bar"):
+				hud.attach_boss_bar(boss)
+				
+			if boss.has_signal("boss_defeated"):
+				boss.boss_defeated.connect(func():
+					if GameManager and not GameManager.is_victory_triggered:
+						GameManager.trigger_victory()
+				)
+
+func spawn_floor_powerup() -> void:
+	if not powerup_scene or not is_instance_valid(player):
+		return
+	var angle = randf() * TAU
+	var pos = player.global_position + Vector2(cos(angle), sin(angle)) * randf_range(180, 360)
+	var pup = powerup_scene.instantiate()
+	if pup:
+		var types = ["meat", "meat", "magnet", "nuke"]
+		pup.set_type(types.pick_random())
+		pup.global_position = pos
+		get_tree().current_scene.call_deferred("add_child", pup)
+
+func spawn_treasure_goblin() -> void:
+	emit_signal("wave_event_announced", "💰 TREASURE GOBLIN SPOTTED! CATCH IT! 💰", false)
+	SoundManager.play("powerup", 0.2)
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(10.0)
+		
+	if goblin_scene and is_instance_valid(player):
+		var angle = randf() * TAU
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 380.0
+		var gob = goblin_scene.instantiate()
+		if gob:
+			gob.global_position = spawn_pos
+			get_tree().current_scene.call_deferred("add_child", gob)
+
+func trigger_blood_moon_event() -> void:
+	emit_signal("wave_event_announced", "🩸 BLOOD MOON ECLIPSE! 2X XP & GOLD FOR 30s! 🩸", true)
+	SoundManager.play("boss_alarm", 0.08)
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(16.0)
+	if GameManager:
+		GameManager.trigger_blood_moon(30.0)
+
+## Expansion 20.0: Tinh Anh Lệnh — spawns a Skeleton or Necromancer promoted to an
+## Elite Champion (1.6x scale, 3.5x health, telegraphed shockwave, guaranteed loot).
+## Falls back to bats only if neither elite-capable scene is wired up.
+func spawn_elite_champion(pos: Vector2 = Vector2.ZERO) -> Node2D:
+	var pool: Array = []
+	if skeleton_scene:
+		pool.append(skeleton_scene)
+	if necromancer_scene:
+		pool.append(necromancer_scene)
+	if pool.is_empty():
+		pool.append(bat_scene)
+	if pool.is_empty():
+		return null
+
+	var elite = pool.pick_random().instantiate()
+	if elite == null:
+		return null
+
+	elite.set("is_elite_champion", true)
+	if pos != Vector2.ZERO:
+		elite.global_position = pos
+	elif is_instance_valid(player):
+		var angle = randf() * TAU
+		elite.global_position = player.global_position + Vector2(cos(angle), sin(angle)) * 340.0
+	else:
+		elite.global_position = Vector2(300, 300)
+
+	get_tree().current_scene.add_child(elite)
+	emit_signal("wave_event_announced", "⚜️ TINH ANH LỆNH GIÁ THỔNG GIANG! ⚜️", false)
+	SoundManager.play("boss_alarm", 0.15)
+	var cam = get_tree().get_first_node_in_group("camera")
+	if cam and cam.has_method("shake"):
+		cam.shake(12.0)
+	return elite
+
+func spawn_hermit(pos: Vector2 = Vector2.ZERO) -> Node2D:
+	var hermit_res = load("res://scenes/hermit_npc.tscn")
+	if not hermit_res:
+		return null
+	var hermit = hermit_res.instantiate()
+	if pos != Vector2.ZERO:
+		hermit.global_position = pos
+	elif is_instance_valid(player):
+		var angle = randf() * TAU
+		hermit.global_position = player.global_position + Vector2(cos(angle), sin(angle)) * 220.0
+	else:
+		hermit.global_position = Vector2(300, 300)
+	get_tree().current_scene.call_deferred("add_child", hermit)
+	emit_signal("wave_event_announced", "🧙‍♂️ KỲ NGỘ: LÃO NGOAN ĐỒNG XUẤT HIỆN! 🧙‍♂️", false)
+	SoundManager.play("powerup")
+	if GameManager:
+		GameManager.emit_signal("hermit_spawned")
+	return hermit
+

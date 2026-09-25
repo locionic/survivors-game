@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/scroll_pickup.gd" id="1_scroll"]
+[ext_resource type="Texture2D" path="res://assets/textures/scroll_gold.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_scroll"]
+radius = 22.0
+
+[node name="ScrollPickup" type="Area2D" groups=["scrolls"]]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_scroll")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_scroll")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -60.0
+offset_top = -24.0
+offset_right = 60.0
+offset_bottom = -9.0
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+text = "Dịch Cân Kinh"

@@ -1,0 +1,307 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://assets/textures/title_bg.png" id="2_bg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.06, 0.08, 0.13, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.70, 0.25, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 18.0
+content_margin_top = 16.0
+content_margin_right = 18.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cta"]
+bg_color = Color(0.75, 0.15, 0.12, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1.0, 0.85, 0.35, 0.95)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cta_hover"]
+bg_color = Color(0.90, 0.22, 0.18, 1.0)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1.0, 0.95, 0.55, 1.0)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 24.0
+content_margin_top = 10.0
+content_margin_right = 24.0
+content_margin_bottom = 10.0
+
+[node name="TitleScreen" type="Control"]
+process_mode = 2
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_title")
+
+[node name="BackgroundTexture" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.04, 0.07, 0.45)
+
+[node name="BackgroundParticles" type="CPUParticles2D" parent="."]
+position = Vector2(640, 720)
+amount = 35
+lifetime = 6.0
+preprocess = 3.0
+emission_shape = 3
+emission_rect_extents = Vector2(640, 20)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -15)
+initial_velocity_min = 25.0
+initial_velocity_max = 60.0
+scale_amount_min = 2.0
+scale_amount_max = 4.5
+color = Color(1, 0.8, 0.3, 0.45)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 25
+
+[node name="MainVBox" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="TitleVBox" type="VBoxContainer" parent="MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="HeaderBadge" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
+theme_override_font_sizes/font_size = 14
+text = "⚔️ VÕ LÂM HUYỀN THOẠI • SURVIVOR ROGUELIKE ⚔️"
+horizontal_alignment = 1
+
+[node name="MainTitle" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.5, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.02, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 46
+text = "SURVIVOR QUEST"
+horizontal_alignment = 1
+
+[node name="SubTitle" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "ĐẠI HỘI VÕ LÂM • TRĂM NĂM TRANH ĐOẠT"
+horizontal_alignment = 1
+
+[node name="ShowcaseHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="HeroCard" type="PanelContainer" parent="MarginContainer/MainVBox/ShowcaseHBox"]
+custom_minimum_size = Vector2(340, 220)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="HeroTitle" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 14
+text = "🧙 ANH HÙNG XUẤT TRẬN"
+horizontal_alignment = 1
+
+[node name="HeroSpritePreview" type="TextureRect" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeroNameLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Sir Kaelen - The Royal Knight"
+horizontal_alignment = 1
+
+[node name="HeroDescLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 1)
+theme_override_font_sizes/font_size = 12
+text = "Steadfast bastion clad in steel plate."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ChangeHeroBtn" type="Button" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "🧙 Chọn Tướng [C]"
+
+[node name="StageCard" type="PanelContainer" parent="MarginContainer/MainVBox/ShowcaseHBox"]
+custom_minimum_size = Vector2(340, 220)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StageTitle" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "🗺️ CHIẾN TRƯỜNG THI ĐẤU"
+horizontal_alignment = 1
+
+[node name="StageIconPreview" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "🏞️"
+horizontal_alignment = 1
+
+[node name="StageNameLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Ba Lăng Huyện"
+horizontal_alignment = 1
+
+[node name="StageDescLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.8, 0.88, 1)
+theme_override_font_sizes/font_size = 12
+text = "Đồng cỏ thanh bình, nơi khởi đầu hành hiệp."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ChangeStageBtn" type="Button" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "🗺️ Đổi Bản Đồ [M]"
+
+[node name="CTAContainer" type="VBoxContainer" parent="MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="StartButton" type="Button" parent="MarginContainer/MainVBox/CTAContainer"]
+custom_minimum_size = Vector2(380, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_cta")
+theme_override_styles/hover = SubResource("StyleBoxFlat_cta_hover")
+text = "⚔️ XUẤT TRẬN / START RUN ⚔️"
+
+[node name="StartHintLabel" type="Label" parent="MarginContainer/MainVBox/CTAContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "Nhấn [ SPACE ] hoặc CLICK để xuất trận ngay!"
+horizontal_alignment = 1
+
+[node name="NavHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="NavHeroBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "🧙 Tướng [C]"
+
+[node name="NavMapBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "🗺️ Bản Đồ [M]"
+
+[node name="NavShopBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "⚒️ Tiệm Rèn"
+
+[node name="NavRankBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "🏆 Bảng Vàng [L]"
+
+[node name="NavCodexBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(130, 36)
+layout_mode = 2
+text = "📜 Phong Thần [Q]"
+
+[node name="FooterHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="GoldLabel" type="Label" parent="MarginContainer/MainVBox/FooterHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "💰 Vàng Tích Lũy: 0"
+
+[node name="ControlsGuide" type="Label" parent="MarginContainer/MainVBox/FooterHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "🎮 Phím: WASD Di chuyển | SPACE Tuyệt kỹ | P/ESC Tạm dừng"

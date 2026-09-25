@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/pearl_pickup.gd" id="1_pearl"]
+[ext_resource type="Texture2D" path="res://assets/textures/dragon_pearl.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pearl"]
+radius = 20.0
+
+[node name="PearlPickup" type="Area2D" groups=["pearls"]]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_pearl")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pearl")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="Halo" type="Node2D" parent="."]

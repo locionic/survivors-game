@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/gem.tscn" id="2_gem"]
+[ext_resource type="Texture2D" path="res://assets/textures/bat.png" id="3_tex"]
+[ext_resource type="PackedScene" path="res://scenes/coin.tscn" id="4_coin"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bat"]
+radius = 13.0
+
+[node name="Bat" type="CharacterBody2D" groups=["enemies"]]
+scale = Vector2(1.35, 1.35)
+collision_layer = 2
+collision_mask = 5
+script = ExtResource("1_script")
+max_health = 12.0
+move_speed = 175.0
+contact_damage = 8.0
+knockback_resistance = 0.0
+gem_scene = ExtResource("2_gem")
+coin_scene = ExtResource("4_coin")
+coin_drop_chance = 0.35
+coin_value = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bat")

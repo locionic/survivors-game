@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/lightning_weapon.gd" id="1_script"]
+
+[node name="LightningWeapon" type="Node2D"]
+script = ExtResource("1_script")
+base_damage = 48.0
+base_cooldown = 2.2
+strike_count = 1
+attack_range = 550.0

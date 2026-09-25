@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/companion.gd" id="1_comp"]
+[ext_resource type="Texture2D" path="res://assets/textures/companion_dragon.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pet"]
+radius = 6.0
+
+[node name="Companion" type="CharacterBody2D"]
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_comp")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_pet")
+
+[node name="Nameplate" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -22.0
+offset_right = 50.0
+offset_bottom = -7.0
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+text = "Tiểu Kim Long"

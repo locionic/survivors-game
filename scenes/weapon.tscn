@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapon.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/projectile.tscn" id="2_proj"]
+
+[node name="MainWeapon" type="Node2D"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("2_proj")
+base_damage = 15.0
+base_cooldown = 0.8
+attack_range = 450.0

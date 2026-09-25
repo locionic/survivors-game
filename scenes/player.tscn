@@ -1,0 +1,81 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/weapon.tscn" id="2_weapon"]
+[ext_resource type="PackedScene" path="res://scenes/orbiting_weapon.tscn" id="3_orbit"]
+[ext_resource type="Texture2D" path="res://assets/textures/player.png" id="4_tex"]
+[ext_resource type="PackedScene" path="res://scenes/lightning_weapon.tscn" id="5_light"]
+[ext_resource type="PackedScene" path="res://scenes/fireball_weapon.tscn" id="6_fire"]
+[ext_resource type="PackedScene" path="res://scenes/axe_weapon.tscn" id="7_axe"]
+[ext_resource type="PackedScene" path="res://scenes/slash_weapon.tscn" id="8_slash"]
+[ext_resource type="Texture2D" path="res://assets/textures/qi_halo.png" id="9_halo"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_player"]
+radius = 14.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_magnet"]
+radius = 140.0
+
+[node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 1
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="DustParticles" type="CPUParticles2D" parent="."]
+position = Vector2(0, 12)
+emitting = false
+amount = 6
+lifetime = 0.25
+spread = 30.0
+gravity = Vector2(0, -20)
+initial_velocity_min = 15.0
+initial_velocity_max = 35.0
+scale_amount_min = 2.0
+scale_amount_max = 3.5
+color = Color(0.5, 0.45, 0.4, 0.5)
+
+[node name="QiHalo" type="Sprite2D" parent="."]
+modulate = Color(0.25, 0.85, 1, 0.35)
+position = Vector2(0, 4)
+scale = Vector2(0.65, 0.45)
+texture = ExtResource("9_halo")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("4_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_player")
+
+[node name="OverheadHP" type="ProgressBar" parent="."]
+offset_left = -26.0
+offset_top = -32.0
+offset_right = 26.0
+offset_bottom = -25.0
+theme_override_styles/background = null
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="MagnetArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MagnetArea"]
+shape = SubResource("CircleShape2D_magnet")
+
+[node name="Weapons" type="Node2D" parent="."]
+
+[node name="MainWeapon" parent="Weapons" instance=ExtResource("2_weapon")]
+
+[node name="OrbitingWeapon" parent="Weapons" instance=ExtResource("3_orbit")]
+
+[node name="LightningWeapon" parent="Weapons" instance=ExtResource("5_light")]
+
+[node name="FireballWeapon" parent="Weapons" instance=ExtResource("6_fire")]
+
+[node name="AxeWeapon" parent="Weapons" instance=ExtResource("7_axe")]
+
+[node name="SlashWeapon" parent="Weapons" instance=ExtResource("8_slash")]
+
+[connection signal="area_entered" from="MagnetArea" to="." method="_on_magnet_area_area_entered"]

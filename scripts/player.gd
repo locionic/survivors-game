@@ -120,6 +120,21 @@ var base_sprite_scale: Vector2 = Vector2(0.42, 0.42)
 var shop_lifesteal: float = 0.0
 var shop_armor_bonus: int = 0
 
+# Milestone 3: Võ Lâm Cộng Hưởng. Both synergies are passive and key off the live
+# arsenal rather than a level gate -- carry both halves and the passive is simply
+# there. refresh_synergies() is the only place either flag flips.
+const THUNDERFIRE_RADIUS: float = 130.0
+const THUNDERFIRE_DAMAGE: float = 55.0
+## A crit-heavy build lands one every swing, so the detonation rate is capped
+## rather than letting a single arc clear a screen.
+const THUNDERFIRE_COOLDOWN: float = 0.35
+const SWORD_QI_PER_SLASH: int = 2
+const SWORD_QI_DAMAGE: float = 22.0
+
+var has_thunderfire: bool = false
+var has_thousand_swords: bool = false
+var thunderfire_cd: float = 0.0
+
 
 @onready var magnet_area: Area2D = $MagnetArea
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -201,8 +216,11 @@ func apply_character_data() -> void:
 		_:
 			skill_cooldown_max = 5.0
 
-func _configure_weapons(starters: Array) -> void:
-	var wpn_map = {
+## The six arsenal slots, id -> live node. Built per call rather than cached at
+## @onready because the shop grants weapons mid-run and the tree is only fully
+## populated by the time a caller asks.
+func _weapon_nodes() -> Dictionary:
+	return {
 		"dagger": get_node_or_null("Weapons/MainWeapon"),
 		"shield": get_node_or_null("Weapons/OrbitingWeapon"),
 		"lightning": get_node_or_null("Weapons/LightningWeapon"),
@@ -210,7 +228,10 @@ func _configure_weapons(starters: Array) -> void:
 		"axe": get_node_or_null("Weapons/AxeWeapon"),
 		"slash": get_node_or_null("Weapons/SlashWeapon")
 	}
-	
+
+func _configure_weapons(starters: Array) -> void:
+	var wpn_map := _weapon_nodes()
+
 	for w_id in wpn_map.keys():
 		var node = wpn_map[w_id]
 		if node:
@@ -218,21 +239,32 @@ func _configure_weapons(starters: Array) -> void:
 			node.set("is_active", is_start)
 			if node.has_method("rebuild_shields"):
 				node.rebuild_shields()
+	refresh_synergies()
 
 func activate_weapon(weapon_id: String) -> void:
-	var wpn_map = {
-		"dagger": get_node_or_null("Weapons/MainWeapon"),
-		"shield": get_node_or_null("Weapons/OrbitingWeapon"),
-		"lightning": get_node_or_null("Weapons/LightningWeapon"),
-		"fireball": get_node_or_null("Weapons/FireballWeapon"),
-		"axe": get_node_or_null("Weapons/AxeWeapon"),
-		"slash": get_node_or_null("Weapons/SlashWeapon")
-	}
+	var wpn_map := _weapon_nodes()
 	if wpn_map.has(weapon_id) and wpn_map[weapon_id]:
 		var node = wpn_map[weapon_id]
 		node.set("is_active", true)
 		if node.has_method("rebuild_shields"):
 			node.rebuild_shields()
+		refresh_synergies()
+
+## Milestone 3: re-read the live arsenal and flip whichever synergies it now
+## completes. Both weapon-granting paths funnel through here, so a starting
+## loadout and a mid-run purchase are treated identically.
+func refresh_synergies() -> void:
+	var wpn_map := _weapon_nodes()
+	var is_live := func(id: String) -> bool:
+		return is_instance_valid(wpn_map.get(id)) and bool(wpn_map[id].get("is_active"))
+
+	var was_thunderfire := has_thunderfire
+	has_thunderfire = is_live.call("fireball") and is_live.call("lightning")
+	has_thousand_swords = is_live.call("dagger") and is_live.call("slash")
+
+	if has_thunderfire and not was_thunderfire:
+		SoundManager.play("elemental_burst", 0.1)
+		FloatingText.spawn(global_position + Vector2(0, -46), "⚡🔥 LÔI HỎA LIÊN HOÀN!", Color(1.0, 0.6, 0.2))
 
 func perform_slash(dir: Vector2 = Vector2.ZERO) -> Array[Node2D]:
 	var slash_node = get_node_or_null("Weapons/SlashWeapon")
@@ -346,6 +378,8 @@ func _physics_process(delta: float) -> void:
 			speed_multiplier = 1.0
 	if blood_rush_timer > 0.0:
 		blood_rush_timer = max(0.0, blood_rush_timer - delta)
+	if thunderfire_cd > 0.0:
+		thunderfire_cd = maxf(0.0, thunderfire_cd - delta)
 
 	# Qi Shield & HP Regeneration from Nhâm Mạch
 	if qi_shield_regen_rate > 0.0:
@@ -703,6 +737,55 @@ func get_might_multiplier() -> float:
 ## point every burn source (fireball, spirit sword, dragon breath) routes through.
 func get_burn_multiplier() -> float:
 	return char_burn_mult
+
+## Lôi Hỏa Liên Hoàn: every crit detonates. enemy.take_damage() holds the only crit
+## roll in the game, so that one call site is the entire hook -- no weapon has to
+## know this passive exists. The cooldown is set before the sweep so the damage this
+## deals (which can itself crit) cannot chain into a second detonation.
+func trigger_thunderfire_burst(origin_pos: Vector2) -> void:
+	if not has_thunderfire or thunderfire_cd > 0.0:
+		return
+	thunderfire_cd = THUNDERFIRE_COOLDOWN
+
+	var dmg := THUNDERFIRE_DAMAGE * get_might_multiplier()
+	for e in get_tree().get_nodes_in_group("enemies"):
+		if not is_instance_valid(e) or e.get("is_dead"):
+			continue
+		if e.global_position.distance_to(origin_pos) > THUNDERFIRE_RADIUS:
+			continue
+		if e.has_method("take_damage"):
+			e.take_damage(dmg, origin_pos)
+		if e.has_method("apply_burn"):
+			e.apply_burn(3.0, 14.0)
+
+	_spawn_skill_shockwave(Color(1.0, 0.45, 0.15, 0.85), THUNDERFIRE_RADIUS)
+	SoundManager.play("explosion", 0.25)
+
+## Vạn Kiếm Quy Tông: the blade calls the swarm. Called from slash_weapon after a
+## connecting sweep -- a whiffed slash sends nothing, so the reward tracks the hit
+## rather than the swing.
+func release_sword_qi(targets: Array) -> void:
+	if not has_thousand_swords:
+		return
+	var sword_scene := load("res://scenes/spirit_sword_projectile.tscn")
+	if not sword_scene:
+		return
+
+	for i in range(SWORD_QI_PER_SLASH):
+		var sword = sword_scene.instantiate()
+		var anchor: Node2D = targets[i % targets.size()] if not targets.is_empty() else self
+		sword.global_position = global_position
+		var aim := (anchor.global_position - global_position).normalized()
+		sword.direction = aim if aim != Vector2.ZERO else Vector2.RIGHT
+		sword.damage = SWORD_QI_DAMAGE * get_might_multiplier()
+		sword.pierce = 2
+		sword.homing = true
+		var p := get_parent()
+		if p:
+			p.add_child(sword)
+		else:
+			add_child(sword)
+	SoundManager.play("qi_laser", 0.12)
 
 ## Expansion 21.0: Vạn Nhân Trảm — Blood Rush rampage buff.
 func activate_blood_rush(duration: float = BLOOD_RUSH_DURATION) -> void:

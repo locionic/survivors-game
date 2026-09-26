@@ -92,7 +92,15 @@ func combo_damage_mult_for(step: int) -> float:
 func combo_arc_for(step: int) -> float:
 	return COMBO_ARC[clampi(step, 0, COMBO_ARC.size() - 1)]
 
+## Milestone 3a: where the blade points. Right stick wins when it is being
+## actively pushed (gamepad players aim with it); otherwise the blade falls back
+## to travel direction, and only then to the last committed facing. A player who
+## picks the stick up mid-swing gets the new aim on the very next swing without
+## any device tracking -- the axis simply stops reading zero.
 func _get_facing_direction() -> Vector2:
+	var aim := _get_stick_aim()
+	if aim != Vector2.ZERO:
+		return aim
 	var player = _get_player()
 	if is_instance_valid(player):
 		if "last_move_dir" in player and player.last_move_dir != Vector2.ZERO:
@@ -102,6 +110,15 @@ func _get_facing_direction() -> Vector2:
 	if facing_direction != Vector2.ZERO:
 		return facing_direction.normalized()
 	return Vector2.RIGHT
+
+## Right analog stick as a direction, or ZERO when it is at rest. The actions are
+## declared in project.godot with a 0.35 deadzone, so a resting stick reads zero
+## and the mouse/keyboard path stays in charge.
+static func _get_stick_aim() -> Vector2:
+	if not InputMap.has_action("aim_left"):
+		return Vector2.ZERO
+	var v := Input.get_vector("aim_left", "aim_right", "aim_up", "aim_down")
+	return v.normalized() if v.length() > 0.15 else Vector2.ZERO
 
 func _get_player() -> Node2D:
 	var p = get_parent()
@@ -200,6 +217,13 @@ func perform_slash(override_dir: Vector2 = Vector2.ZERO, combo_step_override: in
 						e.freeze_timer = FROST_SOVEREIGN_FREEZE
 						FloatingText.spawn(e.global_position + Vector2(0, -30), "❄️ BĂNG PHÁCH!", Color(0.45, 0.95, 1.0))
 					FloatingText.spawn(e.global_position + Vector2(0, -18), "⚔️ TRẢM!", Color(0.4, 0.95, 1.0))
+
+	# Milestone 3: Vạn Kiếm Quy Tông -- a connecting sweep calls the swarm. A
+	# whiffed slash sends nothing, so the reward tracks the hit, not the swing.
+	if not hit_enemies.is_empty():
+		var qi_player := _get_player()
+		if is_instance_valid(qi_player) and qi_player.has_method("release_sword_qi"):
+			qi_player.release_sword_qi(hit_enemies)
 
 	return hit_enemies
 

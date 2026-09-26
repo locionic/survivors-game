@@ -2,6 +2,11 @@ extends Node
 
 ## SoundManager: Autoload audio pool that plays overlapping sound effects seamlessly.
 
+## Emitted with the name of every cue that actually starts playing. The intermission
+## shop's purchase / interest feedback is asserted in the headless suite, and under
+## the dummy audio driver there is no other way to observe a sound.
+signal sfx_played(sound_name: String)
+
 var sounds: Dictionary = {}
 var player_pool: Array[AudioStreamPlayer] = []
 var bgm_player: AudioStreamPlayer
@@ -100,7 +105,8 @@ func _load_sound(sound_name: String, path: String, loop: bool = false) -> void:
 func play(sound_name: String, pitch_range: float = 0.1) -> void:
 	if not sounds.has(sound_name):
 		return
-		
+
+	emit_signal("sfx_played", sound_name)
 	var stream = sounds[sound_name]
 	# Find available audio player in pool
 	for asp in player_pool:

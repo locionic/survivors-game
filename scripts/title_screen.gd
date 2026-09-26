@@ -31,12 +31,31 @@ signal codex_pressed
 var pulse_tween: Tween = null
 var hero_bob_tween: Tween = null
 var is_starting: bool = false
+var self_locale_button: Button = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_resolve_nodes()
 	_connect_signals()
 	_setup_cta_pulse()
+	_install_locale_toggle()
+	refresh_all()
+
+## Milestone 3a. Pinned to the top-right corner, above everything else, so the
+## language is switchable from the very first frame. The button re-labels itself
+## from Loc's locale_changed signal, and a switch re-renders the hero and stage
+## copy so the visible text changes immediately.
+func _install_locale_toggle() -> void:
+	if self_locale_button:
+		return
+	self_locale_button = Loc.make_toggle_button()
+	self_locale_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	self_locale_button.position = Vector2(-196, 18)
+	add_child(self_locale_button)
+	if not Loc.locale_changed.is_connected(_on_locale_changed):
+		Loc.locale_changed.connect(_on_locale_changed)
+
+func _on_locale_changed(_new_locale: String) -> void:
 	refresh_all()
 
 func _resolve_nodes() -> void:

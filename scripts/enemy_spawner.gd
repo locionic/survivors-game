@@ -332,14 +332,30 @@ func spawn_enemy_wave() -> void:
 				var cur_max_hp = enemy.get("max_health")
 				if cur_max_hp != null:
 					enemy.set("max_health", cur_max_hp + floor(r_time * 0.22))
+				_apply_danger(enemy)
 				enemy.global_position = spawn_pos
-				
-				# Champion chance: scales up to 26% late game
+
+				# Champion chance: scales up to 26% late game, plus one step per
+				# elite affix the danger tier grants.
 				var champ_chance = 0.26 if r_time > 360.0 else (0.20 if r_time > 180.0 else (0.18 if r_time > 60.0 else (0.12 if r_time > 20.0 else 0.0)))
+				champ_chance += 0.03 * float(GameManager.get_danger_data()["elite"])
 				if randf() < champ_chance and enemy.has_method("make_champion"):
 					enemy.make_champion()
-					
+
 				get_tree().current_scene.add_child(enemy)
+
+## Milestone 3a: the danger tier scales HP and speed together. Applied to the
+## instance BEFORE it enters the tree, because enemy.gd's _ready() seeds
+## current_health from max_health -- scaling afterwards would leave a tier-5 bat
+## at full health on a bar sized for a tier-0 one.
+func _apply_danger(node: Node2D) -> void:
+	var d := GameManager.get_danger_data()
+	var hp = node.get("max_health")
+	if hp != null:
+		node.set("max_health", float(hp) * float(d["hp"]))
+	var spd = node.get("move_speed")
+	if spd != null:
+		node.set("move_speed", float(spd) * float(d["speed"]))
 
 func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> void:
 	emit_signal("wave_event_announced", msg, false)
@@ -511,6 +527,7 @@ func spawn_elite_champion(pos: Vector2 = Vector2.ZERO) -> Node2D:
 		return null
 
 	elite.set("is_elite_champion", true)
+	_apply_danger(elite)
 	if pos != Vector2.ZERO:
 		elite.global_position = pos
 	elif is_instance_valid(player):

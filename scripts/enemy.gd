@@ -553,6 +553,10 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 		var cam = get_tree().get_first_node_in_group("camera")
 		if cam and cam.has_method("shake"):
 			cam.shake(5.0)
+		# Milestone 3: Lôi Hỏa Liên Hoàn. Sits beside the Storm Amulet rider for
+		# the same reason -- this is the only crit roll, so it is the only hook.
+		if is_instance_valid(player) and player.has_method("trigger_thunderfire_burst"):
+			player.trigger_thunderfire_burst(global_position)
 	else:
 		FloatingText.spawn(global_position, str(int(final_amount)), Color(1.0, 0.5, 0.2) if is_boss else Color(1.0, 0.9, 0.2))
 		

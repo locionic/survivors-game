@@ -132,14 +132,23 @@ const TIER_NAMES: Array[String] = ["T1 Trắng", "T2 Lục", "T3 Lam", "T4 Hoàn
 const TIER_COLORS: Array[Color] = [
 	Color(0.92, 0.92, 0.95), Color(0.55, 0.95, 0.55), Color(0.45, 0.75, 1.0), Color(1.0, 0.82, 0.3)
 ]
+## Milestone 3a: the `name` here is the CANONICAL English spelling and must stay
+## byte-identical to Loc.STRINGS["weapon.<id>.name"]["en"] -- the regression suite
+## asserts that equality so the three tables cannot drift apart. The localised
+## string comes from get_weapon_name(); this const is the offline fallback.
 const WEAPON_INFO: Dictionary = {
-	"dagger": {"name": "Ám Khí Phi Đao", "icon": "🗡️"},
-	"shield": {"name": "Khiên Bát Quái", "icon": "🛡️"},
-	"lightning": {"name": "Cửu Thiên Lôi Điện", "icon": "⚡"},
-	"fireball": {"name": "Liệt Hỏa Chưởng Cầu", "icon": "🔥"},
-	"axe": {"name": "Đả Cẩu Trận", "icon": "🪓"},
-	"slash": {"name": "Độc Cô Cửu Kiếm", "icon": "⚔️"}
+	"dagger": {"name": "Thousand Daggers", "icon": "🗡️"},
+	"shield": {"name": "Eight Trigrams Shield", "icon": "🛡️"},
+	"lightning": {"name": "Heaven's Wrath", "icon": "⚡"},
+	"fireball": {"name": "Apocalypse Meteor", "icon": "🔥"},
+	"axe": {"name": "Dog-Beating Staff", "icon": "🪓"},
+	"slash": {"name": "Nine Swords Cleave", "icon": "⚔️"}
 }
+
+## The localised name for a weapon id, falling back to the id itself so an
+## unknown weapon still renders something readable.
+func get_weapon_name(weapon_id: String) -> String:
+	return Loc.t("weapon.%s.name" % weapon_id, WEAPON_INFO.get(weapon_id, {}).get("name", weapon_id))
 
 func get_arsenal_count() -> int:
 	return arsenal.size()

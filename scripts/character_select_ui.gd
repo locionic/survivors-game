@@ -22,10 +22,19 @@ var gear_boots_btn: Button = null
 
 var was_paused_before_open: bool = false
 
+## Milestone 3a — the danger picker and the language chip, both built in code so
+## the .tscn stays a plain layout and neither control can drift out of sync with
+## GameManager / Loc.
+var _danger_row: HBoxContainer = null
+var _danger_label: Label = null
+var _locale_button: Button = null
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	_resolve_nodes()
+	_install_danger_row()
+	_install_locale_toggle()
 	
 	if close_button:
 		close_button.pressed.connect(close_ui)
@@ -82,6 +91,74 @@ func open_ui() -> void:
 	visible = true
 	get_tree().paused = true
 	render_cards()
+	_refresh_danger_row()
+
+# --- Milestone 3a: danger level + language -------------------------------------
+
+## The danger row sits under the header so the tier is chosen in the same breath
+## as the hero -- both decide how the run feels, and both are locked in before
+## the first wave opens.
+func _install_danger_row() -> void:
+	if _danger_row or not dialog_panel:
+		return
+	_danger_row = HBoxContainer.new()
+	_danger_row.name = "DangerRow"
+	_danger_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_danger_row.add_theme_constant_override("separation", 10)
+	dialog_panel.add_child(_danger_row)
+
+	_danger_row.add_child(_mini_button("[", "danger_down"))
+	_danger_label = Label.new()
+	_danger_label.custom_minimum_size = Vector2(360, 0)
+	_danger_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_danger_row.add_child(_danger_label)
+	_danger_row.add_child(_mini_button("]", "danger_up"))
+
+	_refresh_danger_row()
+
+## Hero card copy is localised too, so a language switch re-renders the cards
+## rather than leaving a half-English roster on screen.
+func _install_locale_toggle() -> void:
+	if _locale_button:
+		return
+	_locale_button = Loc.make_toggle_button()
+	_locale_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_locale_button.position = Vector2(-150, 14)
+	add_child(_locale_button)
+	if not Loc.locale_changed.is_connected(_on_locale_changed):
+		Loc.locale_changed.connect(_on_locale_changed)
+
+func _on_locale_changed(_new_locale: String) -> void:
+	_refresh_danger_row()
+	if visible:
+		render_cards()
+
+func _mini_button(text: String, action: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(34, 30)
+	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(func(): _on_danger_stepped(action))
+	return b
+
+func _on_danger_stepped(direction: String) -> void:
+	var step := 1 if direction == "danger_up" else -1
+	GameManager.set_danger_level(GameManager.danger_level + step)
+	SoundManager.play("button_click", 0.5)
+	_refresh_danger_row()
+
+## Shows the tier, its two names and the exact numbers it applies -- the whole
+## point of a difficulty ladder is that the player can see what they picked.
+func _refresh_danger_row() -> void:
+	if not _danger_label or not GameManager:
+		return
+	var d := GameManager.get_danger_data()
+	var level := GameManager.danger_level
+	_danger_label.text = "%s  [%d]  %s\n%s" % [
+		GameManager.get_danger_name(), level,
+		Loc.t("danger.%d.name" % level, "Novice"),
+		Loc.tf("danger.desc", [int(d["hp"] * 100.0), int(d["speed"] * 100.0), float(d["score"])])
+	]
 
 func close_ui() -> void:
 	if not visible:
@@ -195,17 +272,17 @@ func render_cards() -> void:
 		portrait_ctr.add_child(tex_rect)
 		vbox.add_child(portrait_ctr)
 		
-		# Name & Title
+		# Name & Title -- routed through Loc so the roster follows the language.
 		var name_lbl = Label.new()
-		name_lbl.text = char_data["name"]
+		name_lbl.text = Loc.t("char.%s.name" % char_id, char_data["name"])
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		name_lbl.add_theme_font_size_override("font_size", 17)
 		if is_current:
 			name_lbl.add_theme_color_override("font_color", Color(0.0, 0.9, 1.0))
 		vbox.add_child(name_lbl)
-		
+
 		var title_lbl = Label.new()
-		title_lbl.text = char_data["title"]
+		title_lbl.text = Loc.t("char.%s.title" % char_id, char_data["title"])
 		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title_lbl.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85, 0.8))
 		title_lbl.add_theme_font_size_override("font_size", 12)
@@ -228,10 +305,10 @@ func render_cards() -> void:
 		var btn = Button.new()
 		btn.custom_minimum_size = Vector2(0, 36)
 		if is_current:
-			btn.text = "✓ ACTIVE HERO"
+			btn.text = "✓ " + Loc.t("ui.active_hero", "ACTIVE HERO")
 			btn.disabled = true
 		else:
-			btn.text = "Select Hero"
+			btn.text = Loc.t("ui.select_hero", "Select Hero")
 			btn.pressed.connect(func():
 				_on_hero_selected(char_id)
 			)

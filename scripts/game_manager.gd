@@ -26,10 +26,28 @@ signal hermit_spawned
 signal victory_achieved(stats: Dictionary)
 signal chest_opened(jackpot_tier: int, upgrades: Array, gold_awarded: int)
 signal kill_milestone_reached(milestone: int, title: String)
+signal weapon_names_updated
+signal danger_changed(level: int)
 
-const MAX_RUN_TIME: float = 480.0 # 8-Minute Web Run
+const MAX_RUN_TIME: float = 480.0 # 8-Minute Web Run (standalone survival only)
 var is_endless_mode: bool = false
 var is_victory_triggered: bool = false
+
+## Milestone 3a — the danger ladder. Chosen before a run, persisted, and applied
+## by EnemySpawner to every grunt it rolls. HP and speed multiply together on
+## purpose: a tougher enemy that also closes faster is the only kind of harder
+## that reads as harder, while `heal` and `score` shape the reward side so a high
+## tier is worth surviving rather than merely avoiding.
+const DANGER: Array[Dictionary] = [
+	{"level": 0, "speed": 1.00, "hp": 1.00, "heal": 1.00, "score": 1.0, "elite": 0},
+	{"level": 1, "speed": 1.12, "hp": 1.35, "heal": 0.92, "score": 1.6, "elite": 0},
+	{"level": 2, "speed": 1.24, "hp": 1.70, "heal": 0.84, "score": 2.6, "elite": 1},
+	{"level": 3, "speed": 1.36, "hp": 2.10, "heal": 0.76, "score": 4.2, "elite": 1},
+	{"level": 4, "speed": 1.48, "hp": 2.55, "heal": 0.68, "score": 6.8, "elite": 2},
+	{"level": 5, "speed": 1.60, "hp": 3.00, "heal": 0.60, "score": 11.0, "elite": 2}
+]
+const MAX_DANGER_LEVEL: int = 5
+var danger_level: int = 0
 
 var run_time: float = 0.0
 var kills: int = 0
@@ -54,14 +72,29 @@ var weapon_damage_stats: Dictionary = {
 # Expansion 21.0: Vạn Nhân Trảm — kill-streak rampage milestones already fired this run.
 var reached_kill_milestones: Array[int] = []
 
-const WEAPON_DISPLAY_NAMES: Dictionary = {
-	"dagger": "🗡️ Độc Cô Phi Đao",
-	"shield": "🛡️ Khiên Bát Quái",
-	"lightning": "⚡ Cửu Thiên Lôi",
-	"fireball": "🔥 Liệt Hỏa Chưởng Cầu",
-	"axe": "🪓 Đả Cẩu Trận",
-	"slash": "⚔️ Độc Cô Cửu Kiếm"
-}
+## Milestone 3a: weapon names were a three-way mess -- the Vietnamese set here,
+## a second variant in UpgradeManager.WEAPON_INFO, and a third in the HUD badges.
+## Loc owns the single canonical row; this table is seeded from it in _ready() so
+## the end-of-run dps report and the arsenal always read the same names.
+var WEAPON_DISPLAY_NAMES: Dictionary = {}
+
+## Mirrors Loc.STRINGS for the six weapon ids. Not a const because it is filled
+## at _ready() from the active locale; before that it is empty and
+## get_weapon_display_name() falls through to Loc.
+func _seed_weapon_display_names() -> void:
+	WEAPON_DISPLAY_NAMES.clear()
+	for weapon_id in ["dagger", "shield", "lightning", "fireball", "axe", "slash"]:
+		WEAPON_DISPLAY_NAMES[weapon_id] = Loc.weapon_name(weapon_id)
+	if not Loc.locale_changed.is_connected(_on_locale_changed):
+		Loc.locale_changed.connect(_on_locale_changed)
+
+func _on_locale_changed(_new_locale: String) -> void:
+	_seed_weapon_display_names()
+	emit_signal("weapon_names_updated")
+
+## The canonical, localised display name for a weapon id.
+func get_weapon_display_name(weapon_id: String) -> String:
+	return WEAPON_DISPLAY_NAMES.get(weapon_id, Loc.weapon_name(weapon_id))
 
 const KILL_MILESTONES: Array[int] = [50, 100, 250, 500, 1000]
 const KILL_MILESTONE_TITLES: Dictionary = {
@@ -467,14 +500,43 @@ func get_equipped_gear(slot: String) -> Dictionary:
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_save_data()
+	_seed_weapon_display_names()
+
+## Milestone 3a. A Võ Đài run is not on a clock -- it is won by clearing wave 20
+## (or slaying the Demon Emperor), which WaveDirector calls itself. The 480s
+## ceiling only applies to a standalone survival run, where it is the win
+## condition. Previously both paths ran the same check, so a wave-arena player
+## hit wave 14 and was handed a victory screen mid-fight.
+func is_wave_arena() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	return tree.get_first_node_in_group("wave_director") != null
+
+func get_danger_data() -> Dictionary:
+	return DANGER[clampi(danger_level, 0, MAX_DANGER_LEVEL)]
+
+func set_danger_level(level: int) -> void:
+	var clamped := clampi(level, 0, MAX_DANGER_LEVEL)
+	if clamped == danger_level:
+		return
+	danger_level = clamped
+	save_game_data()
+	emit_signal("danger_changed", danger_level)
+
+## Human-readable label for the current tier, localised and scaled -- the same
+## string the character-select row shows and the test asserts on.
+func get_danger_name() -> String:
+	return Loc.t("danger.%d.name" % danger_level, "Novice")
 
 func _process(delta: float) -> void:
 	if is_run_active and not get_tree().paused:
 		run_time += delta
 		emit_signal("score_updated", kills, run_time)
-		
-		# 8-Minute Web Run: Climax & Victory Trigger
-		if not is_endless_mode and not is_victory_triggered and run_time >= MAX_RUN_TIME:
+
+		# 8-Minute Web Run: Climax & Victory Trigger. Suppressed in the Võ Đài,
+		# where the director owns the victory condition.
+		if not is_endless_mode and not is_victory_triggered and not is_wave_arena() and run_time >= MAX_RUN_TIME:
 			trigger_victory()
 		
 		# Blood moon timer countdown
@@ -733,7 +795,7 @@ func get_weapon_dps_breakdown() -> Array[Dictionary]:
 			continue
 		rows.append({
 			"id": weapon_id,
-			"name": WEAPON_DISPLAY_NAMES.get(weapon_id, weapon_id),
+			"name": get_weapon_display_name(weapon_id),
 			"damage": dmg,
 			"percent": (dmg / total * 100.0) if total > 0.0 else 0.0,
 			"dps": dmg / elapsed
@@ -794,7 +856,7 @@ func _check_kill_milestones() -> void:
 		if kills < milestone or reached_kill_milestones.has(milestone):
 			continue
 		reached_kill_milestones.append(milestone)
-		emit_signal("kill_milestone_reached", milestone, KILL_MILESTONE_TITLES.get(milestone, ""))
+		emit_signal("kill_milestone_reached", milestone, Loc.t("hud.streak_%d" % milestone, KILL_MILESTONE_TITLES.get(milestone, "")))
 		var p = get_tree().get_first_node_in_group("player")
 		if p and p.has_method("activate_blood_rush"):
 			p.activate_blood_rush(5.0)
@@ -895,6 +957,7 @@ func save_game_data() -> void:
 	config.set_value("player", "selected_companion", selected_companion)
 	config.set_value("player", "selected_stage", selected_stage)
 	config.set_value("player", "is_first_run", is_first_run)
+	config.set_value("player", "danger_level", danger_level)
 	for slot in equipment_slots.keys():
 		config.set_value("equipment", slot, equipment_slots[slot])
 	for key in meta_upgrades.keys():
@@ -912,6 +975,7 @@ func save_game_data() -> void:
 			"selected_stage": selected_stage,
 			"equipment_slots": equipment_slots,
 			"is_first_run": is_first_run,
+			"danger_level": danger_level,
 			"meta_upgrades": meta_upgrades,
 			"meridian_upgrades": meridian_upgrades
 		}
@@ -936,6 +1000,8 @@ func load_save_data() -> void:
 					total_gold = int(parsed["total_gold"])
 				if parsed.has("is_first_run"):
 					is_first_run = bool(parsed["is_first_run"])
+				if parsed.has("danger_level"):
+					danger_level = clampi(int(parsed["danger_level"]), 0, MAX_DANGER_LEVEL)
 				if parsed.has("selected_character"):
 					var c_id = str(parsed["selected_character"])
 					if CHARACTERS.has(c_id):
@@ -972,6 +1038,7 @@ func load_save_data() -> void:
 		selected_companion = config.get_value("player", "selected_companion", "dragon_whelp")
 		selected_stage = config.get_value("player", "selected_stage", "plains")
 		is_first_run = config.get_value("player", "is_first_run", true)
+		danger_level = clampi(int(config.get_value("player", "danger_level", danger_level)), 0, MAX_DANGER_LEVEL)
 		for slot in equipment_slots.keys():
 			equipment_slots[slot] = config.get_value("equipment", slot, equipment_slots.get(slot, ""))
 		for key in meta_upgrades.keys():

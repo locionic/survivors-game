@@ -154,7 +154,7 @@ func purchase_card(index: int) -> bool:
 	# A spent slot empties out and can be rerolled into something else.
 	cards[index]["data"] = {}
 	cards[index]["locked"] = false
-	SoundManager.play("coin", 0.1)
+	SoundManager.play("powerup", 0.2)
 	_refresh_all()
 	return true
 
@@ -210,6 +210,11 @@ func open_for_wave(wave_num: int) -> void:
 	current_wave = wave_num
 	reroll_uses = 0
 	_read_payout()
+	# Banking paid out. The savings interest gets its own coin cue so the player
+	# hears the purse grow before the spending starts -- and so "earned" never
+	# sounds like the "spent" cue a purchase fires.
+	if payout_interest > 0:
+		SoundManager.play("coin", 0.15)
 	# cards is deliberately NOT cleared: locked cards must survive the wave
 	# transition, and this node is reused rather than freed for exactly that.
 	if cards.is_empty():
@@ -404,7 +409,8 @@ func _build_slot(up: Node, arsenal: Array, index: int) -> Control:
 		return panel
 
 	var w: Dictionary = arsenal[index]
-	var info: Dictionary = up.WEAPON_INFO.get(w["id"], {"name": w["id"], "icon": "❓"})
+	var info: Dictionary = up.WEAPON_INFO.get(w["id"], {"name": w["id"], "icon": "❓"}).duplicate()
+	info["name"] = up.get_weapon_name(w["id"]) # localised, canonical
 	var tier := int(w.get("tier", 1))
 	panel.add_theme_stylebox_override("panel", _panel_style(Color(0.08, 0.11, 0.17, 0.95), up.tier_color(tier)))
 

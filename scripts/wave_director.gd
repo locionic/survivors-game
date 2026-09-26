@@ -83,7 +83,7 @@ func start_wave(wave_num: int) -> void:
 		spawner.set("enemy_cap", max_enemies_alive)
 
 	emit_signal("wave_started", wave_num, wave_duration)
-	_announce("🏯 HIỆP %d / %d — VÕ ĐÀI MỞ!" % [wave_num, max_waves], wave_num == max_waves)
+	_announce("🏯 " + Loc.tf("hud.wave_banner", [wave_num, max_waves]), wave_num == max_waves)
 	SoundManager.play("buddha_gong", 0.05)
 
 func _process(delta: float) -> void:
@@ -106,7 +106,7 @@ func end_wave() -> void:
 	emit_signal("wave_completed", current_wave)
 
 	if current_wave >= max_waves:
-		_announce("🏆 TOÀN THẮNG! VÕ ĐÀI CHIẾN THẮNG %d HIỆP!" % max_waves, true)
+		_announce("🏆 " + Loc.tf("hud.victory_banner", [max_waves]), true)
 		GameManager.trigger_victory()
 		return
 

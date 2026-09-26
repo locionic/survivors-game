@@ -125,6 +125,7 @@ var dps_labels: Dictionary = {}
 var cinematic_vignette: TextureRect = null
 var ambient_weather: CPUParticles2D = null
 var shop_opened_from_pause: bool = false
+var pause_locale_button: Button = null
 var shop_opened_from_title: bool = false
 var world_map_opened_from: String = ""
 var player: Node2D = null
@@ -279,6 +280,7 @@ func _ready() -> void:
 		world_map_modal.closed.connect(_on_world_map_closed)
 	if pause_button:
 		pause_button.pressed.connect(toggle_pause)
+	_install_pause_locale_toggle()
 	if resume_button:
 		resume_button.pressed.connect(close_pause_menu)
 	if pause_close_header_button:
@@ -299,6 +301,19 @@ func _ready() -> void:
 	# Initial gold & level display
 	_on_gold_updated(GameManager.total_gold)
 	_update_passives_display()
+
+## Milestone 3a: the language chip lives in the pause VBox rather than being
+## positioned, so it lands in the same column as Resume / Restart and stays
+## reachable with a stick (every sibling is focusable, this one is deliberately
+## not -- ui_accept reaches Resume first).
+func _install_pause_locale_toggle() -> void:
+	if pause_locale_button:
+		return
+	var vbox = get_node_or_null("PausePanel/VBox")
+	if not vbox:
+		return
+	pause_locale_button = Loc.make_toggle_button()
+	vbox.add_child(pause_locale_button)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Expansion 21.0: the jackpot ceremony is modal — ENTER/SPACE dismisses it first.
@@ -874,63 +889,32 @@ func _on_gold_updated(new_total: int) -> void:
 func _on_arsenal_updated(levels: Dictionary) -> void:
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
 	var ev = upgrade_mgr.evolved_weapons if upgrade_mgr else {}
-	
-	if dagger_badge:
-		if ev.get("dagger", false):
-			dagger_badge.text = "👑 Thousand Blades"
-			dagger_badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-		elif levels.get("dagger", 0) > 0:
-			dagger_badge.text = "🗡️ Dagger Lv.%d" % levels["dagger"]
-			dagger_badge.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			dagger_badge.text = "🗡️ (Locked)"
-			dagger_badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
-			
-	if shield_badge:
-		if ev.get("shield", false):
-			shield_badge.text = "👑 Solar Bulwark"
-			shield_badge.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-		elif levels.get("shield", 0) > 0:
-			shield_badge.text = "🛡️ Aegis Lv.%d" % levels["shield"]
-			shield_badge.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			shield_badge.text = "🛡️ (Locked)"
-			shield_badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
-			
-	if thunder_badge:
-		if ev.get("lightning", false):
-			thunder_badge.text = "👑 Heaven's Wrath"
-			thunder_badge.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
-		elif levels.get("lightning", 0) > 0:
-			thunder_badge.text = "⚡ Thunder Lv.%d" % levels["lightning"]
-			thunder_badge.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			thunder_badge.text = "⚡ (Locked)"
-			thunder_badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
-			
-	if fireball_badge:
-		if ev.get("fireball", false):
-			fireball_badge.text = "👑 Apocalypse Meteor"
-			fireball_badge.add_theme_color_override("font_color", Color(1.0, 0.5, 0.2))
-		elif levels.get("fireball", 0) > 0:
-			fireball_badge.text = "🔥 Fire Lv.%d" % levels["fireball"]
-			fireball_badge.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			fireball_badge.text = "🔥 (Locked)"
-			fireball_badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
-			
-	if axe_badge:
-		if ev.get("axe", false):
-			axe_badge.text = "👑 Reaper's Cleave"
-			axe_badge.add_theme_color_override("font_color", Color(1.0, 0.3, 0.4))
-		elif levels.get("axe", 0) > 0:
-			axe_badge.text = "🪓 Axe Lv.%d" % levels["axe"]
-			axe_badge.add_theme_color_override("font_color", Color.WHITE)
-		else:
-			axe_badge.text = "🪓 (Locked)"
-			axe_badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
-			
+
+	# Milestone 3a: the base names come from Loc (the canonical table) and the
+	# evolved names from their own rows, so the badges cannot drift away from the
+	# dps report or the shop cards. Icon, evolved flag and level suffix per badge.
+	_badge(dagger_badge, "dagger", "🗡️", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(shield_badge, "shield", "🛡️", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
+	_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
+	_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
+
 	_update_passives_display()
+
+## One badge, three states: evolved (crown + gold), owned (name + level), locked.
+func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
+	if not badge:
+		return
+	var level: int = int(levels.get(weapon_id, 0))
+	if ev.get(weapon_id, false):
+		badge.text = "👑 %s" % Loc.t("evo.%s.name" % weapon_id, weapon_id)
+		badge.add_theme_color_override("font_color", evo_color)
+	elif level > 0:
+		badge.text = "%s %s Lv.%d" % [icon, Loc.weapon_name(weapon_id), level]
+		badge.add_theme_color_override("font_color", Color.WHITE)
+	else:
+		badge.text = "%s %s" % [icon, Loc.t("ui.locked", "(Locked)")]
+		badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
 
 func _update_passives_display() -> void:
 	if not passives_label:

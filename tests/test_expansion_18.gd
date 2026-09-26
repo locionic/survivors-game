@@ -21,7 +21,7 @@ func _ready() -> void:
 	assert("Cái Bang" in beggar["title"], "Beggar unified with Cái Bang sect")
 	print("✔ Jianghu Sect unification & backward compatibility verified.")
 
-	# 2. 3-Weapon Slot Cap
+	# 2. 6-Weapon Slot Cap (raised from 3 by Milestone 1 "Võ Đài Sóng 1")
 	var up_mgr = UpgradeManager.new()
 	var up_panel = PanelContainer.new()
 	up_panel.name = "UpgradePanel"
@@ -33,29 +33,32 @@ func _ready() -> void:
 	up_panel.add_child(up_vbox)
 	up_mgr.add_child(up_panel)
 	add_child(up_mgr)
-	
-	assert(up_mgr.MAX_WEAPONS == 3, "UpgradeManager enforces MAX_WEAPONS = 3 cap")
-	
+
+	assert(up_mgr.MAX_WEAPONS == 6, "UpgradeManager enforces MAX_WEAPONS = 6 cap")
+
 	# Start with 2 weapons
-	up_mgr.weapon_levels = {"dagger": 1, "shield": 1, "lightning": 0, "fireball": 0, "axe": 0}
+	up_mgr.weapon_levels = {"dagger": 1, "shield": 1, "lightning": 0, "fireball": 0, "axe": 0, "slash": 0}
 	assert(up_mgr.get_active_weapon_count() == 2, "Active weapon count is 2")
 	var cat_2 = up_mgr.get_upgrade_catalog()
 	var unlock_count_2 = 0
 	for item in cat_2:
 		if str(item["id"]).begins_with("unlock_"):
 			unlock_count_2 += 1
-	assert(unlock_count_2 > 0, "Weapon unlock cards appear when active weapons < 3")
-	
-	# Fill 3rd slot
+	assert(unlock_count_2 > 0, "Weapon unlock cards appear when active weapons < 6")
+
+	# Fill slots 3 through 6
 	up_mgr.weapon_levels["lightning"] = 1
-	assert(up_mgr.get_active_weapon_count() == 3, "Active weapon count is now 3 (CAPPED)")
+	up_mgr.weapon_levels["fireball"] = 1
+	up_mgr.weapon_levels["axe"] = 1
+	up_mgr.weapon_levels["slash"] = 1
+	assert(up_mgr.get_active_weapon_count() == 6, "Active weapon count is now 6 (CAPPED)")
 	var cat_3 = up_mgr.get_upgrade_catalog()
 	var unlock_count_3 = 0
 	for item in cat_3:
 		if str(item["id"]).begins_with("unlock_"):
 			unlock_count_3 += 1
-	assert(unlock_count_3 == 0, "Zero unlock cards offered when 3 weapon slots are full")
-	print("✔ 3-Weapon slot cap and selective unlock restrictions verified.")
+	assert(unlock_count_3 == 0, "Zero unlock cards offered when 6 weapon slots are full")
+	print("✔ 6-Weapon slot cap and selective unlock restrictions verified.")
 
 	# 3. Paired Evolutions & Wuxia Catalyst Lore
 	up_mgr.weapon_levels["dagger"] = 5

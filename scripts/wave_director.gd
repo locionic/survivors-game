@@ -15,6 +15,7 @@ signal wave_started(wave_num: int, duration: float)
 signal wave_timer_updated(time_left: float, duration: float)
 signal wave_completed(wave_num: int)
 signal shop_opened
+signal wave_paid_out(wave_num: int, clear_gold: int, interest: int)
 
 const WAVE_SHOP_SCENE: PackedScene = preload("res://scenes/wave_shop_ui.tscn")
 
@@ -23,11 +24,25 @@ const BASE_WAVE_DURATION: float = 20.0
 const WAVE_DURATION_STEP: float = 2.5
 const MAX_WAVE_DURATION: float = 60.0
 
+## Milestone 2: savings interest (Tích Lũy). Clearing a hiệp pays a flat bounty
+## that scales with the round, and the gold still sitting in the purse at the
+## bell pays interest of its own -- so hoarding through the early waves is a real
+## strategy rather than a rounding error.
+const CLEAR_BASE_GOLD: int = 15
+const CLEAR_GOLD_PER_WAVE: int = 3
+const INTEREST_GOLD_DIVISOR: int = 10
+const INTEREST_CAP: int = 10
+
 var current_wave: int = 1
 var max_waves: int = 20
 var wave_duration: float = BASE_WAVE_DURATION
 var wave_time_left: float = BASE_WAVE_DURATION
 var is_wave_active: bool = false
+
+## Read by WaveShopUI so the intermission can show the player exactly what the
+## bell paid out. Reset by the next end_wave(), not by start_wave().
+var last_clear_gold: int = 0
+var last_interest_earned: int = 0
 
 ## Performance governor. The single-threaded WASM web build cannot hold 60 FPS at
 ## the legacy 180-enemy ceiling, so the director clamps concurrent spawns to 80.
@@ -86,6 +101,7 @@ func end_wave() -> void:
 	wave_time_left = 0.0
 
 	_purge_remaining_enemies()
+	_award_wave_payout()
 	SoundManager.play("fanfare", 0.05)
 	emit_signal("wave_completed", current_wave)
 
@@ -108,6 +124,25 @@ func advance_to_next_wave() -> void:
 	start_wave(current_wave)
 
 # --- internals ----------------------------------------------------------------
+
+## Flat bounty for surviving a hiệp, independent of the purse.
+func calculate_clear_gold(wave_num: int) -> int:
+	return CLEAR_BASE_GOLD + wave_num * CLEAR_GOLD_PER_WAVE
+
+## Interest on unspent gold: +1 per 10 banked, capped at 10 overall and at 2 per
+## wave so the first few rounds cannot fund a full arsenal from thin air.
+func calculate_interest(unspent_gold: int, wave_num: int) -> int:
+	var raw := floori(float(maxi(unspent_gold, 0)) / float(INTEREST_GOLD_DIVISOR))
+	return mini(raw, mini(INTEREST_CAP, wave_num * 2))
+
+## Interest is read off the purse BEFORE the bounty lands, otherwise the player
+## would bank interest on gold they just earned instead of on gold they chose
+## not to spend -- which is the entire point of the mechanic.
+func _award_wave_payout() -> void:
+	last_interest_earned = calculate_interest(GameManager.run_gold, current_wave)
+	last_clear_gold = calculate_clear_gold(current_wave)
+	GameManager.add_gold(last_clear_gold + last_interest_earned)
+	emit_signal("wave_paid_out", current_wave, last_clear_gold, last_interest_earned)
 
 func _announce(message: String, is_boss: bool = false) -> void:
 	if spawner and spawner.has_signal("wave_event_announced"):

@@ -88,9 +88,21 @@ var char_armor_bonus: int = 0
 var char_might_bonus: float = 0.0
 var char_xp_mult: float = 1.0
 var char_speed_bonus: float = 0.0
+var char_speed_mult: float = 1.0
 var char_hp_bonus: float = 0.0
 var char_magnet_bonus: float = 0.0
 var char_dodge_bonus: float = 0.0
+# Milestone 2 (Môn Phái Độc Bản): the rest of the sect trade-offs. Each one has
+# to reach the damage path it names rather than sit in a menu -- see
+# get_might_multiplier(), take_damage(), get_burn_multiplier(), and the pierce
+# and heal handoffs in apply_character_data().
+var char_damage_mult: float = 1.0
+var char_slash_damage_mult: float = 1.0
+var char_damage_taken_mult: float = 1.0
+var char_lifesteal_bonus: float = 0.0
+var char_combo_heal: float = 0.0
+var char_burn_mult: float = 1.0
+var char_area_bonus: float = 0.0
 var drunken_buff_timer: float = 0.0
 var walk_phase: float = 0.0
 var footstep_side: float = 1.0
@@ -140,29 +152,35 @@ func apply_character_data() -> void:
 	char_hp_bonus = data.get("base_hp_bonus", 0.0)
 	char_armor_bonus = data.get("armor_bonus", 0)
 	char_speed_bonus = data.get("speed_bonus", 0.0)
+	char_speed_mult = data.get("speed_mult", 1.0)
 	char_magnet_bonus = data.get("magnet_bonus", 0.0)
 	char_might_bonus = data.get("might_bonus", 0.0)
 	char_xp_mult = data.get("xp_mult", 1.0)
 	char_dodge_bonus = data.get("dodge_bonus", 0.0)
-	
+	char_damage_mult = data.get("damage_mult", 1.0)
+	char_slash_damage_mult = data.get("slash_damage_mult", 1.0)
+	char_damage_taken_mult = data.get("damage_taken_mult", 1.0)
+	char_lifesteal_bonus = data.get("lifesteal_bonus", 0.0)
+	char_combo_heal = data.get("combo_heal", 0.0)
+	char_burn_mult = data.get("burn_mult", 1.0)
+	char_area_bonus = data.get("area_of_effect_bonus", 0.0)
+
 	# Load character texture
 	var tex_path = data.get("texture_path", "res://assets/textures/player.png")
 	if ResourceLoader.exists(tex_path) and sprite:
 		sprite.texture = load(tex_path)
-		
+
 	# Configure starter weapons
 	var starters: Array = data.get("starter_weapons", ["dagger", "shield"])
 	_configure_weapons(starters)
-	
-	# Character specific weapon bonuses
-	if data.has("blast_radius_bonus"):
-		var fire_wpn = get_node_or_null("Weapons/FireballWeapon")
-		if fire_wpn and fire_wpn.has_method("upgrade_blast_radius"):
-			fire_wpn.upgrade_blast_radius(data["blast_radius_bonus"])
-			
-	if data.has("attack_speed_bonus"):
-		var main_wpn = get_node_or_null("Weapons/MainWeapon")
-		if main_wpn:
+
+	# Đường Môn: each dagger carries one extra target. Pushed onto the weapon
+	# rather than read back per shot so the six-slot arsenal stays swappable.
+	var pierce_bonus := int(data.get("piercing_bonus", 0))
+	var main_wpn = get_node_or_null("Weapons/MainWeapon")
+	if main_wpn:
+		main_wpn.set("pierce_bonus", pierce_bonus)
+		if data.has("attack_speed_bonus"):
 			main_wpn.speed_multiplier += data["attack_speed_bonus"]
 			
 	# Active Skill Setup
@@ -245,18 +263,21 @@ func refresh_meta_stats() -> void:
 		current_health = min(max_health, current_health + hp_delta)
 		
 	var codex_spd = CodexManager.bonus_speed if CodexManager else 0.0
-	move_speed = 230.0 + char_speed_bonus + codex_spd + GameManager.get_meta_stat("swiftness") * 20.0
+	move_speed = (230.0 + char_speed_bonus + codex_spd + GameManager.get_meta_stat("swiftness") * 20.0) * char_speed_mult
 	magnet_radius = 140.0 + char_magnet_bonus + GameManager.get_meta_stat("magnetism") * 30.0
 	meta_might_bonus = GameManager.get_meta_stat("might") * 0.10 + char_might_bonus
-	
+
 	if magnet_area and magnet_area.has_node("CollisionShape2D"):
 		var shape = magnet_area.get_node("CollisionShape2D").shape
 		if shape is CircleShape2D:
 			shape.radius = magnet_radius
-			
+
+	# Cái Bang's +40% AoE is the base here, not an add-on: this line runs again on
+	# every meta-upgrade, so anything applied to blast_radius_multiplier directly
+	# in apply_character_data() would be wiped on the first refresh.
 	var fire_wpn = get_node_or_null("Weapons/FireballWeapon")
-	if fire_wpn and fire_wpn.has_method("upgrade_blast_radius"):
-		fire_wpn.blast_radius_multiplier = 1.0 + GameManager.get_meta_stat("pyro") * 0.12
+	if fire_wpn and "blast_radius_multiplier" in fire_wpn:
+		fire_wpn.blast_radius_multiplier = (1.0 + char_area_bonus) + GameManager.get_meta_stat("pyro") * 0.12
 		
 	# Meridian Cultivation (Hệ Thống Kinh Mạch)
 	if GameManager:
@@ -544,7 +565,9 @@ func take_damage(amount: float) -> void:
 	var meta_arm = GameManager.get_meta_stat("armor") if GameManager else 0
 	var equip_arm = 2 if (GameManager and GameManager.has_equipped("nhuyen_vi_giap")) else 0
 	var total_armor = meta_arm + char_armor_bonus + equip_arm + shop_armor_bonus
-	var final_damage = max(1.0, amount - float(total_armor))
+	# Minh Giáo trades survivability for damage: 15% more of everything, applied
+	# after armor so the sect's fragility is a real flat multiplier.
+	var final_damage = max(1.0, amount - float(total_armor)) * char_damage_taken_mult
 	if has_blood_covenant:
 		final_damage *= 1.20
 	
@@ -670,8 +693,16 @@ func apply_speed_buff(duration: float = 20.0, mult: float = 1.5) -> void:
 	speed_multiplier = mult
 	FloatingText.spawn(global_position + Vector2(0, -32), "💨 WIND SURGE! +50% SPD", Color(0.25, 1.0, 0.65))
 
+## Every weapon funnels its damage through here, so this is the one place the
+## Nga Mi -15% base-damage trade-off has to be applied -- folding it in any other
+## spot would miss whichever weapon nobody remembered to patch.
 func get_might_multiplier() -> float:
-	return (1.0 + meta_might_bonus) * might_multiplier
+	return (1.0 + meta_might_bonus) * might_multiplier * char_damage_mult
+
+## Minh Giáo's +60% elemental burn, read by enemy.apply_burn() -- the single
+## point every burn source (fireball, spirit sword, dragon breath) routes through.
+func get_burn_multiplier() -> float:
+	return char_burn_mult
 
 ## Expansion 21.0: Vạn Nhân Trảm — Blood Rush rampage buff.
 func activate_blood_rush(duration: float = BLOOD_RUSH_DURATION) -> void:

@@ -117,6 +117,15 @@ func _get_player_might() -> float:
 		return p.get_might_multiplier()
 	return 1.0
 
+## Đường Môn trades the blade for the blade-thrower: their melee is half a hit.
+func _get_slash_multiplier() -> float:
+	var p = _get_player()
+	return p.char_slash_damage_mult if is_instance_valid(p) and "char_slash_damage_mult" in p else 1.0
+
+func _get_combo_heal() -> float:
+	var p = _get_player()
+	return p.char_combo_heal if is_instance_valid(p) and "char_combo_heal" in p else 0.0
+
 func perform_slash(override_dir: Vector2 = Vector2.ZERO, combo_step_override: int = -1) -> Array[Node2D]:
 	var step := 0 if combo_step_override < 0 else clampi(combo_step_override, 0, 2)
 	var facing = override_dir if override_dir != Vector2.ZERO else _get_facing_direction()
@@ -159,8 +168,17 @@ func perform_slash(override_dir: Vector2 = Vector2.ZERO, combo_step_override: in
 
 	var base_hit_damage = slash_damage if slash_damage > 0.0 else (base_damage if not is_evolved else 75.0)
 	var eff_dmg = base_hit_damage * damage_multiplier * tier_damage_mult * COMBO_MULT[step] * _get_player_might()
+	eff_dmg *= _get_slash_multiplier()
 	if GameManager and GameManager.has_equipped("y_thien_kiem"):
 		eff_dmg *= 1.15
+
+	# Nga Mi's Cửu Kiếm Quy Tông is a sip of life as much as a kill. Charged
+	# before the sweep so the heal lands even on a whiffed finisher.
+	if step == 2 and _get_combo_heal() > 0.0:
+		var player := _get_player()
+		if is_instance_valid(player) and player.has_method("heal"):
+			player.heal(_get_combo_heal())
+			FloatingText.spawn(player.global_position + Vector2(0, -40), "🩸 HỒI MÁU!", Color(0.35, 1.0, 0.6))
 
 	for e in enemies:
 		if is_instance_valid(e) and not e.get("is_dead"):

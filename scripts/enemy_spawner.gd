@@ -40,10 +40,41 @@ var elite_champion_1_spawned: bool = false
 var elite_champion_2_spawned: bool = false
 var player: Node2D = null
 
+## Milestone 2 — set pieces are authored per hiệp, not per second. Keyed by
+## WaveDirector.current_wave; each entry names the method that runs the encounter.
+## Waves 2 and 3 share one handler.
+const WAVE_EVENTS: Dictionary = {
+	2: "_wave_opening_swarm",
+	3: "_wave_opening_swarm",
+	4: "spawn_treasure_goblin",
+	5: "spawn_elite_champion",
+	8: "_wave_ambush_swarm",
+	10: "spawn_boss_1",
+	12: "_wave_blood_hermit",
+	15: "_wave_dual_elites",
+	18: "_wave_behemoth_duo",
+	20: "spawn_demon_emperor"
+}
+## Seconds into a wave before its set piece lands, so the hiệp banner gets read
+## before a boss is standing on top of the player.
+const WAVE_EVENT_DELAY: float = 2.5
+## Seconds-equivalent difficulty per hiệp. Wave 20 lands exactly on the legacy
+## 480s ceiling, so one already-tuned difficulty curve serves both a Võ Đài run
+## and a standalone survival test.
+const WAVE_DIFFICULTY_SECONDS: float = 24.0
+
+var wave_director: Node = null
+var _last_seen_wave: int = 0
+var _pending_wave: int = 0
+var _pending_timer: float = 0.0
+
 
 func _ready() -> void:
 	add_to_group("enemy_spawner")
 	player = get_tree().get_first_node_in_group("player")
+	# Either node may enter the tree first, so this only primes the cache; the
+	# real resolution happens lazily in get_director() on the first _process.
+	wave_director = get_tree().get_first_node_in_group("wave_director")
 	if GameManager:
 		GameManager.connect("run_started", Callable(self, "_on_run_started"))
 	call_deferred("spawn_intro_ambush")
@@ -66,15 +97,67 @@ func spawn_intro_ambush() -> void:
 func _process(delta: float) -> void:
 	if not GameManager.is_run_active or not is_instance_valid(player):
 		return
-		
-	var r_time = GameManager.run_time
+
 	timer += delta
 	powerup_timer += delta
-	
+
 	# Random periodic floor item drop (~22s)
 	if powerup_timer >= 22.0:
 		powerup_timer = 0.0
 		spawn_floor_powerup()
+
+	# One pacing curve, two clocks: a Võ Đài run is driven by the hiệp number,
+	# a standalone run by the legacy survival clock.
+	var difficulty := get_difficulty_seconds()
+	if get_director() != null:
+		_process_wave_events(delta)
+	else:
+		_process_legacy_timeline(difficulty)
+
+	var current_interval = max(0.18, spawn_interval - (difficulty * 0.005))
+
+	if timer >= current_interval:
+		timer = 0.0
+		spawn_enemy_wave()
+
+## Cached lookup so the two nodes may enter the tree in either order. Returns
+## null whenever no WaveDirector is present, which is the signal to stay on the
+## legacy timeline.
+func get_director() -> Node:
+	if not is_instance_valid(wave_director) and is_inside_tree():
+		wave_director = get_tree().get_first_node_in_group("wave_director")
+	return wave_director
+
+## The scalar every spawn curve reads. Wave 20 == 480s, the legacy ceiling, so
+## enemy counts, HP inflation and champion odds hit their tuned top tier exactly
+## on the final hiệp instead of wherever the run clock happened to be.
+func get_difficulty_seconds() -> float:
+	var dir := get_director()
+	if dir != null:
+		return float(clampi(int(dir.current_wave), 1, 20)) * WAVE_DIFFICULTY_SECONDS
+	return GameManager.run_time
+
+func _process_wave_events(delta: float) -> void:
+	var wave := int(wave_director.current_wave)
+	if wave != _last_seen_wave:
+		_last_seen_wave = wave
+		_pending_wave = wave if WAVE_EVENTS.has(wave) else 0
+		_pending_timer = WAVE_EVENT_DELAY
+
+	if _pending_wave <= 0:
+		return
+	_pending_timer -= delta
+	if _pending_timer > 0.0:
+		return
+	var event := String(WAVE_EVENTS[_pending_wave])
+	_pending_wave = 0
+	if has_method(event):
+		call(event)
+
+## The pre-Milestone-2 survival ladder. Only reached when no WaveDirector is in
+## the scene, so standalone tests that instantiate the spawner on their own keep
+## working against the 480s clock.
+func _process_legacy_timeline(r_time: float) -> void:
 	
 	# 30s: First Treasure Goblin Appears!
 	if r_time >= 30.0 and not goblin_1_spawned:
@@ -166,11 +249,42 @@ func _process(delta: float) -> void:
 		demon_emperor_spawned = true
 		spawn_demon_emperor()
 
-	var current_interval = max(0.18, spawn_interval - (r_time * 0.005))
+# --- Milestone 2: per-hiệp encounters ------------------------------------------
 
-	if timer >= current_interval:
-		timer = 0.0
-		spawn_enemy_wave()
+## Hiệp 2-3 are the warm-up: cheap fodder so the player banks opening gold to
+## spend in the Tàng Kinh Các. The base cadence already leans bats this early
+## (see get_difficulty_seconds), so this only adds a visible burst.
+func _wave_opening_swarm() -> void:
+	trigger_swarm("🦇 BẦY CUA MỘ ĐANG BAY VỀ! 🦇", bat_scene, 10)
+
+## Hiệp 8: the pinned-down ambush -- skeletons from every angle at once.
+func _wave_ambush_swarm() -> void:
+	trigger_swarm("⚠️ PHỤC KÍCH! BỐN MẶT THI MA TRẬN! ⚠️", skeleton_scene, 24)
+
+## Hiệp 12: the Blood Moon pays double while a wandering hermit turns up to sell
+## a reprieve. Greed and safety in the same round.
+func _wave_blood_hermit() -> void:
+	trigger_blood_moon_event()
+	spawn_hermit()
+
+## Hiệp 15: two Elite Champions, each carrying a different rider. The frozen one
+## is easy to burst down but slow to start; the venom one keeps its distance
+## while the poison ticks.
+func _wave_dual_elites() -> void:
+	var frost := spawn_elite_champion()
+	var venom := spawn_elite_champion()
+	if is_instance_valid(frost) and "freeze_timer" in frost:
+		frost.freeze_timer = 6.0
+	if is_instance_valid(venom) and venom.has_method("apply_poison"):
+		venom.apply_poison(999.0, 16.0)
+	emit_signal("wave_event_announced", "⚜️ HAI VỊ TINH ANH LỆNH: BĂNG SƯ & ĐỘC SƯ! ⚜️", true)
+	SoundManager.play("boss_alarm", 0.12)
+
+## Hiệp 18: the Behemoth anchors the floor while a necromancer screen keeps the
+## player from closing on it.
+func _wave_behemoth_duo() -> void:
+	spawn_boss_2()
+	trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 12)
 
 const MAX_ACTIVE_ENEMIES: int = 180
 
@@ -187,14 +301,14 @@ func spawn_enemy_wave() -> void:
 	if active_enemies >= enemy_cap:
 		return
 
-	var count = 3 + int(GameManager.run_time / 14.0)
+	var r_time = get_difficulty_seconds()
+	var count = 3 + int(r_time / 14.0)
 	for i in range(count):
 		var angle = randf() * TAU
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * spawn_distance
-		
+
 		# Dynamic enemy composition by time (0 to 480s):
 		var chosen_scene: PackedScene = bat_scene
-		var r_time = GameManager.run_time
 		
 		if r_time > 180.0:
 			var roll = randf()

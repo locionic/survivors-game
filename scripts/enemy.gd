@@ -538,6 +538,8 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 			crit_chance += player.crit_chance_bonus
 		if "shop_lifesteal" in player:
 			lifesteal = player.shop_lifesteal
+		if "char_lifesteal_bonus" in player:
+			lifesteal += player.char_lifesteal_bonus
 
 	var is_crit = randf() < crit_chance
 	var final_amount = amount * 2.2 if is_crit else amount
@@ -598,6 +600,10 @@ func apply_burn(duration: float, dps: float = 18.0) -> void:
 	if freeze_timer > 0.0:
 		_trigger_thermal_shockwave()
 		return
+	# Minh Giáo's burn rider is applied here rather than at each of the four
+	# call sites: every burn source already funnels through this one function.
+	if is_instance_valid(player) and player.has_method("get_burn_multiplier"):
+		dps *= player.get_burn_multiplier()
 	burn_timer = max(burn_timer, duration)
 	burn_dps = max(burn_dps, dps)
 	FloatingText.spawn(global_position + Vector2(0, -20), "🔥 THIÊU ĐỐT!", Color(1.0, 0.45, 0.1))

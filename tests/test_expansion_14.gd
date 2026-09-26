@@ -11,7 +11,8 @@ func _ready() -> void:
 	var beggar_data = GameManager.CHARACTERS["beggar"]
 	assert(beggar_data["name"] == "Tiêu Lãng", "Cái Bang hero name is Tiêu Lãng")
 	assert(beggar_data["skill_id"] == "drunken_brew", "Cái Bang signature skill is drunken_brew")
-	assert(beggar_data["dodge_bonus"] == 0.15, "Cái Bang has +15% innate dodge chance")
+	# Milestone 2 rebalanced Cái Bang up to +30% dodge against -20 Max HP.
+	assert(beggar_data["dodge_bonus"] == 0.30, "Cái Bang has +30% innate dodge chance")
 	assert(ResourceLoader.exists(beggar_data["texture_path"]), "Cái Bang texture exists")
 	print("✔ Cái Bang (Beggar Sect) archetype definitions verified.")
 	
@@ -23,7 +24,7 @@ func _ready() -> void:
 	add_child(player)
 	player.apply_character_data()
 	
-	assert(player.char_dodge_bonus == 0.15, "Player inherits 15% dodge bonus")
+	assert(player.char_dodge_bonus == 0.30, "Player inherits 30% dodge bonus")
 	assert(player.skill_id == "drunken_brew", "Player skill configured to drunken_brew")
 	assert(player.skill_cooldown_max == 7.5, "Drunken brew cooldown set to 7.5s")
 	

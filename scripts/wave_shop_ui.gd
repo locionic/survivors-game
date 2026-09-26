@@ -51,6 +51,13 @@ var cards: Array[Dictionary] = []
 var current_wave: int = 1
 var reroll_uses: int = 0
 
+## Milestone 2: what the bell paid for the hiệp that just ended, copied off the
+## director on open. Held here rather than read live so the banner keeps showing
+## the payout while the player spends the money it just earned.
+var payout_wave: int = 0
+var payout_clear_gold: int = 0
+var payout_interest: int = 0
+
 var _root: Control = null
 var _title_label: Label = null
 var _gold_label: Label = null
@@ -202,6 +209,7 @@ func _get_upgrade_manager() -> Node:
 func open_for_wave(wave_num: int) -> void:
 	current_wave = wave_num
 	reroll_uses = 0
+	_read_payout()
 	# cards is deliberately NOT cleared: locked cards must survive the wave
 	# transition, and this node is reused rather than freed for exactly that.
 	if cards.is_empty():
@@ -210,6 +218,25 @@ func open_for_wave(wave_num: int) -> void:
 		_refresh_cards()
 	show()
 	_refresh_all()
+
+## Pull the last end_wave() payout off the director so the header can show the
+## player what banking their gold actually earned. A shop opened without one (a
+## test, or the very first round) simply shows no banner.
+func _read_payout() -> void:
+	payout_wave = 0
+	payout_clear_gold = 0
+	payout_interest = 0
+	var director := get_tree().get_first_node_in_group("wave_director") if get_tree() else null
+	if is_instance_valid(director) and director.last_clear_gold > 0:
+		payout_wave = current_wave - 1
+		payout_clear_gold = director.last_clear_gold
+		payout_interest = director.last_interest_earned
+
+func get_wave_summary() -> String:
+	if payout_wave <= 0:
+		return ""
+	return "Hoàn thành Hiệp %d! Thưởng: +%d Vàng | Lợi tức tiết kiệm: +%d Vàng" % [
+		payout_wave, payout_clear_gold, payout_interest]
 
 func close_shop() -> void:
 	hide()
@@ -328,6 +355,9 @@ func _refresh_all() -> void:
 func _refresh_header() -> void:
 	if _title_label:
 		_title_label.text = "🏛️ TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
+		var summary := get_wave_summary()
+		if summary != "":
+			_title_label.text += "\n" + summary
 	_refresh_gold()
 
 func _refresh_gold() -> void:

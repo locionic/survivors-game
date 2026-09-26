@@ -227,99 +227,118 @@ const SHENRON_WISHES: Dictionary = {
 var is_blood_moon: bool = false
 var blood_moon_timer: float = 0.0
 
+## Milestone 2: five deliberately opposed Môn Phái. Every entry trades something
+## real for something real, so the sect you pick decides which of the six weapon
+## slots is worth buying rather than just a starting palette.
+##   knight  Tiêu Dao   generalist  - no upside and no downside
+##   pyro    Minh Giáo  glass cannon- +60% burn & might, eats 15% more damage
+##   ranger  Đường Môn  darter      - +100% pierce & +35% attack speed, slash -50%
+##   mage    Nga Mi     vampiric    - +25% lifesteal & a healing finisher, -15% damage
+##   beggar  Cái Bang   brawler     - +40% AoE & +30% dodge, -20 Max HP
+##
+## The ids stay ranger/mage rather than the spec's tang/emei: selected_character
+## and every leaderboard "hero" row on disk use these strings.
 const CHARACTERS: Dictionary = {
 	"knight": {
 		"id": "knight",
 		"name": "Đoàn Kiếm (Sir Kaelen)",
 		"title": "Tiêu Dao Kiếm Hiệp",
 		"texture_path": "res://assets/textures/player.png",
-		"starter_weapons": ["dagger", "slash", "shield"],
+		"starter_weapons": ["dagger", "slash"],
 		"base_hp_bonus": 25.0,
 		"armor_bonus": 2,
 		"speed_bonus": 0.0,
 		"magnet_bonus": 0.0,
-		"might_bonus": 0.0,
+		"might_bonus": 0.10,
+		"speed_mult": 1.10,
 		"xp_mult": 1.0,
 		"skill_id": "shield_charge",
 		"skill_name": "Ngự Kiếm Trùng Kích",
 		"skill_icon": "🛡️",
 		"skill_desc": "Lướt tới húc văng quái gây 45 ST kèm 0.9s hộ thể bất tử",
-		"description": "Truyền nhân Tiêu Dao phái ngự khí hộ thân.\n⚔️ Khởi đầu: Độc Cô Cửu Kiếm, Phi Đao & Khiên Bát Quái\n🛡️ Tuyệt kỹ: Ngự Kiếm Trùng Kích (SPACE)\n🛡️ Thiên phú: +25 Máu Tối Đa, +2 Giáp Hộ Thân"
+		"description": "Truyền nhân Tiêu Dao phái ngự khí hộ thân.\n⚔️ Khởi đầu: Độc Cô Cửu Kiếm & Phi Đao\n🛡️ Tuyệt kỹ: Ngự Kiếm Trùng Kích (SPACE)\n⚖️ Thiên phú: +10% Sức Mạnh, +10% Tốc Độ — vạn võ đều dùng được"
 	},
 	"pyro": {
 		"id": "pyro",
 		"name": "Ignis - Viêm Chưởng",
 		"title": "Minh Giáo Liệt Hỏa",
 		"texture_path": "res://assets/textures/hero_pyro.png",
-		"starter_weapons": ["fireball"],
+		"starter_weapons": ["fireball", "lightning"],
 		"base_hp_bonus": 10.0,
 		"armor_bonus": 0,
 		"speed_bonus": 0.0,
 		"magnet_bonus": 0.0,
-		"might_bonus": 0.20,
+		"might_bonus": 0.60,
+		"burn_mult": 1.60,
+		"damage_taken_mult": 1.15,
 		"xp_mult": 1.0,
-		"blast_radius_bonus": 0.35,
 		"skill_id": "inferno_blink",
 		"skill_name": "Liệt Diễm Độn Thuật",
 		"skill_icon": "🔥",
 		"skill_desc": "Dịch chuyển tức thời để lại vòng xoáy lửa thiêu 70 ST",
-		"description": "Thánh Hỏa Minh Giáo thiêu đốt vạn ma.\n🔥 Khởi đầu: Liệt Hỏa Chưởng Cầu\n💥 Tuyệt kỹ: Liệt Diễm Độn Thuật (SPACE)\n🔥 Thiên phú: +35% Phạm vi nổ, +20% Sát thương Hỏa"
+		"description": "Thánh Hỏa Minh Giáo thiêu đốt vạn ma.\n🔥 Khởi đầu: Liệt Hỏa Chưởng Cầu & Cửu Thiên Lôi\n💥 Tuyệt kỹ: Liệt Diễm Độn Thuật (SPACE)\n🔥 Thiên phú: +60% Thiêu Đốt, +60% Sức Mạnh\n💀 Đánh đổi: chịu thêm 15% sát thương"
 	},
 	"ranger": {
 		"id": "ranger",
 		"name": "Đường Ảnh (Zephyr)",
 		"title": "Đường Môn Thích Khách",
 		"texture_path": "res://assets/textures/hero_ranger.png",
-		"starter_weapons": ["dagger", "axe"],
+		"starter_weapons": ["dagger"],
 		"base_hp_bonus": 0.0,
 		"armor_bonus": 0,
 		"speed_bonus": 45.0,
 		"magnet_bonus": 0.0,
 		"might_bonus": 0.10,
-		"attack_speed_bonus": 0.25,
+		"attack_speed_bonus": 0.35,
+		"piercing_bonus": 1,
+		"slash_damage_mult": 0.50,
 		"xp_mult": 1.0,
 		"skill_id": "shadow_roll",
 		"skill_name": "Thất Tinh Độn Bộ",
 		"skill_icon": "💨",
 		"skill_desc": "Lộn nhào né đòn đồng thời bắn 10 phi kim tỏa tròn",
-		"description": "Sát thủ Tứ Xuyên Đường Môn thiên hạ vô song.\n🪓 Khởi đầu: Ám Khí Phi Đao & Đả Cẩu Trận\n🗡️ Tuyệt kỹ: Thất Tinh Độn Bộ (SPACE)\n💨 Thiên phú: +45 Tốc độ chạy, +25% Tốc đánh"
+		"description": "Sát thủ Tứ Xuyên Đường Môn thiên hạ vô song.\n🪓 Khởi đầu: Ám Khí Phi Đao\n💨 Tuyệt kỹ: Thất Tinh Độn Bộ (SPACE)\n🗡️ Thiên phú: Phi Đao xuyên thêm 1 mục tiêu, +35% Tốc Đánh\n⚠️ Đánh đổi: kiếm cận chỉ còn 50% sát thương"
 	},
 	"mage": {
 		"id": "mage",
 		"name": "Thanh Loan (Morrigan)",
 		"title": "Nga Mi Tiên Tử",
 		"texture_path": "res://assets/textures/hero_mage.png",
-		"starter_weapons": ["lightning", "shield"],
+		"starter_weapons": ["shield", "slash"],
 		"base_hp_bonus": 0.0,
 		"armor_bonus": 0,
 		"speed_bonus": 0.0,
 		"magnet_bonus": 60.0,
 		"might_bonus": 0.15,
+		"lifesteal_bonus": 0.25,
+		"combo_heal": 5.0,
+		"damage_mult": 0.85,
 		"xp_mult": 1.20,
 		"skill_id": "frost_singularity",
 		"skill_name": "Huyền Băng Định Thân",
 		"skill_icon": "❄️",
 		"skill_desc": "Đóng băng toàn bộ kẻ địch 280px trong 2.4s và gây 35 ST",
-		"description": "Nga Mi chân truyền khống chế huyền băng và thiên lôi.\n⚡ Khởi đầu: Cửu Thiên Lôi & Khiên Bát Quái\n❄️ Tuyệt kỹ: Huyền Băng Định Thân (SPACE)\n🌌 Thiên phú: +60 Bán kính hút ngọc, +20% Điểm kinh nghiệm"
+		"description": "Nga Mi chân truyền khống chế huyền băng và thiên lôi.\n🛡️ Khởi đầu: Khiên Bát Quái & Độc Cô Cửu Kiếm\n❄️ Tuyệt kỹ: Huyền Băng Định Thân (SPACE)\n🩸 Thiên phú: +25% Hút Sinh Lực, Cửu Kiếm Quy Tông hồi 5 Máu\n⚠️ Đánh đổi: -15% Sát Thương nền"
 	},
 	"beggar": {
 		"id": "beggar",
 		"name": "Tiêu Lãng",
 		"title": "Cái Bang Chưởng Môn",
 		"texture_path": "res://assets/textures/hero_beggar.png",
-		"starter_weapons": ["dagger", "axe"],
-		"base_hp_bonus": 20.0,
+		"starter_weapons": ["axe"],
+		"base_hp_bonus": -20.0,
 		"armor_bonus": 1,
 		"speed_bonus": 30.0,
 		"magnet_bonus": 25.0,
 		"might_bonus": 0.15,
-		"dodge_bonus": 0.15,
+		"dodge_bonus": 0.30,
+		"area_of_effect_bonus": 0.40,
 		"xp_mult": 1.10,
 		"skill_id": "drunken_brew",
 		"skill_name": "Say Rượu Bát Tiên",
 		"skill_icon": "🍶",
 		"skill_desc": "Uống Rượu Tiên: +40% Né Đòn & +50% Tốc Đánh trong 6.0s",
-		"description": "Lãng tử Cái Bang tiêu dao tự tại.\n🎋 Khởi đầu: Phi Đao & Đả Cẩu Rìu Trận\n🍶 Tuyệt kỹ: Say Rượu Bát Tiên (SPACE)\n💨 Thân pháp: +15% Né Đòn Tự Nhiên, +30 Tốc chạy"
+		"description": "Lãng tử Cái Bang tiêu dao tự tại.\n🪓 Khởi đầu: Đả Cẩu Rìu Trận\n🍶 Tuyệt kỹ: Say Rượu Bát Tiên (SPACE)\n💥 Thiên phú: +40% Phạm Vi Diện Rộng, +30% Né Đòn\n⚠️ Đánh đổi: -20 Máu Tối Đa"
 	}
 }
 

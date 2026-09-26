@@ -15,6 +15,9 @@ var damage_multiplier: float = 1.0
 ## Fusion tier multiplier pushed in by UpgradeManager.apply_arsenal_bonuses().
 var tier_damage_mult: float = 1.0
 var speed_multiplier: float = 1.0
+## Extra targets each projectile carries. Đường Môn sets this to 1 at character
+## load; 0 is every other sect, and every spawned blade defaults to pierce=1.
+var pierce_bonus: int = 0
 var is_evolved: bool = false
 
 # Expansion 20.0: Tinh Võ Hợp Nhất — Bão Vũ Lê Hoa Châm (Dagger Lv.5 + Axe Lv.5)
@@ -92,6 +95,7 @@ func fire_at(target_pos: Vector2) -> void:
 			var spread_dir = base_direction.rotated(angle_offset)
 			proj.set("direction", spread_dir)
 			proj.set("damage", base_damage * damage_multiplier * tier_damage_mult * _get_player_might())
+			proj.set("pierce", 1 + pierce_bonus)
 			proj.global_position = global_position
 			proj.rotation = spread_dir.angle()
 			get_tree().current_scene.add_child(proj)

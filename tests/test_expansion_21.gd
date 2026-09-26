@@ -481,6 +481,10 @@ func _test_kill_milestone_rampage() -> void:
 	GameManager.kill_milestone_reached.connect(func(milestone: int, title: String):
 		fired.append({"milestone": milestone, "title": title}))
 
+	# Milestone 3a moved the banner copy behind Loc, so what the banner says now
+	# follows the active language -- comparing it to a fixed literal would only
+	# pass for one of the two. The Vietnamese text is still pinned exactly, in two
+	# places, so a translator drifting it fails here instead of shipping silently.
 	var expected_titles: Dictionary = {
 		50: "⚔️ TRẢM TƯỚNG ĐOẠT KỲ! (+25% CUỒNG BẠO)",
 		100: "🔥 BÁCH NHÂN ĐỊCH! (+25% CUỒNG BẠO)",
@@ -488,6 +492,12 @@ func _test_kill_milestone_rampage() -> void:
 		500: "👑 VẠN QUÂN BẤT ĐỊCH! (+25% CUỒNG BẠO)",
 		1000: "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"
 	}
+	for target: int in expected_titles:
+		var vi_row: String = str(Loc.STRINGS.get("hud.streak_%d" % target, {}).get("vi", ""))
+		check(vi_row == expected_titles[target],
+			"The Vietnamese %d milestone banner is unchanged (got '%s')" % [target, vi_row])
+		check(vi_row == str(GameManager.KILL_MILESTONE_TITLES.get(target, "")),
+			"Loc's Vietnamese %d banner agrees with the GameManager fallback" % target)
 	var expected_milestones: Array[int] = [50, 100, 250, 500, 1000]
 	check(GameManager.KILL_MILESTONES == expected_milestones,
 		"Milestones are 50 / 100 / 250 / 500 / 1000")
@@ -504,8 +514,9 @@ func _test_kill_milestone_rampage() -> void:
 		check(int(event["milestone"]) == target,
 			"Crossing %d kills announces the %d milestone (announced %d)"
 			% [target, target, event["milestone"]])
-		check(event["title"] == expected_titles[target],
-			"The %d milestone banner title matches the announced copy" % target)
+		check(event["title"] == Loc.t("hud.streak_%d" % target, expected_titles[target]),
+			"The %d milestone banner says what the %s locale publishes"
+			% [target, Loc.current_locale])
 		check(player.blood_rush_timer > 0.0,
 			"Crossing %d kicks off a 5 second Blood Rush on the player" % target)
 		check(is_equal_approx(player.blood_rush_timer, 5.0),

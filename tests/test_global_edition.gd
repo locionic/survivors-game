@@ -360,6 +360,20 @@ func _test_gamepad_actions() -> void:
 	check(_has_joy_button("ui_cancel", 1), "ui_cancel accepts B/Circle")
 	check(_has_joy_button("ui_cancel", 6), "ui_cancel accepts Start")
 
+	# Declaring a built-in action in project.godot REPLACES its event list rather
+	# than merging into it, so adding the pad silently strips Enter/Escape and
+	# every modal stops closing. Re-assert the keyboard half explicitly.
+	for pair in [["ui_accept", [KEY_ENTER, KEY_SPACE]], ["ui_cancel", [KEY_ESCAPE]]]:
+		var action: String = pair[0]
+		var needed: Array = pair[1]
+		var bound: Array = []
+		for e in InputMap.action_get_events(action):
+			if e is InputEventKey:
+				bound.append((e as InputEventKey).keycode)
+		for keycode in needed:
+			check(bound.has(keycode),
+				"%s still answers to key %d (gamepad: %s)" % [action, keycode, str(bound)])
+
 	# Right stick aiming, on the axes Godot reserves for it (2/3).
 	for pair in [["aim_left", 2], ["aim_right", 2], ["aim_up", 3], ["aim_down", 3]]:
 		var action: String = pair[0]

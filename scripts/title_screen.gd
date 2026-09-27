@@ -37,9 +37,57 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_resolve_nodes()
 	_connect_signals()
+	_apply_theme()
 	_setup_cta_pulse()
 	_install_locale_toggle()
 	refresh_all()
+
+## Milestone 4. Baked in code rather than into the .tscn so the scene and the
+## token module can never drift -- one edit here restyles the whole screen.
+func _apply_theme() -> void:
+	var main_title := find_child("MainTitle", true, false) as Label
+	if main_title:
+		main_title.add_theme_font_override("font", UITheme.get_display_font())
+		main_title.add_theme_font_size_override("font_size", 52)
+		main_title.add_theme_color_override("font_color", UITheme.GOLD)
+		# A dark rim keeps Cinzel's thin serifs legible over the particle backdrop.
+		main_title.add_theme_color_override("font_outline_color", UITheme.INK)
+		main_title.add_theme_constant_override("outline_size", 10)
+
+	var sub_title := find_child("SubTitle", true, false) as Label
+	if sub_title:
+		sub_title.add_theme_color_override("font_color", UITheme.MUTED)
+
+	for card_name in ["HeroCard", "StageCard"]:
+		var card := find_child(card_name, true, false) as PanelContainer
+		if card:
+			card.add_theme_stylebox_override("panel", UITheme.make_card_panel())
+		for header_name in ["HeroTitle", "StageTitle"]:
+			var header := find_child(header_name, true, false) as Label
+			if header:
+				header.add_theme_font_override("font", UITheme.get_body_bold_font())
+				header.add_theme_color_override("font_color", UITheme.GOLD)
+
+	for desc_name in ["HeroDescLabel", "StageDescLabel"]:
+		var desc := find_child(desc_name, true, false) as Label
+		if desc:
+			desc.add_theme_color_override("font_color", UITheme.MUTED)
+
+	if start_button:
+		start_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+		start_button.add_theme_font_size_override("font_size", 20)
+		start_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+		start_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+		start_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+		start_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+		start_button.add_theme_stylebox_override("hover",
+			UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+		start_button.add_theme_stylebox_override("pressed",
+			UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
+
+	var gold_lbl := find_child("GoldLabel", true, false) as Label
+	if gold_lbl:
+		gold_lbl.add_theme_color_override("font_color", UITheme.GOLD)
 
 ## Milestone 3a. Pinned to the top-right corner, above everything else, so the
 ## language is switchable from the very first frame. The button re-labels itself
@@ -167,11 +215,14 @@ func _refresh_stage() -> void:
 	if stage_desc_label:
 		stage_desc_label.text = stage_data.get("desc", "")
 	if stage_icon:
-		stage_icon.text = "❄️" if s_id == "mount_hua" else "🏞️"
+		# Text-presentation glyphs (no U+FE0F) so the glyph comes from a font
+		# instead of the platform's colour-emoji set, which varies per machine.
+		stage_icon.text = "❄" if s_id == "mount_hua" else "▲"
+		stage_icon.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _refresh_gold() -> void:
 	if gold_label and GameManager:
-		gold_label.text = "💰 Vàng Tích Lũy: %d" % GameManager.total_gold
+		gold_label.text = "Vàng Tích Lũy: %d" % GameManager.total_gold
 
 func _on_character_changed(_char_id: String) -> void:
 	_refresh_hero()
@@ -183,23 +234,23 @@ func _on_gold_changed(_g: int) -> void:
 	_refresh_gold()
 
 func _on_hero_clicked() -> void:
-	SoundManager.play("powerup", 0.08)
+	SoundManager.play_ui_click()
 	emit_signal("hero_select_pressed")
 
 func _on_map_clicked() -> void:
-	SoundManager.play("powerup", 0.08)
+	SoundManager.play_ui_click()
 	emit_signal("world_map_pressed")
 
 func _on_shop_clicked() -> void:
-	SoundManager.play("coin", 0.12)
+	SoundManager.play_ui_click()
 	emit_signal("shop_pressed")
 
 func _on_rank_clicked() -> void:
-	SoundManager.play("powerup", 0.08)
+	SoundManager.play_ui_click()
 	emit_signal("leaderboard_pressed")
 
 func _on_codex_clicked() -> void:
-	SoundManager.play("powerup", 0.08)
+	SoundManager.play_ui_click()
 	emit_signal("codex_pressed")
 
 func open_screen() -> void:
@@ -215,7 +266,7 @@ func start_run() -> void:
 	if is_starting:
 		return
 	is_starting = true
-	SoundManager.play("powerup", 0.15)
+	SoundManager.play_ui_click()
 	
 	var tw = create_tween()
 	tw.tween_property(self, "modulate:a", 0.0, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)

@@ -112,10 +112,11 @@ func roll_items() -> void:
 func reroll() -> bool:
 	var cost := get_reroll_cost()
 	if get_gold() < cost:
+		SoundManager.play_ui_deny()
 		return false
 	_spend(cost)
 	reroll_uses += 1
-	SoundManager.play("powerup", 0.15)
+	SoundManager.play_ui_buy()
 	roll_items()
 	_refresh_gold()
 	return true
@@ -138,6 +139,7 @@ func purchase_card(index: int) -> bool:
 		return false
 	var price := int(entry.get("price", 0))
 	if get_gold() < price:
+		SoundManager.play_ui_deny()
 		return false
 
 	_spend(price)
@@ -147,6 +149,7 @@ func purchase_card(index: int) -> bool:
 			# Full arsenal: refund rather than silently swallowing the gold.
 			GameManager.run_gold += price
 			GameManager.emit_signal("gold_updated", GameManager.total_gold)
+			SoundManager.play_ui_deny()
 			return false
 	else:
 		_apply_scroll(entry)
@@ -154,7 +157,7 @@ func purchase_card(index: int) -> bool:
 	# A spent slot empties out and can be rerolled into something else.
 	cards[index]["data"] = {}
 	cards[index]["locked"] = false
-	SoundManager.play("powerup", 0.2)
+	SoundManager.play_ui_buy()
 	_refresh_all()
 	return true
 

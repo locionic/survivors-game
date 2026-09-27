@@ -20,6 +20,10 @@ FloatingText="*res://scripts/floating_text.gd"
 LeaderboardManager="*res://scripts/leaderboard_manager.gd"
 CodexManager="*res://scripts/codex_manager.gd"
 
+[gui]
+
+theme/custom_font="res://assets/fonts/BeVietnamPro-Regular.ttf"
+
 [display]
 
 window/size/viewport_width=1280

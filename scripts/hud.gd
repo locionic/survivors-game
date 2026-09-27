@@ -14,20 +14,20 @@ extends CanvasLayer
 @onready var gold_label: Label = $GameUI/TopBar/GoldLabel
 @onready var kills_label: Label = $GameUI/TopBar/KillsLabel
 @onready var audio_button: Button = $GameUI/TopBar/AudioButton
-@onready var map_button: Button = get_node_or_null("GameUI/TopBar/MapButton")
+# Milestone 4: the combat TopBar is decluttered. Map / Hero / Leaderboard / Codex
+# are reached from the PausePanel now, so `pause_*_button` is the only handle for
+# each. Map previously had no pause entry point, hence PauseMapButton.
 @onready var pause_button: Button = $GameUI/TopBar/PauseButton
 @onready var minimap: Minimap = get_node_or_null("GameUI/Minimap")
 @onready var world_map_modal: WorldMapUI = get_node_or_null("WorldMapModal")
 @onready var char_select_modal: CharacterSelectUI = get_node_or_null("CharacterSelectModal")
-@onready var hero_button: Button = get_node_or_null("GameUI/TopBar/HeroButton")
+@onready var pause_map_button: Button = get_node_or_null("PausePanel/VBox/PauseMapButton")
 @onready var pause_hero_button: Button = get_node_or_null("PausePanel/VBox/PauseHeroButton")
 @onready var game_over_hero_button: Button = get_node_or_null("GameOverPanel/VBox/GameOverHeroButton")
 @onready var leaderboard_modal: Control = get_node_or_null("LeaderboardModal")
-@onready var leaderboard_button: Button = get_node_or_null("GameUI/TopBar/LeaderboardButton")
 @onready var pause_leaderboard_button: Button = get_node_or_null("PausePanel/VBox/PauseLeaderboardButton")
 @onready var game_over_leaderboard_button: Button = get_node_or_null("GameOverPanel/VBox/GameOverLeaderboardButton")
 @onready var codex_modal: Control = get_node_or_null("CodexModal")
-@onready var codex_button: Button = get_node_or_null("GameUI/TopBar/CodexButton")
 @onready var pause_codex_button: Button = get_node_or_null("PausePanel/VBox/PauseCodexButton")
 @onready var game_over_codex_button: Button = get_node_or_null("GameOverPanel/VBox/GameOverCodexButton")
 @onready var altar_modal: Control = get_node_or_null("AltarModal")
@@ -239,10 +239,8 @@ func _ready() -> void:
 	
 	if audio_button:
 		audio_button.pressed.connect(_on_audio_toggle)
-	if map_button:
-		map_button.pressed.connect(toggle_world_map)
-	if hero_button:
-		hero_button.pressed.connect(toggle_character_select)
+	if pause_map_button:
+		pause_map_button.pressed.connect(func(): open_world_map("pause"))
 	if pause_hero_button:
 		pause_hero_button.pressed.connect(func(): open_character_select("pause"))
 	if game_over_hero_button:
@@ -252,16 +250,12 @@ func _ready() -> void:
 		char_select_modal.character_selected.connect(func(_c):
 			_update_passives_display()
 		)
-	if leaderboard_button:
-		leaderboard_button.pressed.connect(toggle_leaderboard)
 	if pause_leaderboard_button:
 		pause_leaderboard_button.pressed.connect(func(): open_leaderboard("pause"))
 	if game_over_leaderboard_button:
 		game_over_leaderboard_button.pressed.connect(func(): open_leaderboard("game_over"))
 	if leaderboard_modal:
 		leaderboard_modal.closed.connect(_on_leaderboard_closed)
-	if codex_button:
-		codex_button.pressed.connect(toggle_codex)
 	if pause_codex_button:
 		pause_codex_button.pressed.connect(func(): open_codex("pause"))
 	if game_over_codex_button:
@@ -605,11 +599,15 @@ func open_world_map(source: String = "topbar") -> void:
 	world_map_opened_from = source
 	if (shop_panel and shop_panel.visible) or (char_select_modal and char_select_modal.visible):
 		return
-	if source != "title" and (game_over_panel.visible or (pause_panel and pause_panel.visible)):
+	# The pause panel is a valid origin, not a blocker -- open_leaderboard() and
+	# open_codex() already treat it that way.
+	if source != "title" and source != "pause" and (game_over_panel.visible or (pause_panel and pause_panel.visible)):
 		return
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
 	if upgrade_mgr and upgrade_mgr.panel and upgrade_mgr.panel.visible:
 		return
+	if source == "pause" and pause_panel:
+		pause_panel.visible = false
 	if world_map_modal:
 		world_map_modal.open_map()
 
@@ -618,6 +616,11 @@ func _on_world_map_closed() -> void:
 		if title_screen:
 			title_screen.refresh_all()
 		get_tree().paused = false
+	elif world_map_opened_from == "pause":
+		if pause_panel:
+			pause_panel.visible = true
+			_refresh_pause_stats()
+		get_tree().paused = true
 	world_map_opened_from = ""
 
 func toggle_world_map() -> void:
@@ -715,6 +718,29 @@ func _refresh_pause_stats() -> void:
 	]
 
 func _setup_ui_styles() -> void:
+	# TopBar typography. Wave and Timer carry the "what's happening now" read, but
+	# they stay on the bold BODY face, not the Cinzel display face: their text is
+	# Vietnamese ("HIỆP", "GIỜ") and Cinzel carries no Vietnamese diacritics, so the
+	# display face would render those labels as tofu. Cinzel is ASCII-only here,
+	# so it is reserved for MainTitle.
+	for clock_label in [wave_label, timer_label]:
+		if clock_label:
+			clock_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+			clock_label.add_theme_color_override("font_color", UITheme.TEXT)
+			clock_label.add_theme_color_override("font_outline_color", UITheme.INK)
+			clock_label.add_theme_constant_override("outline_size", 4)
+	if gold_label:
+		gold_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+		gold_label.add_theme_color_override("font_color", UITheme.GOLD)
+	if level_badge:
+		level_badge.add_theme_font_override("font", UITheme.get_body_bold_font())
+	for meter_text in [hp_label, xp_label]:
+		if meter_text:
+			meter_text.add_theme_font_override("font", UITheme.get_body_bold_font())
+			meter_text.add_theme_color_override("font_color", UITheme.TEXT)
+			meter_text.add_theme_color_override("font_outline_color", UITheme.INK)
+			meter_text.add_theme_constant_override("outline_size", 4)
+
 	# Level badge styling
 	if level_badge:
 		var lvl_sb = StyleBoxFlat.new()
@@ -724,33 +750,20 @@ func _setup_ui_styles() -> void:
 		lvl_sb.set_corner_radius_all(4)
 		level_badge.add_theme_stylebox_override("normal", lvl_sb)
 		
-	# HP Bar styling
+	# HP Bar styling -- Vermilion per the Milestone 4 tokens. It used to be green,
+	# which read as "safe" on a bar whose whole job is to signal danger.
 	if hp_bar:
-		var hp_bg = StyleBoxFlat.new()
-		hp_bg.bg_color = Color(0.12, 0.05, 0.07, 0.9)
-		hp_bg.border_color = Color(0.35, 0.12, 0.16, 0.9)
-		hp_bg.set_border_width_all(1)
-		hp_bg.set_corner_radius_all(4)
-		hp_bar.add_theme_stylebox_override("background", hp_bg)
-		
-		var hp_fill = StyleBoxFlat.new()
-		hp_fill.bg_color = Color(0.18, 0.78, 0.35, 1.0)
-		hp_fill.set_corner_radius_all(4)
-		hp_bar.add_theme_stylebox_override("fill", hp_fill)
-		
-	# XP Bar styling
+		hp_bar.add_theme_stylebox_override("background",
+			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.VERMILION.darkened(0.45), 4, 1))
+		hp_bar.add_theme_stylebox_override("fill",
+			UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 4, 0))
+
+	# XP Bar styling -- Jade.
 	if xp_bar:
-		var xp_bg = StyleBoxFlat.new()
-		xp_bg.bg_color = Color(0.06, 0.09, 0.15, 0.9)
-		xp_bg.border_color = Color(0.14, 0.22, 0.35, 0.9)
-		xp_bg.set_border_width_all(1)
-		xp_bg.set_corner_radius_all(4)
-		xp_bar.add_theme_stylebox_override("background", xp_bg)
-		
-		var xp_fill = StyleBoxFlat.new()
-		xp_fill.bg_color = Color(0.0, 0.65, 1.0, 1.0)
-		xp_fill.set_corner_radius_all(4)
-		xp_bar.add_theme_stylebox_override("fill", xp_fill)
+		xp_bar.add_theme_stylebox_override("background",
+			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.55), 4, 1))
+		xp_bar.add_theme_stylebox_override("fill",
+			UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 4, 0))
 
 	# Boss Bar styling
 	if boss_hp_bar:
@@ -765,6 +778,31 @@ func _setup_ui_styles() -> void:
 		b_fill.bg_color = Color(0.92, 0.22, 0.22, 1.0)
 		b_fill.set_corner_radius_all(4)
 		boss_hp_bar.add_theme_stylebox_override("fill", b_fill)
+
+	# Pause panel. It is the only way into Map / Hero / Leaderboard / Codex now,
+	# so it gets the full card treatment and its Resume button the CTA treatment.
+	if pause_panel:
+		pause_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel())
+	for nav_button in [pause_map_button, pause_hero_button, pause_leaderboard_button,
+			pause_codex_button, pause_shop_button, resume_button]:
+		if nav_button:
+			nav_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+			nav_button.add_theme_stylebox_override("normal", UITheme.make_button_style())
+			nav_button.add_theme_stylebox_override("hover",
+				UITheme.make_button_style(UITheme.LACQUER.lightened(0.10), UITheme.GOLD_DIM))
+			nav_button.add_theme_stylebox_override("pressed",
+				UITheme.make_button_style(UITheme.LACQUER.darkened(0.20)))
+			nav_button.add_theme_stylebox_override("focus",
+				UITheme.make_card_panel(Color(0, 0, 0, 0), UITheme.GOLD_DIM))
+	if resume_button:
+		resume_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+		resume_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+		resume_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+		resume_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+		resume_button.add_theme_stylebox_override("hover",
+			UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+		resume_button.add_theme_stylebox_override("pressed",
+			UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
 
 	# Arsenal badge styling
 	var badges = [dagger_badge, shield_badge, thunder_badge, fireball_badge, axe_badge]

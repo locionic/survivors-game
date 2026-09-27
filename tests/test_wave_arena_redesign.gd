@@ -355,8 +355,14 @@ func _test_signature_combo() -> void:
 	check(slash.combo_arc_for(0) == 120.0, "Step 0 sweeps 120°")
 	check(slash.combo_arc_for(1) == 150.0, "Step 1 sweeps 150°")
 	check(slash.combo_arc_for(2) == 220.0, "Step 2 shockwaves 220°")
-	check(SlashWeapon.COMBO_SHAKE[2] == 6.0, "The finisher shakes the camera 6.0")
-	check(SlashWeapon.COMBO_KNOCKBACK[2] == 250.0, "The finisher knocks back 250")
+	# Milestone 3b retune: the finisher is the payoff, so it kicks the camera
+	# harder (8.0) and throws mobs along the blade rather than off the player.
+	check(SlashWeapon.COMBO_SHAKE[2] == 8.0, "The finisher shakes the camera 8.0")
+	check(SlashWeapon.COMBO_KNOCKBACK[0] == 240.0, "Step 0 knocks back 240 along the blade")
+	check(SlashWeapon.COMBO_KNOCKBACK[1] == 240.0, "Step 1 knocks back 240 along the blade")
+	check(SlashWeapon.COMBO_KNOCKBACK[2] == 450.0, "The finisher knocks back 450 along the blade")
+	check(SlashWeapon.COMBO_KNOCKBACK[2] > SlashWeapon.COMBO_KNOCKBACK[0],
+		"The finisher throws harder than the opener")
 	check(is_equal_approx(SlashWeapon.COMBO_RESET_TIME, 0.8), "Combo lapses after 0.8s")
 
 	# The multipliers have to be genuinely distinct, not three copies of one.

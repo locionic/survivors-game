@@ -104,7 +104,10 @@ func _ready() -> void:
 	
 	var hud = main.get_node_or_null("HUD")
 	assert(hud != null, "HUD exists in main scene")
-	assert(hud.get_node_or_null("GameUI/TopBar/CodexButton") != null, "TopBar CodexButton exists")
+	assert(hud.get_node_or_null("GameUI/TopBar/CodexButton") == null,
+		"CodexButton is off the combat TopBar")
+	assert(hud.get_node_or_null("PausePanel/VBox/PauseCodexButton") != null,
+		"PauseCodexButton exists in PausePanel")
 	assert(hud.get_node_or_null("CodexModal") != null, "CodexModal exists under HUD")
 	assert(hud.get_node_or_null("AltarModal") != null, "AltarModal exists under HUD")
 	assert(main.get_node_or_null("Landmarks/DemonicAltar") != null, "DemonicAltar placed in world Landmarks")

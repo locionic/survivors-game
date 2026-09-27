@@ -12,14 +12,26 @@ var toss_vel: Vector2 = Vector2.ZERO
 var toss_timer: float = 0.22
 var bob_time: float = 0.0
 
+## Milestone 3b: ceiling on live gem nodes. Every gem is an Area2D running its own
+## _process, its own magnet check and its own pickup signal; a 40-bat swarm used
+## to leave 150+ of them littering the arena. Past this many, a new gem folds
+## its XP into the closest one on the floor and frees itself -- the player is
+## paid in full, there are just fewer nodes to pay them.
+const MAX_ACTIVE_GEMS: int = 45
+const MERGE_RADIUS: float = 160.0
+## Squared once here: the search runs per gem drop and the radius never changes.
+const MERGE_RADIUS_SQ: float = MERGE_RADIUS * MERGE_RADIUS
+
 func _ready() -> void:
 	add_to_group("gems")
-	
+	if _absorb_into_neighbour():
+		return
+
 	# Kinetic pop impulse in random outward direction
 	var angle = randf() * TAU
 	var speed = randf_range(60.0, 130.0)
 	toss_vel = Vector2(cos(angle), sin(angle)) * speed
-	
+
 	# Squash-and-stretch pop tween on spawn
 	scale = Vector2(0.4, 0.4)
 	var tw = create_tween()
@@ -42,11 +54,34 @@ func _process(delta: float) -> void:
 		# Subtle vertical gleam bob
 		position.y += sin(bob_time) * 0.15
 
-func _draw() -> void:
-	# Subtle drop shadow beneath gem
-	draw_set_transform(Vector2(0, 6), 0.0, Vector2(1.0, 0.40))
-	draw_circle(Vector2.ZERO, 5.0, Color(0.0, 0.0, 0.0, 0.28))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+## Milestone 3b: the per-node drop shadow is gone (45+ shadowed circles a frame
+## is real fill-rate for a shadow nobody sees under a moving magnet pull). This
+## folds the new gem into the closest live one once the floor is saturated.
+## Returns true when this node merged itself away and should not run.
+func _absorb_into_neighbour() -> bool:
+	var tree := get_tree()
+	if tree == null:
+		return false
+	var live := 0
+	var best: ExperienceGem = null
+	var best_dist := MERGE_RADIUS_SQ
+	for other in tree.get_nodes_in_group("gems"):
+		# coin.gd shares this group -- a gold coin must never be eaten by a gem.
+		# A gem that already handed its XP away is still in the group until the
+		# frame ends, so it must not count as live NOR be folded into: that is
+		# how 80 drops turned into 80 nodes carrying 115 XP.
+		if other is ExperienceGem and other != self and is_instance_valid(other) \
+				and not other.is_queued_for_deletion():
+			live += 1
+			var d := global_position.distance_squared_to(other.global_position)
+			if d < best_dist:
+				best_dist = d
+				best = other
+	if live < MAX_ACTIVE_GEMS or best == null:
+		return false
+	best.xp_value += xp_value
+	queue_free()
+	return true
 
 func target_player(player_ref: Node2D) -> void:
 	target = player_ref

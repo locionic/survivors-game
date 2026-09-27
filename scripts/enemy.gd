@@ -66,6 +66,12 @@ var damage_cooldown: float = 0.0
 var knockback: Vector2 = Vector2.ZERO
 var separation_force: Vector2 = Vector2.ZERO
 var separation_timer: float = 0.0
+## Milestone 3b: one shared snapshot of the "enemies" group per physics frame.
+## get_nodes_in_group() builds a fresh Array on every call, and under
+## uncompiled WASM a 40-bat swarm turned that into ~400 throwaway arrays a
+## second. The first enemy to ask this frame pays; the other 39 read the cache.
+static var _sep_snapshot: Array = []
+static var _sep_frame: int = -1
 var ranged_timer: float = 1.0
 var radial_timer: float = 2.0
 var anim_time: float = 0.0
@@ -343,10 +349,16 @@ func _physics_process(delta: float) -> void:
 		if separation_timer <= 0.0 and is_near_screen:
 			separation_timer = randf_range(0.08, 0.14)
 			separation_force = Vector2.ZERO
-			var enemies = get_tree().get_nodes_in_group("enemies")
+			# One group query per physics frame, shared by every enemy alive --
+			# see _sep_snapshot. Refreshed here because _physics_process is the
+			# only place the flocking force is read.
+			var frame := Engine.get_physics_frames()
+			if _sep_frame != frame:
+				_sep_frame = frame
+				_sep_snapshot = get_tree().get_nodes_in_group("enemies")
 			var sep_radius = 32.0 if is_boss else 22.0
 			var checked = 0
-			for other in enemies:
+			for other in _sep_snapshot:
 				if other != self and is_instance_valid(other) and not other.get("is_dead"):
 					var diff = global_position - other.global_position
 					var other_dist_sq = diff.length_squared()
@@ -577,7 +589,7 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 	var tween = create_tween()
 	tween.tween_property(self, "modulate", Color.WHITE, 0.06)
 	if sprite:
-		sprite.scale = base_sprite_scale * Vector2(1.30, 0.70)
+		sprite.scale = base_sprite_scale * Vector2(1.35, 0.75)
 		var sq_tw = create_tween()
 		sq_tw.tween_property(sprite, "scale", base_sprite_scale, 0.10).set_trans(Tween.TRANS_BACK)
 	queue_redraw()
@@ -643,12 +655,15 @@ func apply_slow(duration: float, factor: float = 0.5) -> void:
 func die() -> void:
 	is_dead = true
 	
-	# Micro-Hitstop on enemy kill for bone-crushing impact
+	# Micro-Hitstop on enemy kill for bone-crushing impact.
+	# Milestone 3b: trash mobs NEVER touch Engine.time_scale. A bat swarm is 10
+	# deaths a second, and dropping the whole engine to 0.08 that often stops
+	# dead, restarts, and stops dead again -- in a browser that reads as a tab
+	# freeze, not as impact. Only a boss/elite death earns the real stop, and at
+	# 0.2 the stop is shallow enough to feel like a hit rather than a hitch.
 	if GameManager and GameManager.has_method("trigger_hitstop"):
-		if is_boss or is_champion:
-			GameManager.trigger_hitstop(0.085, 0.02)
-		else:
-			GameManager.trigger_hitstop(0.035, 0.08)
+		if is_boss or is_champion or is_elite_champion:
+			GameManager.trigger_hitstop(0.04, 0.2)
 	
 	# Record kill in GameManager with enemy type and champion flag
 	var enemy_type = "bat" if is_bat_type else ("skeleton" if name.begins_with("Skeleton") else "")

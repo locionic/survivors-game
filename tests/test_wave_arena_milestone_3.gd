@@ -325,16 +325,18 @@ func _test_shop_feedback() -> void:
 	check(shop.purchase_card(0), "The card is affordable and buys")
 	check(GameManager.run_gold < gold_before,
 		"The purchase actually spent gold (%d -> %d)" % [gold_before, GameManager.run_gold])
-	check(_heard("powerup"), "A purchase plays a cue, got %s" % str(_cues))
+	check(_heard("ui_buy"), "A purchase plays a cue, got %s" % str(_cues))
 	check(not _heard("coin"), "A purchase does not reuse the payout's coin cue, got %s" % str(_cues))
 
-	# A rejected purchase stays silent.
+	# A rejected purchase gives the player the deny thump and nothing else --
+	# the gold stays put, so it must not ring the success cue either.
 	GameManager.run_gold = 0
 	shop.cards[1]["data"] = WaveShopUI.SCROLL_POOL[0]
 	shop.cards[1]["locked"] = false
 	clear_cues()
 	check(not shop.purchase_card(1), "An unaffordable card is refused")
-	check(_cues.is_empty(), "A refused purchase plays nothing, got %s" % str(_cues))
+	check(_cues.size() == 1 and _heard("ui_deny"),
+		"A refused purchase plays only the deny cue, got %s" % str(_cues))
 
 	shop.close_shop()
 	_drop(shop)
@@ -362,7 +364,7 @@ func _test_shop_purchase_unlocks_synergy() -> void:
 		shop.cards[0]["data"] = _weapon_card(w_id)
 		shop.cards[0]["locked"] = false
 		check(shop.purchase_card(0), "The shop sells %s" % w_id)
-		check(_heard("powerup"), "Buying %s plays a cue, got %s" % [w_id, str(_cues)])
+		check(_heard("ui_buy"), "Buying %s plays a cue, got %s" % [w_id, str(_cues)])
 
 	check(p.has_thunderfire, "Buying both elements at the shop unlocked Lôi Hỏa Liên Hoàn")
 	check(up.arsenal.size() == 2, "Both weapons reached the arsenal, got %d" % up.arsenal.size())

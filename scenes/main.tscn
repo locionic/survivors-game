@@ -90,42 +90,14 @@ func _setup_arena_boundaries() -> void:
 script = SubResource("GDScript_main")
 
 [node name="Background" type="TextureRect" parent="."]
-offset_left = -5000.0
-offset_top = -5000.0
-offset_right = 5000.0
-offset_bottom = 5000.0
+offset_left = -1400.0
+offset_top = -1050.0
+offset_right = 1400.0
+offset_bottom = 1050.0
 texture = ExtResource("9_floor")
 stretch_mode = 1
 
 [node name="Biomes" type="Node2D" parent="."]
-
-[node name="NW_Grove" type="ColorRect" parent="Biomes"]
-offset_left = -4000.0
-offset_top = -4000.0
-offset_right = 0.0
-offset_bottom = 0.0
-color = Color(0.06, 0.35, 0.16, 0.10)
-
-[node name="NE_Crypts" type="ColorRect" parent="Biomes"]
-offset_left = 0.0
-offset_top = -4000.0
-offset_right = 4000.0
-offset_bottom = 0.0
-color = Color(0.26, 0.08, 0.36, 0.12)
-
-[node name="SW_Wastes" type="ColorRect" parent="Biomes"]
-offset_left = -4000.0
-offset_top = 0.0
-offset_right = 0.0
-offset_bottom = 4000.0
-color = Color(0.48, 0.16, 0.05, 0.12)
-
-[node name="SE_Treasury" type="ColorRect" parent="Biomes"]
-offset_left = 0.0
-offset_top = 0.0
-offset_right = 4000.0
-offset_bottom = 4000.0
-color = Color(0.45, 0.36, 0.08, 0.11)
 
 [node name="Landmarks" type="Node2D" parent="."]
 
@@ -435,30 +407,6 @@ layout_mode = 2
 size_flags_vertical = 4
 text = "🔊"
 
-[node name="MapButton" type="Button" parent="HUD/GameUI/TopBar"]
-custom_minimum_size = Vector2(80, 28)
-layout_mode = 2
-size_flags_vertical = 4
-text = "🗺️ MAP (M)"
-
-[node name="HeroButton" type="Button" parent="HUD/GameUI/TopBar"]
-custom_minimum_size = Vector2(92, 28)
-layout_mode = 2
-size_flags_vertical = 4
-text = "🧙 HERO (C)"
-
-[node name="LeaderboardButton" type="Button" parent="HUD/GameUI/TopBar"]
-custom_minimum_size = Vector2(95, 28)
-layout_mode = 2
-size_flags_vertical = 4
-text = "🏆 VÕ LÂM (L)"
-
-[node name="CodexButton" type="Button" parent="HUD/GameUI/TopBar"]
-custom_minimum_size = Vector2(105, 28)
-layout_mode = 2
-size_flags_vertical = 4
-text = "📖 THÀNH TỰU (Q)"
-
 [node name="PauseButton" type="Button" parent="HUD/GameUI/TopBar"]
 custom_minimum_size = Vector2(34, 28)
 layout_mode = 2
@@ -633,12 +581,12 @@ text = "💰 Watch Ad: 2x Gold"
 [node name="ShopButton" type="Button" parent="HUD/GameOverPanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🛠️ Blacksmith Upgrades Shop"
+text = "Blacksmith Upgrades Shop"
 
 [node name="GameOverHeroButton" type="Button" parent="HUD/GameOverPanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🧙 Choose Hero Class"
+text = "Choose Hero Class"
 
 [node name="GameOverLeaderboardButton" type="Button" parent="HUD/GameOverPanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
@@ -823,7 +771,7 @@ layout_mode = 2
 [node name="Title" type="Label" parent="HUD/PausePanel/VBox/HeaderBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "⏸️ GAME PAUSED"
+text = "GAME PAUSED"
 horizontal_alignment = 1
 
 [node name="PauseCloseHeaderButton" type="Button" parent="HUD/PausePanel/VBox/HeaderBar"]
@@ -843,37 +791,42 @@ text = "Active Arsenal:"
 [node name="ResumeButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-text = "▶️ Resume Game (Esc / P)"
+text = "▶  Resume Game (Esc / P)"
+
+[node name="PauseMapButton" type="Button" parent="HUD/PausePanel/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "Bản Đồ Thế Giới [M]"
 
 [node name="PauseShopButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🛠️ Blacksmith Upgrades Shop"
+text = "Blacksmith Upgrades Shop"
 
 [node name="PauseHeroButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🧙 Choose Hero Class"
+text = "Choose Hero Class"
 
 [node name="PauseLeaderboardButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🏆 Đại Hội Võ Lâm (Bảng Vàng)"
+text = "Đại Hội Võ Lâm (Bảng Vàng)"
 
 [node name="PauseCodexButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "📖 Sổ Tay Phong Thần (Mục Tiêu & Mở Khóa)"
+text = "Sổ Tay Phong Thần (Mục Tiêu & Mở Khóa)"
 
 [node name="PauseTitleButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🏠 Về Menu Chính / Main Menu"
+text = "Về Menu Chính / Main Menu"
 
 [node name="RestartRunButton" type="Button" parent="HUD/PausePanel/VBox"]
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-text = "🔄 Abandon & Restart Run"
+text = "Abandon & Restart Run"
 
 [node name="WorldMapModal" parent="HUD" instance=ExtResource("17_world_map")]
 

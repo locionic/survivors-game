@@ -80,15 +80,26 @@ func _ready() -> void:
 	call_deferred("spawn_intro_ambush")
 
 func _on_run_started() -> void:
+	# Both _ready and the run_started signal defer a ring, so the guard has to
+	# come back up here or only the first run of a persistent node gets one.
+	_intro_ring_spawned = false
 	call_deferred("spawn_intro_ambush")
 
+## Milestone 3b: one ring per run, never two. Guarded rather than left to luck
+## because _ready and _on_run_started both ask for one.
+var _intro_ring_spawned: bool = false
+
 func spawn_intro_ambush() -> void:
-	if not is_instance_valid(player) or not bat_scene:
+	if _intro_ring_spawned or not is_instance_valid(player) or not bat_scene:
 		return
-	# Instant second-0 rush: 6 bats in an encroaching frontal arc
-	for i in range(6):
-		var angle = -PI/3.0 + (float(i) / 5.0) * (2.0 * PI / 3.0)
-		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 320.0
+	_intro_ring_spawned = true
+	# Milestone 3b: 9 bats in a full 360 ring, 300px out, on frame one. Wave 1
+	# used to dribble in one bat every 0.7s, so the first seconds of a run had
+	# nothing in reach and the 3-hit combo had no time to be discovered. A closed
+	# ring also lets you swing INTO the swarm instead of chasing it.
+	for i in range(9):
+		var angle = TAU * (float(i) / 9.0)
+		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 300.0
 		var bat = bat_scene.instantiate()
 		if bat:
 			bat.global_position = spawn_pos

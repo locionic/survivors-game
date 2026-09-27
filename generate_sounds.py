@@ -271,6 +271,91 @@ def gen_slash():
         samples.append((swoosh + metal + noise) * env * 0.55)
     return samples
 
+# --- Milestone 4: tactile UI cues -----------------------------------------
+# These are deliberately NOT square-wave chiptunes. A button click needs to read
+# as a physical object under the finger: a high transient that dies in a few
+# milliseconds, no pitch sweep to imply motion, and real headroom so it sits
+# above combat SFX instead of competing with them.
+
+# 14. UI hover: 35ms soft sine tick, tiny upward blip. Amplitude 0.16 ~= -16dBFS,
+# played at -12dB on top of that lands it well under the SFX bed.
+def gen_ui_hover():
+    duration = 0.035
+    num_samples = int(SAMPLE_RATE * duration)
+    samples = []
+    phase = 0.0
+    for i in range(num_samples):
+        progress = i / num_samples
+        # Barely-there rise: 1500Hz -> 1800Hz. A real tick, not a swoosh.
+        freq = 1500.0 * (1.0 + 0.2 * progress)
+        phase += 2.0 * math.pi * freq / SAMPLE_RATE
+        # 2ms attack so it can't click on start, then a fast exponential tail.
+        env = min(1.0, progress / 0.057) * math.exp(-9.0 * progress)
+        samples.append(math.sin(phase) * env * 0.16)
+    return samples
+
+# 15. UI click: 45ms tactile snap. A 2.2kHz ping over a very short broadband
+# transient -- the high band is what the ear reads as "hard surface".
+def gen_ui_click():
+    duration = 0.045
+    num_samples = int(SAMPLE_RATE * duration)
+    samples = []
+    phase = 0.0
+    random.seed(7)
+    for i in range(num_samples):
+        progress = i / num_samples
+        # Fast downward blip: 2200Hz -> 1400Hz.
+        freq = 2200.0 * (1.0 - 0.36 * progress)
+        phase += 2.0 * math.pi * freq / SAMPLE_RATE
+        tone = math.sin(phase) * 0.55 + 0.25 * math.sin(phase * 2.0)
+        # Transient noise, gone in ~5ms.
+        noise = (random.random() * 2.0 - 1.0) * 0.3 * math.exp(-60.0 * progress)
+        env = min(1.0, progress / 0.022) * math.exp(-11.0 * progress)
+        samples.append((tone + noise) * env * 0.38)
+    return samples
+
+# 16. UI buy: clean coin clink. Inharmonic partials (the classic metal-clink
+# ratios) with a long shimmer tail, so a purchase feels like it rewards.
+def gen_ui_buy():
+    duration = 0.30
+    num_samples = int(SAMPLE_RATE * duration)
+    samples = []
+    freqs = [2093.00, 5775.0, 11300.0]
+    phases = [0.0, 0.0, 0.0]
+    for i in range(num_samples):
+        progress = i / num_samples
+        val = 0.0
+        for idx, f in enumerate(freqs):
+            phases[idx] += 2.0 * math.pi * f / SAMPLE_RATE
+            # Higher partials die first, which is what makes it read as metal.
+            val += math.sin(phases[idx]) * (0.5 ** idx)
+        env = min(1.0, progress / 0.008) * math.exp(-8.0 * progress)
+        samples.append(val * env * 0.26)
+    return samples
+
+# 17. UI deny: low soft double-thump. 150Hz -> 90Hz, two hits 110ms apart.
+# Sine-only (no noise) so it's a "no" you feel, not a buzz you hate.
+def gen_ui_deny():
+    duration = 0.26
+    num_samples = int(SAMPLE_RATE * duration)
+    samples = []
+    phase = 0.0
+    for i in range(num_samples):
+        t = i / SAMPLE_RATE
+        # Two thumps: 0-90ms and 110ms onward.
+        env = 0.0
+        if t < 0.09:
+            env = math.exp(-34.0 * t)
+        elif t >= 0.11:
+            env = 0.8 * math.exp(-30.0 * (t - 0.11))
+        # 150Hz -> 90Hz drop across the whole sound gives it a dull sag.
+        freq = 150.0 * (1.0 - 0.4 * (i / num_samples))
+        phase += 2.0 * math.pi * freq / SAMPLE_RATE
+        # Soft-clipped sine: keeps the thump rounded instead of harsh.
+        val = math.tanh(math.sin(phase) * 1.4) / math.tanh(1.4)
+        samples.append(val * env * 0.32)
+    return samples
+
 if __name__ == "__main__":
     base = "/home/renovibe79/survivors-game/assets/audio/"
     write_wav(base + "shoot.wav", gen_shoot())
@@ -286,5 +371,9 @@ if __name__ == "__main__":
     write_wav(base + "boss_alarm.wav", gen_boss_alarm())
     write_wav(base + "shrine_activate.wav", gen_shrine_activate())
     write_wav(base + "slash.wav", gen_slash())
+    write_wav(base + "ui_hover.wav", gen_ui_hover())
+    write_wav(base + "ui_click.wav", gen_ui_click())
+    write_wav(base + "ui_buy.wav", gen_ui_buy())
+    write_wav(base + "ui_deny.wav", gen_ui_deny())
     print("All audio generated successfully!")
 

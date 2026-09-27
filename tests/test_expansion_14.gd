@@ -85,7 +85,10 @@ func _ready() -> void:
 	var hud = main.get_node("HUD")
 	assert(hud != null, "HUD exists in main scene")
 	assert(hud.leaderboard_modal != null, "LeaderboardModal instantiated in HUD")
-	assert(hud.leaderboard_button != null, "LeaderboardButton exists on TopBar")
+	# Milestone 4: the TopBar no longer carries non-combat navigation. The pause
+	# menu is the single entry point, so that is what must be wired.
+	assert(hud.get_node_or_null("GameUI/TopBar/LeaderboardButton") == null,
+		"LeaderboardButton is off the combat TopBar")
 	assert(hud.pause_leaderboard_button != null, "PauseLeaderboardButton exists in PausePanel")
 	assert(hud.game_over_leaderboard_button != null, "GameOverLeaderboardButton exists in GameOverPanel")
 	

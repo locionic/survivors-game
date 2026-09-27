@@ -207,7 +207,9 @@ func _ready() -> void:
 	var hud = main.get_node("HUD")
 	assert(hud != null, "HUD exists")
 	assert(hud.get_node("GameUI/TopBar/AudioButton") != null, "AudioButton exists")
-	assert(hud.get_node("GameUI/TopBar/MapButton") != null, "MapButton exists in TopBar")
+	# Milestone 4: MapButton left the combat TopBar; PauseMapButton replaced it.
+	assert(hud.get_node_or_null("GameUI/TopBar/MapButton") == null, "MapButton is off the combat TopBar")
+	assert(hud.get_node("PausePanel/VBox/PauseMapButton") != null, "PauseMapButton exists in PausePanel")
 	assert(hud.get_node("GameUI/TopBar/PauseButton") != null, "PauseButton exists in TopBar")
 	assert(hud.get_node("GameUI/Minimap") != null, "Minimap radar exists in GameUI")
 	assert(hud.get_node("PausePanel/VBox/PauseShopButton") != null, "PauseShopButton exists in PausePanel")

@@ -56,7 +56,10 @@ func _ready() -> void:
 	assert(gem_scene != null, "Gem scene exists")
 	var gem = gem_scene.instantiate()
 	add_child(gem)
-	assert(gem.has_method("_draw"), "Gem implements custom _draw() for drop shadow")
+	# Milestone 3b: the per-gem drop shadow is gone on purpose. A swarm used to
+	# leave 150+ gems on the floor, and every one of them was another draw item
+	# every frame for a shadow the magnet drags across the ground anyway.
+	assert(not gem.has_method("_draw"), "Gem no longer draws a per-node drop shadow")
 	assert("toss_vel" in gem and "toss_timer" in gem, "Gem has kinetic loot pop toss physics")
 	assert(gem.toss_vel != Vector2.ZERO or gem.toss_timer > 0.0, "Gem applies toss velocity on spawn")
 	gem.queue_free()

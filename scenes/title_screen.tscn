@@ -123,7 +123,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
 theme_override_font_sizes/font_size = 14
-text = "⚔️ VÕ LÂM HUYỀN THOẠI • SURVIVOR ROGUELIKE ⚔️"
+text = "VÕ LÂM HUYỀN THOẠI • SURVIVOR ROGUELIKE"
 horizontal_alignment = 1
 
 [node name="MainTitle" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
@@ -161,7 +161,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 14
-text = "🧙 ANH HÙNG XUẤT TRẬN"
+text = "ANH HÙNG XUẤT TRẬN"
 horizontal_alignment = 1
 
 [node name="HeroSpritePreview" type="TextureRect" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
@@ -190,7 +190,7 @@ autowrap_mode = 2
 custom_minimum_size = Vector2(160, 32)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "🧙 Chọn Tướng [C]"
+text = "Chọn Tướng [C]"
 
 [node name="StageCard" type="PanelContainer" parent="MarginContainer/MainVBox/ShowcaseHBox"]
 custom_minimum_size = Vector2(340, 220)
@@ -206,13 +206,13 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.88, 1, 1)
 theme_override_font_sizes/font_size = 14
-text = "🗺️ CHIẾN TRƯỜNG THI ĐẤU"
+text = "CHIẾN TRƯỜNG THI ĐẤU"
 horizontal_alignment = 1
 
 [node name="StageIconPreview" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 44
-text = "🏞️"
+text = "▲"
 horizontal_alignment = 1
 
 [node name="StageNameLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/StageCard/VBox"]
@@ -234,7 +234,7 @@ autowrap_mode = 2
 custom_minimum_size = Vector2(160, 32)
 layout_mode = 2
 size_flags_horizontal = 4
-text = "🗺️ Đổi Bản Đồ [M]"
+text = "Đổi Bản Đồ [M]"
 
 [node name="CTAContainer" type="VBoxContainer" parent="MarginContainer/MainVBox"]
 layout_mode = 2
@@ -250,7 +250,7 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBoxFlat_cta")
 theme_override_styles/hover = SubResource("StyleBoxFlat_cta_hover")
-text = "⚔️ XUẤT TRẬN / START RUN ⚔️"
+text = "XUẤT TRẬN  ·  START RUN"
 
 [node name="StartHintLabel" type="Label" parent="MarginContainer/MainVBox/CTAContainer"]
 layout_mode = 2
@@ -267,27 +267,27 @@ alignment = 1
 [node name="NavHeroBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-text = "🧙 Tướng [C]"
+text = "Tướng [C]"
 
 [node name="NavMapBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-text = "🗺️ Bản Đồ [M]"
+text = "Bản Đồ [M]"
 
 [node name="NavShopBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-text = "⚒️ Tiệm Rèn"
+text = "Tiệm Rèn"
 
 [node name="NavRankBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
-text = "🏆 Bảng Vàng [L]"
+text = "Bảng Vàng [L]"
 
 [node name="NavCodexBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
 custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
-text = "📜 Phong Thần [Q]"
+text = "Phong Thần [Q]"
 
 [node name="FooterHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
 layout_mode = 2
@@ -298,10 +298,10 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 14
-text = "💰 Vàng Tích Lũy: 0"
+text = "Vàng Tích Lũy: 0"
 
 [node name="ControlsGuide" type="Label" parent="MarginContainer/MainVBox/FooterHBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 0.9)
 theme_override_font_sizes/font_size = 13
-text = "🎮 Phím: WASD Di chuyển | SPACE Tuyệt kỹ | P/ESC Tạm dừng"
+text = "Phím: WASD di chuyển · SPACE tuyệt kỹ · P/ESC tạm dừng"

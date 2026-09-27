@@ -46,6 +46,12 @@ func _ready() -> void:
 	_load_sound("snow_wind", "res://assets/audio/snow_wind.wav")
 	_load_sound("elixir_drink", "res://assets/audio/elixir_drink.wav")
 	_load_sound("slash", "res://assets/audio/slash.wav")
+	# Milestone 4: tactile UI cues. Short and mixed low so they sit under the
+	# combat SFX bed instead of masking it.
+	_load_sound("ui_hover", "res://assets/audio/ui_hover.wav")
+	_load_sound("ui_click", "res://assets/audio/ui_click.wav")
+	_load_sound("ui_buy", "res://assets/audio/ui_buy.wav")
+	_load_sound("ui_deny", "res://assets/audio/ui_deny.wav")
 	
 	# Create pool of AudioStreamPlayers
 	for i in range(POOL_SIZE):
@@ -112,6 +118,9 @@ func play(sound_name: String, pitch_range: float = 0.1) -> void:
 	for asp in player_pool:
 		if not asp.playing:
 			asp.stream = stream
+			# Reset per-cue gain: _play_ui() mixes some cues down, and a recycled
+			# player would otherwise inherit that attenuation for a combat SFX.
+			asp.volume_db = 0.0
 			# Subtle random pitch variation for juicy organic game feel
 			if pitch_range > 0.0:
 				asp.pitch_scale = randf_range(1.0 - pitch_range, 1.0 + pitch_range)
@@ -119,27 +128,66 @@ func play(sound_name: String, pitch_range: float = 0.1) -> void:
 				asp.pitch_scale = 1.0
 			asp.play()
 			return
-			
+
 	# If all busy, steal the first player
 	var fallback = player_pool[0]
 	fallback.stream = stream
 	fallback.pitch_scale = 1.0
+	fallback.volume_db = 0.0
 	fallback.play()
 
 func play_pitched(sound_name: String, pitch: float) -> void:
 	if not sounds.has(sound_name):
 		return
-		
+
 	var stream = sounds[sound_name]
 	var clamped_pitch = clampf(pitch, 0.4, 3.2)
 	for asp in player_pool:
 		if not asp.playing:
 			asp.stream = stream
 			asp.pitch_scale = clamped_pitch
+			asp.volume_db = 0.0
 			asp.play()
 			return
-			
+
 	var fallback = player_pool[0]
 	fallback.stream = stream
 	fallback.pitch_scale = clamped_pitch
+	fallback.volume_db = 0.0
+	fallback.play()
+
+# --- Milestone 4: tactile UI cues ----------------------------------------
+# Each is fixed-pitch and short; the pitch jitter that makes combat SFX feel
+# organic would make a button click feel mushy and non-repeating.
+
+func play_ui_click() -> void:
+	_play_ui("ui_click", 0.0)
+
+func play_ui_hover() -> void:
+	# Deliberately quiet: this fires on every pointer move, not every decision.
+	_play_ui("ui_hover", -12.0)
+
+func play_ui_buy() -> void:
+	_play_ui("ui_buy", -3.0)
+
+func play_ui_deny() -> void:
+	_play_ui("ui_deny", -3.0)
+
+func _play_ui(sound_name: String, volume_db: float) -> void:
+	if not sounds.has(sound_name):
+		return
+	emit_signal("sfx_played", sound_name)
+	var stream = sounds[sound_name]
+	for asp in player_pool:
+		if not asp.playing:
+			asp.stream = stream
+			asp.pitch_scale = 1.0
+			asp.volume_db = volume_db
+			asp.play()
+			return
+
+	var fallback = player_pool[0]
+	fallback.stream = stream
+	fallback.pitch_scale = 1.0
+	fallback.volume_db = volume_db
 	fallback.play()

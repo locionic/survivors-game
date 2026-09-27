@@ -39,8 +39,14 @@ const COMBO_RESET_TIME: float = 0.8
 const COMBO_ARC: Array[float] = [120.0, 150.0, 220.0]
 const COMBO_MULT: Array[float] = [1.0, 1.35, 2.2]
 const COMBO_RECOVERY: Array[float] = [0.2, 0.22, 0.32]
-const COMBO_KNOCKBACK: Array[float] = [300.0, 300.0, 250.0]
-const COMBO_SHAKE: Array[float] = [5.5, 5.5, 6.0]
+## Milestone 3b: knockback now runs ALONG the blade, not radially away from the
+## player, and the finisher hits nearly twice as hard. A swing throws the mob the
+## way you were already cutting, which is what makes a clean arc into a pile
+## read as a pile. Cửu Kiếm Quy Tông is meant to be the payoff, not step three.
+const COMBO_KNOCKBACK: Array[float] = [240.0, 240.0, 450.0]
+## The finisher's camera kick goes 6.0 -> 8.0. Two swings nudge the frame; the
+## Cửu Kiếm Quy Tông punches it.
+const COMBO_SHAKE: Array[float] = [5.5, 5.5, 8.0]
 const COMBO_NAMES: Array[String] = ["Nhất Kiếm", "Song Phong", "Cửu Kiếm Quy Tông"]
 ## Song Phong is the backhand: the cone bisector sits off the facing axis so the
 ## blade sweeps the target the other way round.
@@ -92,21 +98,29 @@ func combo_damage_mult_for(step: int) -> float:
 func combo_arc_for(step: int) -> float:
 	return COMBO_ARC[clampi(step, 0, COMBO_ARC.size() - 1)]
 
-## Milestone 3a: where the blade points. Right stick wins when it is being
-## actively pushed (gamepad players aim with it); otherwise the blade falls back
-## to travel direction, and only then to the last committed facing. A player who
-## picks the stick up mid-swing gets the new aim on the very next swing without
-## any device tracking -- the axis simply stops reading zero.
+## Milestone 3b: where the blade points. Priority is right stick, then the mouse
+## cursor, then travel direction, then the last committed facing.
+##
+## The cursor is the primary aim for every PC player because it is the one thing
+## they are actually pointing with -- a click must put the blade where the
+## pointer is, not wherever they last walked. Touchscreens are excluded: there
+## is no cursor there, and the virtual joystick's last_move_dir is the honest
+## answer. A cursor parked on top of the player (< 20px) is not an aim
+## direction, so it falls through instead of jittering the blade.
 func _get_facing_direction() -> Vector2:
 	var aim := _get_stick_aim()
 	if aim != Vector2.ZERO:
 		return aim
-	var player = _get_player()
-	if is_instance_valid(player):
-		if "last_move_dir" in player and player.last_move_dir != Vector2.ZERO:
-			return player.last_move_dir.normalized()
-		elif "velocity" in player and player.velocity.length_squared() > 0.01:
-			return player.velocity.normalized()
+	var p = _get_player()
+	if is_instance_valid(p):
+		if not DisplayServer.is_touchscreen_available():
+			var to_cursor: Vector2 = get_global_mouse_position() - p.global_position
+			if to_cursor.length() > 20.0:
+				return to_cursor.normalized()
+		if "last_move_dir" in p and p.last_move_dir != Vector2.ZERO:
+			return p.last_move_dir.normalized()
+		elif "velocity" in p and p.velocity.length_squared() > 0.01:
+			return p.velocity.normalized()
 	if facing_direction != Vector2.ZERO:
 		return facing_direction.normalized()
 	return Vector2.RIGHT
@@ -211,7 +225,7 @@ func perform_slash(override_dir: Vector2 = Vector2.ZERO, combo_step_override: in
 						e.take_damage(eff_dmg, global_position)
 						GameManager.record_weapon_damage("slash", eff_dmg)
 					if "knockback" in e:
-						e.knockback = facing * (COMBO_KNOCKBACK[step] if not is_evolved else COMBO_KNOCKBACK[step] * 1.6)
+						e.knockback = facing * (COMBO_KNOCKBACK[step] * (1.6 if is_evolved else 1.0))
 					# Frost Sovereign: freeze non-boss targets solid for 1.5s
 					if is_frost_sovereign and "freeze_timer" in e and not e.get("is_boss"):
 						e.freeze_timer = FROST_SOVEREIGN_FREEZE

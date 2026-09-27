@@ -244,43 +244,43 @@ func get_upgrade_catalog() -> Array[Dictionary]:
 	if weapon_levels.get("dagger", 0) >= 5 and not evolved_weapons.get("dagger", false):
 		options.append({
 			"id": "evolve_dagger",
-			"title": "👑 VÔ ẢNH THẦN CHÂM (Thousand Blades)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Phi Đao Lv.5 + Thân Pháp Thần Tốc)\nBắn bão 8 Phi Kim Astral xuyên thấu 360° vô tận!",
+			"title": "[TIỆT KỸ] VÔ ẢNH THẦN CHÂM (Thousand Blades)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Phi Đao Lv.5 + Thân Pháp Thần Tốc)\nBắn bão 8 Phi Kim Astral xuyên thấu 360° vô tận!",
 			"is_evolution": true
 		})
 	if weapon_levels.get("shield", 0) >= 5 and not evolved_weapons.get("shield", false):
 		options.append({
 			"id": "evolve_shield",
-			"title": "👑 THÁI CỰC HỘ THỂ (Solar Bulwark)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Khiên Bát Quái Lv.5 + Nhâm Mạch Hộ Thể)\n5 Khiên Thái Cực quang minh xoay cực tốc phản đòn!",
+			"title": "[TIỆT KỸ] THÁI CỰC HỘ THỂ (Solar Bulwark)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Khiên Bát Quái Lv.5 + Nhâm Mạch Hộ Thể)\n5 Khiên Thái Cực quang minh xoay cực tốc phản đòn!",
 			"is_evolution": true
 		})
 	if weapon_levels.get("lightning", 0) >= 5 and not evolved_weapons.get("lightning", false):
 		options.append({
 			"id": "evolve_lightning",
-			"title": "👑 CỬU THIÊN HUYỀN LÔI (Heaven's Wrath)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Thiên Lôi Lv.5 + Đốc Mạch Bạo Kích)\n4 luồng Sấm Sét giật liên hoàn kèm sóng xung kích bạo kích 100%!",
+			"title": "[TIỆT KỸ] CỬU THIÊN HUYỀN LÔI (Heaven's Wrath)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Thiên Lôi Lv.5 + Đốc Mạch Bạo Kích)\n4 luồng Sấm Sét giật liên hoàn kèm sóng xung kích bạo kích 100%!",
 			"is_evolution": true
 		})
 	if weapon_levels.get("fireball", 0) >= 5 and not evolved_weapons.get("fireball", false):
 		options.append({
 			"id": "evolve_fireball",
-			"title": "👑 KIM CƯƠNG HỎA CHƯỞNG (Apocalypse Meteor)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Hỏa Cầu Lv.5 + Hỏa Luân Bộc Phá)\nThiên thạch lửa khổng lồ phát nổ để lại biển lửa thiêu đốt!",
+			"title": "[TIỆT KỸ] KIM CƯƠNG HỎA CHƯỞNG (Apocalypse Meteor)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Hỏa Cầu Lv.5 + Hỏa Luân Bộc Phá)\nThiên thạch lửa khổng lồ phát nổ để lại biển lửa thiêu đốt!",
 			"is_evolution": true
 		})
 	if weapon_levels.get("axe", 0) >= 5 and not evolved_weapons.get("axe", false):
 		options.append({
 			"id": "evolve_axe",
-			"title": "👑 CÀN KHÔN ĐẠI NA DI (Reaper's Cleave)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Đả Cẩu Trận Lv.5 + Dịch Cân Kinh)\n3 Lưỡi hái tinh vân xoay tròn có lực hút hố đen gom quái!",
+			"title": "[TIỆT KỸ] CÀN KHÔN ĐẠI NA DI (Reaper's Cleave)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Đả Cẩu Trận Lv.5 + Dịch Cân Kinh)\n3 Lưỡi hái tinh vân xoay tròn có lực hút hố đen gom quái!",
 			"is_evolution": true
 		})
 	if weapon_levels.get("slash", 0) >= 5 and not evolved_weapons.get("slash", false):
 		options.append({
 			"id": "evolve_slash",
-			"title": "👑 ĐỘC CÔ CỬU KIẾM QUY TÔNG (Nine Swords Cleave)",
-			"desc": "🌟 TIỆT KỸ TIẾN HÓA! 🌟\n(Cửu Kiếm Lv.5 + Đan Điền Khí Hải)\nTrảm kích hoàng kim 180° uy lực vô song chém nát vạn ma!",
+			"title": "[TIỆT KỸ] ĐỘC CÔ CỬU KIẾM QUY TÔNG (Nine Swords Cleave)",
+			"desc": "TIỆT KỸ TIẾN HÓA!\n(Cửu Kiếm Lv.5 + Đan Điền Khí Hải)\nTrảm kích hoàng kim 180° uy lực vô song chém nát vạn ma!",
 			"is_evolution": true
 		})
 
@@ -288,14 +288,14 @@ func get_upgrade_catalog() -> Array[Dictionary]:
 	if weapon_levels.get("dagger", 0) >= 5 and weapon_levels.get("axe", 0) >= 5 and not synergies_evolved.get("bao_vu", false):
 		options.append({
 			"id": "synergy_bao_vu",
-			"title": "🌟 BÃO VŨ LÊ HOA CHÂM (Lotus Storm)",
+			"title": "[HỢP NHẤT] BÃO VŨ LÊ HOA CHÂM (Lotus Storm)",
 			"desc": "TIỆT KỸ HỢP NHẤT (Phi Đao Lv.5 + Đả Cẩu Trận Lv.5)!\nBắn ra 16 phi châm xoay tròn 360 độ xé toạc toàn màn hình kèm độc tính cực mạnh!",
 			"is_synergy": true
 		})
 	if weapon_levels.get("slash", 0) >= 5 and weapon_levels.get("shield", 0) >= 5 and not synergies_evolved.get("bang_phach", false):
 		options.append({
 			"id": "synergy_bang_phach",
-			"title": "🌟 BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)",
+			"title": "[HỢP NHẤT] BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)",
 			"desc": "TIỆT KỸ HỢP NHẤT (Cửu Kiếm Lv.5 + Khiên Bát Quái Lv.5)!\nTrảm kích băng phách đóng băng kẻ địch non-boss trong 1.5s và kích nổ băng toái!",
 			"is_synergy": true
 		})
@@ -305,74 +305,74 @@ func get_upgrade_catalog() -> Array[Dictionary]:
 		if weapon_levels.get("dagger", 0) == 0:
 			options.append({
 				"id": "unlock_dagger",
-				"title": "🗡️ Ám Khí Phi Đao",
+				"title": "[MỚI] Ám Khí Phi Đao",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nPhi đao tự động nhắm bắn mục tiêu gần nhất." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 		if weapon_levels.get("shield", 0) == 0:
 			options.append({
 				"id": "unlock_shield",
-				"title": "🛡️ Khiên Bát Quái",
+				"title": "[MỚI] Khiên Bát Quái",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nBát quái hộ thể xoay quanh đẩy lùi kẻ địch áp sát." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 		if weapon_levels.get("lightning", 0) == 0:
 			options.append({
 				"id": "unlock_lightning",
-				"title": "⚡ Cửu Thiên Lôi Điện",
+				"title": "[MỚI] Cửu Thiên Lôi Điện",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nTriệu hồi sấm sét từ thiên hà trừng phạt quái vật." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 		if weapon_levels.get("fireball", 0) == 0:
 			options.append({
 				"id": "unlock_fireball",
-				"title": "🔥 Liệt Hỏa Chưởng Cầu",
+				"title": "[MỚI] Liệt Hỏa Chưởng Cầu",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nPhóng cầu lửa bộc phá gây sát thương diện rộng." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 		if weapon_levels.get("axe", 0) == 0:
 			options.append({
 				"id": "unlock_axe",
-				"title": "🪓 Đả Cẩu Trận (Arc Axe)",
+				"title": "[MỚI] Đả Cẩu Trận (Arc Axe)",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nNém bổng pháp/rìu xoay tròn theo hình cầu vồng xuyên thấu." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 		if weapon_levels.get("slash", 0) == 0:
 			options.append({
 				"id": "unlock_slash",
-				"title": "⚔️ Độc Cô Cửu Kiếm (Slash Arc)",
+				"title": "[MỚI] Độc Cô Cửu Kiếm (Slash Arc)",
 				"desc": "[VÕ HỌC MỚI - Ô %d/%d]\nTrảm kích hình bán nguyệt theo hướng di chuyển xé toạc kẻ địch." % [get_active_weapon_count() + 1, MAX_WEAPONS]
 			})
 
 	# 4. Standard Weapon Upgrades (Rank 1 to 4)
 	if weapon_levels.get("dagger", 0) >= 1 and weapon_levels.get("dagger", 0) < 5:
-		options.append({"id": "damage", "title": "🗡️ Tôi Độc Phi Đao", "desc": "+25%% Sát Thương Phi Đao (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
-		options.append({"id": "attack_speed", "title": "🗡️ Liên Hoàn Thủ", "desc": "+20%% Tốc Đánh Phi Đao (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
-		options.append({"id": "projectile_count", "title": "🗡️ Song Phi Tiêu", "desc": "+1 Phi Đao mỗi lượt bắn (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
+		options.append({"id": "damage", "title": "Tôi Độc Phi Đao", "desc": "+25%% Sát Thương Phi Đao (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
+		options.append({"id": "attack_speed", "title": "Liên Hoàn Thủ", "desc": "+20%% Tốc Đánh Phi Đao (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
+		options.append({"id": "projectile_count", "title": "Song Phi Tiêu", "desc": "+1 Phi Đao mỗi lượt bắn (Cấp %d/5)" % (weapon_levels["dagger"] + 1)})
 		
 	if weapon_levels.get("shield", 0) >= 1 and weapon_levels.get("shield", 0) < 5:
-		options.append({"id": "orbit_shield", "title": "🛡️ Lưỡng Nghi Khiên", "desc": "+1 Lưỡi Khiên Hộ Thể (Cấp %d/5)" % (weapon_levels["shield"] + 1)})
-		options.append({"id": "orbit_speed", "title": "🛡️ Phong Toàn Bộ", "desc": "+30%% Tốc Độ Xoay Khiên (Cấp %d/5)" % (weapon_levels["shield"] + 1)})
+		options.append({"id": "orbit_shield", "title": "Lưỡng Nghi Khiên", "desc": "+1 Lưỡi Khiên Hộ Thể (Cấp %d/5)" % (weapon_levels["shield"] + 1)})
+		options.append({"id": "orbit_speed", "title": "Phong Toàn Bộ", "desc": "+30%% Tốc Độ Xoay Khiên (Cấp %d/5)" % (weapon_levels["shield"] + 1)})
 		
 	if weapon_levels.get("lightning", 0) >= 1 and weapon_levels.get("lightning", 0) < 5:
-		options.append({"id": "lightning_strike", "title": "⚡ Lôi Đình Vạn Quân", "desc": "+1 Luồng Sấm Sét đồng thời (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
-		options.append({"id": "lightning_damage", "title": "⚡ Cửu Tiêu Lôi Đình", "desc": "+30%% Sát Thương Sấm Sét (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
+		options.append({"id": "lightning_strike", "title": "Lôi Đình Vạn Quân", "desc": "+1 Luồng Sấm Sét đồng thời (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
+		options.append({"id": "lightning_damage", "title": "Cửu Tiêu Lôi Đình", "desc": "+30%% Sát Thương Sấm Sét (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
 		
 	if weapon_levels.get("fireball", 0) >= 1 and weapon_levels.get("fireball", 0) < 5:
-		options.append({"id": "fireball_count", "title": "🔥 Tam Muội Chân Hỏa", "desc": "+1 Cầu Lửa đồng thời (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
-		options.append({"id": "fireball_damage", "title": "🔥 Bộc Liệt Chưởng", "desc": "+35%% Sát Thương Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
-		options.append({"id": "fireball_radius", "title": "🔥 Liệt Hỏa Phần Thiên", "desc": "+35%% Phạm Vi Nổ Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_count", "title": "Tam Muội Chân Hỏa", "desc": "+1 Cầu Lửa đồng thời (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_damage", "title": "Bộc Liệt Chưởng", "desc": "+35%% Sát Thương Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_radius", "title": "Liệt Hỏa Phần Thiên", "desc": "+35%% Phạm Vi Nổ Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
 		
 	if weapon_levels.get("axe", 0) >= 1 and weapon_levels.get("axe", 0) < 5:
-		options.append({"id": "axe_count", "title": "🪓 Bổng Ảnh Tung Hoành", "desc": "+1 Rìu/Bổng ném ra (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
-		options.append({"id": "axe_damage", "title": "🪓 Đoạt Mệnh Bổng", "desc": "+35%% Sát Thương Rìu/Bổng (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
-		options.append({"id": "axe_speed", "title": "🪓 Cuồng Phong Bổng Pháp", "desc": "+25%% Tốc Độ Bay Của Rìu (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
+		options.append({"id": "axe_count", "title": "Bổng Ảnh Tung Hoành", "desc": "+1 Rìu/Bổng ném ra (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
+		options.append({"id": "axe_damage", "title": "Đoạt Mệnh Bổng", "desc": "+35%% Sát Thương Rìu/Bổng (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
+		options.append({"id": "axe_speed", "title": "Cuồng Phong Bổng Pháp", "desc": "+25%% Tốc Độ Bay Của Rìu (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
 
 	if weapon_levels.get("slash", 0) >= 1 and weapon_levels.get("slash", 0) < 5:
-		options.append({"id": "slash_damage", "title": "⚔️ Phá Kiếm Thức", "desc": "+35%% Sát Thương Cửu Kiếm (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
-		options.append({"id": "slash_speed", "title": "⚔️ Phá Đao Thức", "desc": "+25%% Tốc Đánh Cửu Kiếm (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
-		options.append({"id": "slash_range", "title": "⚔️ Phá Khí Thức", "desc": "+25%% Bán Kính & Tầm Trảm Kích (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
+		options.append({"id": "slash_damage", "title": "Phá Kiếm Thức", "desc": "+35%% Sát Thương Cửu Kiếm (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
+		options.append({"id": "slash_speed", "title": "Phá Đao Thức", "desc": "+25%% Tốc Đánh Cửu Kiếm (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
+		options.append({"id": "slash_range", "title": "Phá Khí Thức", "desc": "+25%% Bán Kính & Tầm Trảm Kích (Cấp %d/5)" % (weapon_levels["slash"] + 1)})
 
 	# 5. Universal Passive Upgrades
-	options.append({"id": "move_speed", "title": "👢 Lăng Ba Vi Bộ", "desc": "+15% Tốc Độ Di Chuyển Thần Tốc"})
-	options.append({"id": "magnet", "title": "🧲 Hấp Tinh Đại Pháp", "desc": "+30% Phạm Vi Hút Ngọc & Vàng"})
-	options.append({"id": "max_hp", "title": "💖 Kim Cang Bất Hoại", "desc": "+25 Máu Tối Đa & Hồi Phục 25 HP"})
-	options.append({"id": "might_surge", "title": "⚔️ Bồ Đề Tâm Pháp", "desc": "+12% Sức Mạnh Sát Thương Toàn Thân"})
+	options.append({"id": "move_speed", "title": "Lăng Ba Vi Bộ", "desc": "+15% Tốc Độ Di Chuyển Thần Tốc"})
+	options.append({"id": "magnet", "title": "Hấp Tinh Đại Pháp", "desc": "+30% Phạm Vi Hút Ngọc & Vàng"})
+	options.append({"id": "max_hp", "title": "Kim Cang Bất Hoại", "desc": "+25 Máu Tối Đa & Hồi Phục 25 HP"})
+	options.append({"id": "might_surge", "title": "Bồ Đề Tâm Pháp", "desc": "+12% Sức Mạnh Sát Thương Toàn Thân"})
 
 	return options
 
@@ -424,39 +424,27 @@ func _ensure_ui_nodes() -> void:
 
 func _update_action_bar_ui() -> void:
 	if reroll_button:
+		reroll_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+		reroll_button.add_theme_font_size_override("font_size", 14)
 		if rerolls_remaining > 0:
-			reroll_button.text = "🎲 TẨY TỦY (REROLL) [%d/%d] (R)" % [rerolls_remaining, max_rerolls]
+			reroll_button.text = "TẨY TỦY (REROLL) [%d/%d] (R)" % [rerolls_remaining, max_rerolls]
 			reroll_button.disabled = false
-			var sb = StyleBoxFlat.new()
-			sb.bg_color = Color(0.12, 0.22, 0.32, 0.95)
-			sb.border_color = Color(0.3, 0.8, 1.0, 0.9)
-			sb.set_border_width_all(2)
-			sb.set_corner_radius_all(6)
-			sb.set_content_margin_all(6)
-			reroll_button.add_theme_stylebox_override("normal", sb)
-			reroll_button.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))
+			reroll_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.BORDER, 8))
+			reroll_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
+			reroll_button.add_theme_color_override("font_color", UITheme.GOLD)
 		else:
-			reroll_button.text = "🎲 TẨY TỦY (HẾT LƯỢT)"
+			reroll_button.text = "TẨY TỦY (HẾT LƯỢT)"
 			reroll_button.disabled = true
-			var sb = StyleBoxFlat.new()
-			sb.bg_color = Color(0.12, 0.12, 0.14, 0.7)
-			sb.border_color = Color(0.3, 0.3, 0.35, 0.5)
-			sb.set_border_width_all(1)
-			sb.set_corner_radius_all(6)
-			sb.set_content_margin_all(6)
-			reroll_button.add_theme_stylebox_override("disabled", sb)
-			reroll_button.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.55))
+			reroll_button.add_theme_stylebox_override("disabled", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
+			reroll_button.add_theme_color_override("font_disabled_color", UITheme.MUTED)
 			
 	if skip_button:
-		skip_button.text = "⏩ BỎ QUA (+30 VÀNG) / SKIP (X)"
-		var sb_skip = StyleBoxFlat.new()
-		sb_skip.bg_color = Color(0.24, 0.18, 0.08, 0.95)
-		sb_skip.border_color = Color(1.0, 0.75, 0.2, 0.9)
-		sb_skip.set_border_width_all(2)
-		sb_skip.set_corner_radius_all(6)
-		sb_skip.set_content_margin_all(6)
-		skip_button.add_theme_stylebox_override("normal", sb_skip)
-		skip_button.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+		skip_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+		skip_button.add_theme_font_size_override("font_size", 14)
+		skip_button.text = "BỎ QUA (+30 VÀNG) / SKIP (X)"
+		skip_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.GOLD_DIM, 8))
+		skip_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
+		skip_button.add_theme_color_override("font_color", UITheme.GOLD)
 
 func show_upgrade_selection() -> void:
 	get_tree().paused = true
@@ -535,7 +523,7 @@ func reroll_upgrades() -> bool:
 	rerolls_remaining -= 1
 	SoundManager.play("powerup", 0.15)
 	if player:
-		FloatingText.spawn(player.global_position + Vector2(0, -35), "🎲 TẨY TỦY HOÁN CỐT!", Color(0.4, 0.9, 1.0))
+		FloatingText.spawn(player.global_position + Vector2(0, -35), "TẨY TỦY HOÁN CỐT!", Color(0.4, 0.9, 1.0))
 		
 	_populate_cards()
 	_update_action_bar_ui()
@@ -551,7 +539,7 @@ func skip_upgrade() -> void:
 	get_tree().paused = false
 	SoundManager.play("coin", 0.15)
 	if player:
-		FloatingText.spawn(player.global_position + Vector2(0, -32), "⏩ +30 VÀNG (BỎ QUA)", Color(1.0, 0.85, 0.2))
+		FloatingText.spawn(player.global_position + Vector2(0, -32), "+30 VÀNG (BỎ QUA)", Color(1.0, 0.85, 0.2))
 	emit_signal("upgrade_selected", "skip")
 
 func reset_rerolls() -> void:

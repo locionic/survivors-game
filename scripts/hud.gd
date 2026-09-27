@@ -635,7 +635,7 @@ func toggle_world_map() -> void:
 func _on_audio_toggle() -> void:
 	var muted = SoundManager.toggle_mute()
 	if audio_button:
-		audio_button.text = "🔇" if muted else "🔊"
+		audio_button.text = "SFX: OFF" if muted else "SFX: ON"
 
 func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 	if not warning_banner:
@@ -694,18 +694,18 @@ func _refresh_pause_stats() -> void:
 		var r_names = []
 		for r_id in GameManager.collected_relics:
 			var r_data = GameManager.RELICS.get(r_id, {})
-			r_names.append("%s %s" % [r_data.get("icon", ""), r_data.get("name", "")])
+			r_names.append(r_data.get("name", ""))
 		relic_info = ", ".join(r_names)
 
 	var bounty_info = ""
 	if GameManager and not GameManager.active_bounties.is_empty():
 		var b_strs = []
 		for b in GameManager.active_bounties:
-			var status = "✓" if b.get("completed", false) else "%d/%d" % [b.get("current", 0), b.get("target", 1)]
+			var status = "DONE" if b.get("completed", false) else "%d/%d" % [b.get("current", 0), b.get("target", 1)]
 			b_strs.append("%s [%s]" % [b.get("title", ""), status])
-		bounty_info = "\n🎯 BOUNTIES: " + " | ".join(b_strs)
+		bounty_info = "\nBOUNTIES: " + " | ".join(b_strs)
 
-	pause_stats_label.text = "⏱️ Time: %02d:%02d   |   💀 Kills: %d   |   💰 Run Gold: %d\n❤️ HP: %d/%d   |   👢 Speed: %d   |   🧲 Magnet: %d\n⚔️ Might: +%d%%   |   🛡️ Armor: -%d   |   🔥 Pyro: +%d%%\n💎 RELICS: %s%s" % [
+	pause_stats_label.text = "TIME: %02d:%02d   |   KILLS: %d   |   GOLD: %d\nHP: %d/%d   |   SPEED: %d   |   MAGNET: %d\nMIGHT: +%d%%   |   ARMOR: +%d   |   PYRO: +%d%%\nRELICS: %s%s" % [
 		mins, secs, GameManager.kills, GameManager.run_gold,
 		cur_hp, max_hp, spd, mag, might, armor, pyro,
 		relic_info, bounty_info
@@ -713,7 +713,7 @@ func _refresh_pause_stats() -> void:
 	
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
 	var lvls = upgrade_mgr.weapon_levels if upgrade_mgr else {"dagger": 1, "shield": 1, "lightning": 1, "fireball": 1, "axe": 1}
-	pause_arsenal_label.text = "⚔️ ACTIVE ARSENAL:\n🗡️ Daggers Spread: Rank %d\n🛡️ Aegis Orbiting Shield: Rank %d\n⚡ Holy Thunder Strike: Rank %d\n🔥 Inferno Fireballs: Rank %d\n🪓 Piercing Battleaxes: Rank %d" % [
+	pause_arsenal_label.text = "ACTIVE ARSENAL:\n• Daggers Spread: Rank %d\n• Aegis Orbiting Shield: Rank %d\n• Holy Thunder Strike: Rank %d\n• Inferno Fireballs: Rank %d\n• Piercing Battleaxes: Rank %d" % [
 		lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
 	]
 
@@ -862,7 +862,7 @@ func _on_player_health_changed(current: float, max_val: float) -> void:
 	hp_bar.value = current
 	if hp_label:
 		if qi_shield_max_val > 0.0:
-			hp_label.text = "%d/%d HP [☯️%d]" % [int(current), int(max_val), int(qi_shield_val)]
+			hp_label.text = "%d/%d HP [QI %d]" % [int(current), int(max_val), int(qi_shield_val)]
 		else:
 			hp_label.text = "%d / %d HP" % [int(current), int(max_val)]
 	
@@ -877,7 +877,7 @@ func _on_player_health_changed(current: float, max_val: float) -> void:
 		elif ratio < 0.60:
 			fill_sb.bg_color = Color(0.95, 0.65, 0.15)
 		else:
-			fill_sb.bg_color = Color(0.18, 0.78, 0.35)
+			fill_sb.bg_color = UITheme.VERMILION
 
 func _on_player_xp_changed(current: float, required: float, level: int) -> void:
 	xp_bar.max_value = required
@@ -885,14 +885,14 @@ func _on_player_xp_changed(current: float, required: float, level: int) -> void:
 	if xp_label:
 		xp_label.text = "%d / %d XP" % [int(current), int(required)]
 	if level_badge:
-		level_badge.text = "LVL %d" % level
+		level_badge.text = "LV %d" % level
 	_update_passives_display()
 
 func _on_score_updated(kills: int, time: float) -> void:
-	kills_label.text = "💀 %d" % kills
+	kills_label.text = "%d KILLS" % kills
 	var mins = int(time / 60.0)
 	var secs = int(time) % 60
-	timer_label.text = "⏱️ %02d:%02d" % [mins, secs]
+	timer_label.text = "%02d:%02d" % [mins, secs]
 	
 	if kills >= 3 and ftue_banner and ftue_banner.visible:
 		_dismiss_ftue_banner()
@@ -900,29 +900,29 @@ func _on_score_updated(kills: int, time: float) -> void:
 	# Kill Streak Announcements
 	if kills >= 25 and last_streak_announced < 25:
 		last_streak_announced = 25
-		_on_wave_event_announced("🔥 25 KILLS: KILLING SPREE! 🔥", false)
+		_on_wave_event_announced("25 KILLS: KILLING SPREE!", false)
 	elif kills >= 50 and last_streak_announced < 50:
 		last_streak_announced = 50
-		_on_wave_event_announced("⚔️ 50 KILLS: UNSTOPPABLE SLAYER! ⚔️", false)
+		_on_wave_event_announced("50 KILLS: UNSTOPPABLE SLAYER!", false)
 	elif kills >= 100 and last_streak_announced < 100:
 		last_streak_announced = 100
-		_on_wave_event_announced("⚡ 100 KILLS: RAMPAGE! ⚡", false)
+		_on_wave_event_announced("100 KILLS: RAMPAGE!", false)
 	elif kills >= 200 and last_streak_announced < 200:
 		last_streak_announced = 200
-		_on_wave_event_announced("👑 200 KILLS: LEGENDARY! 👑", true)
+		_on_wave_event_announced("200 KILLS: LEGENDARY!", true)
 	elif kills >= 350 and last_streak_announced < 350:
 		last_streak_announced = 350
-		_on_wave_event_announced("💥 350 KILLS: GODLIKE! 💥", true)
+		_on_wave_event_announced("350 KILLS: GODLIKE!", true)
 
 func _on_gold_updated(new_total: int) -> void:
 	if gold_label:
-		gold_label.text = "💰 %d" % GameManager.run_gold
+		gold_label.text = "%d G" % GameManager.run_gold
 		# Gold collection pop effect
 		var tw = create_tween()
 		tw.tween_property(gold_label, "scale", Vector2(1.22, 1.22), 0.08)
 		tw.tween_property(gold_label, "scale", Vector2(1.0, 1.0), 0.12)
 	if shop_gold_label:
-		shop_gold_label.text = "Total Gold: %d 💰" % new_total
+		shop_gold_label.text = "Total Gold: %d" % new_total
 
 func _on_arsenal_updated(levels: Dictionary) -> void:
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
@@ -931,27 +931,27 @@ func _on_arsenal_updated(levels: Dictionary) -> void:
 	# Milestone 3a: the base names come from Loc (the canonical table) and the
 	# evolved names from their own rows, so the badges cannot drift away from the
 	# dps report or the shop cards. Icon, evolved flag and level suffix per badge.
-	_badge(dagger_badge, "dagger", "🗡️", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(shield_badge, "shield", "🛡️", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
-	_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
-	_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
+	_badge(dagger_badge, "dagger", "DAG", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(shield_badge, "shield", "SHD", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(thunder_badge, "lightning", "THN", levels, ev, Color(0.4, 0.9, 1.0))
+	_badge(fireball_badge, "fireball", "FIR", levels, ev, Color(1.0, 0.5, 0.2))
+	_badge(axe_badge, "axe", "AXE", levels, ev, Color(1.0, 0.3, 0.4))
 
 	_update_passives_display()
 
-## One badge, three states: evolved (crown + gold), owned (name + level), locked.
-func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
+## One badge, three states: evolved (EVO + gold), owned (name + level), locked.
+func _badge(badge: Label, weapon_id: String, prefix: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
 	if not badge:
 		return
 	var level: int = int(levels.get(weapon_id, 0))
 	if ev.get(weapon_id, false):
-		badge.text = "👑 %s" % Loc.t("evo.%s.name" % weapon_id, weapon_id)
+		badge.text = "[EVO] %s" % Loc.t("evo.%s.name" % weapon_id, weapon_id)
 		badge.add_theme_color_override("font_color", evo_color)
 	elif level > 0:
-		badge.text = "%s %s Lv.%d" % [icon, Loc.weapon_name(weapon_id), level]
+		badge.text = "[%s] %s Lv.%d" % [prefix, Loc.weapon_name(weapon_id), level]
 		badge.add_theme_color_override("font_color", Color.WHITE)
 	else:
-		badge.text = "%s %s" % [icon, Loc.t("ui.locked", "(Locked)")]
+		badge.text = "[%s] %s" % [prefix, Loc.t("ui.locked", "(Locked)")]
 		badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
 
 func _update_passives_display() -> void:
@@ -964,17 +964,17 @@ func _update_passives_display() -> void:
 	
 	var relic_str = ""
 	if GameManager and not GameManager.collected_relics.is_empty():
-		relic_str = " | 💎"
+		relic_str = " | RELIC:"
 		for r_id in GameManager.collected_relics:
 			var r_data = GameManager.RELICS.get(r_id, {})
-			relic_str += " " + r_data.get("icon", "✨")
+			relic_str += " " + r_data.get("name", "")
 			
 	var scroll_str = ""
 	if GameManager and not GameManager.collected_scrolls.is_empty():
-		scroll_str = " | 📜"
+		scroll_str = " | SCROLL:"
 		for s_id in GameManager.collected_scrolls:
 			var s_data = GameManager.MARTIAL_SCROLLS.get(s_id, {})
-			scroll_str += " " + s_data.get("icon", "📜")
+			scroll_str += " " + s_data.get("name", "")
 			
 	var gear_str = ""
 	if GameManager and not GameManager.equipment_slots.is_empty():
@@ -983,12 +983,12 @@ func _update_passives_display() -> void:
 			var g_id = GameManager.equipment_slots[slot]
 			if g_id != "" and GameManager.EQUIPMENT_CATALOG.has(g_id):
 				if not has_any_gear:
-					gear_str = " | 🗡️"
+					gear_str = " | GEAR:"
 					has_any_gear = true
 				var g_data = GameManager.EQUIPMENT_CATALOG[g_id]
-				gear_str += " " + g_data.get("icon", "⚔️")
+				gear_str += " " + g_data.get("name", "")
 
-	passives_label.text = "| ⚔️+%d%% 👢%d 🧲%d 🛡️%d%s%s%s" % [might, spd, mag, armor, relic_str, scroll_str, gear_str]
+	passives_label.text = "| ATK +%d%%  SPD %d  MAG %d  DEF %d%s%s%s" % [might, spd, mag, armor, relic_str, scroll_str, gear_str]
 
 	
 	if skill_button and GameManager:

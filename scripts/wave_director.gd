@@ -176,6 +176,9 @@ func _vacuum_pickups(player: Node2D) -> void:
 
 func _open_shop() -> void:
 	if is_instance_valid(shop):
+		shop.show()
+		if shop.has_method("open_for_wave"):
+			shop.open_for_wave(current_wave)
 		return
 	shop = WAVE_SHOP_SCENE.instantiate() as CanvasLayer
 	add_child(shop)

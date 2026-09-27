@@ -127,17 +127,28 @@ func _test_wave_director_rounds() -> void:
 
 	# end_wave() is idempotent -- a double call must not double-pay or re-open.
 	var shop_node := dir.get_node_or_null("WaveShopUI")
-	check(shop_node != null, "end_wave() opened the Tàng Kinh Các shop")
+	check(shop_node != null and shop_node.visible, "end_wave() opened and showed the Tàng Kinh Các shop")
 	completed.clear()
 	dir.end_wave()
 	check(completed.is_empty(), "A second end_wave() on the same wave is a no-op")
 
-	get_tree().paused = false
-	dir.advance_to_next_wave()
-	check(dir.current_wave == 3, "advance_to_next_wave() steps 2 -> 3")
-	check(dir.is_wave_active, "advance_to_next_wave() opens the next wave")
-	check(is_equal_approx(dir.wave_duration, 25.0), "Wave 3 lasts 25s")
-	check(not get_tree().paused, "advance_to_next_wave() unpauses the tree")
+	# Close shop via close_shop() as a player would, advancing to Wave 3
+	shop_node.close_shop()
+	check(dir.current_wave == 3, "close_shop() steps 2 -> 3")
+	check(dir.is_wave_active, "Wave 3 is active")
+	check(not shop_node.visible, "WaveShopUI hidden during combat")
+	check(not get_tree().paused, "Tree unpaused during combat")
+
+	# End Wave 3 -> verify shop reopens and shows, and does not freeze on subsequent waves
+	dir.end_wave()
+	check(get_tree().paused, "Wave 3 end_wave() pauses tree")
+	check(shop_node.visible, "WaveShopUI is shown again for Wave 3 intermission")
+	check(shop_node.current_wave == 3, "WaveShopUI configured for Wave 3")
+
+	# Advance to Wave 4
+	shop_node.close_shop()
+	check(dir.current_wave == 4, "close_shop() steps 3 -> 4")
+	check(not get_tree().paused, "Tree unpaused for Wave 4")
 
 	# Victory: clearing the final wave ends the run rather than opening a shop.
 	dir.current_wave = dir.max_waves

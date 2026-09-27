@@ -218,12 +218,8 @@ func open_for_wave(wave_num: int) -> void:
 	# sounds like the "spent" cue a purchase fires.
 	if payout_interest > 0:
 		SoundManager.play("coin", 0.15)
-	# cards is deliberately NOT cleared: locked cards must survive the wave
-	# transition, and this node is reused rather than freed for exactly that.
-	if cards.is_empty():
-		roll_items()
-	else:
-		_refresh_cards()
+	# Roll fresh items for the new wave; roll_items preserves cards flagged as locked.
+	roll_items()
 	show()
 	_refresh_all()
 
@@ -265,28 +261,31 @@ func _build_ui() -> void:
 
 	var dim := ColorRect.new()
 	dim.name = "Dim"
-	dim.color = Color(0.03, 0.04, 0.07, 0.92)
+	dim.color = Color(0.04, 0.05, 0.08, 0.94)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(dim)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 18)
+		margin.add_theme_constant_override(side, 20)
 	_root.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 12)
 	margin.add_child(column)
 
 	# --- 1. Header ---
 	var header := HBoxContainer.new()
-	header.custom_minimum_size = Vector2(0, 42)
+	header.custom_minimum_size = Vector2(0, 48)
 	column.add_child(header)
 
 	_title_label = Label.new()
-	_title_label.add_theme_font_size_override("font_size", 26)
-	_title_label.add_theme_color_override("font_color", HEADER_ACCENT)
+	_title_label.add_theme_font_override("font", UITheme.get_display_font())
+	_title_label.add_theme_font_size_override("font_size", 24)
+	_title_label.add_theme_color_override("font_color", UITheme.GOLD)
+	_title_label.add_theme_color_override("font_outline_color", UITheme.INK)
+	_title_label.add_theme_constant_override("outline_size", 4)
 	header.add_child(_title_label)
 
 	var spacer := Control.new()
@@ -294,65 +293,88 @@ func _build_ui() -> void:
 	header.add_child(spacer)
 
 	_gold_label = Label.new()
-	_gold_label.add_theme_font_size_override("font_size", 24)
-	_gold_label.add_theme_color_override("font_color", Color(1.0, 0.88, 0.35))
+	_gold_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+	_gold_label.add_theme_font_size_override("font_size", 22)
+	_gold_label.add_theme_color_override("font_color", UITheme.GOLD)
 	header.add_child(_gold_label)
 
 	# --- 2. Arsenal tray (6 slots) ---
 	var arsenal_panel := PanelContainer.new()
-	arsenal_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.07, 0.10, 0.16, 0.95), Color(0.35, 0.55, 0.8, 0.7)))
+	arsenal_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel(UITheme.LACQUER, UITheme.BORDER, 8, 1))
 	column.add_child(arsenal_panel)
+
 	var arsenal_box := VBoxContainer.new()
+	arsenal_box.add_theme_constant_override("separation", 6)
 	arsenal_panel.add_child(arsenal_box)
+
 	var arsenal_title := Label.new()
 	arsenal_title.name = "ArsenalTitle"
-	arsenal_title.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	arsenal_title.add_theme_font_override("font", UITheme.get_body_bold_font())
+	arsenal_title.add_theme_font_size_override("font_size", 13)
+	arsenal_title.add_theme_color_override("font_color", UITheme.MUTED)
 	arsenal_box.add_child(arsenal_title)
+
 	_arsenal_row = HBoxContainer.new()
-	_arsenal_row.add_theme_constant_override("separation", 6)
+	_arsenal_row.add_theme_constant_override("separation", 8)
 	arsenal_box.add_child(_arsenal_row)
 
 	# --- 3. Shop cards (4) ---
 	var card_panel := PanelContainer.new()
-	card_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.09, 0.08, 0.05, 0.95), Color(0.8, 0.65, 0.3, 0.7)))
+	card_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel(UITheme.LACQUER, UITheme.BORDER, 8, 1))
 	column.add_child(card_panel)
+
 	var card_box := VBoxContainer.new()
+	card_box.add_theme_constant_override("separation", 8)
 	card_panel.add_child(card_box)
+
 	var card_title := Label.new()
-	card_title.text = "📦 CỬA HÀNG TÀNG KINH — chọn 1 món"
-	card_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.5))
+	card_title.text = "CỬA HÀNG TÀNG KINH — CHỌN 1 MÓN"
+	card_title.add_theme_font_override("font", UITheme.get_body_bold_font())
+	card_title.add_theme_font_size_override("font_size", 13)
+	card_title.add_theme_color_override("font_color", UITheme.MUTED)
 	card_box.add_child(card_title)
+
 	_card_row = HBoxContainer.new()
-	_card_row.add_theme_constant_override("separation", 8)
+	_card_row.add_theme_constant_override("separation", 10)
 	card_box.add_child(_card_row)
 
 	# --- 4. Action bar ---
 	var bar := HBoxContainer.new()
 	bar.alignment = BoxContainer.ALIGNMENT_CENTER
-	bar.add_theme_constant_override("separation", 20)
+	bar.add_theme_constant_override("separation", 24)
 	column.add_child(bar)
 
 	_reroll_button = Button.new()
-	_reroll_button.custom_minimum_size = Vector2(280, 46)
+	_reroll_button.custom_minimum_size = Vector2(260, 44)
+	_reroll_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+	_reroll_button.add_theme_font_size_override("font_size", 15)
+	_reroll_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.BORDER, 8))
+	_reroll_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
+	_reroll_button.add_theme_color_override("font_color", UITheme.GOLD)
+	_reroll_button.mouse_entered.connect(func(): SoundManager.play_ui_hover())
 	_reroll_button.pressed.connect(func(): reroll())
 	bar.add_child(_reroll_button)
 
 	_next_button = Button.new()
-	_next_button.text = "⚔️ VÀO HIỆP TIẾP THEO (SPACE/ENTER)"
-	_next_button.custom_minimum_size = Vector2(420, 46)
-	_next_button.add_theme_stylebox_override("normal", _panel_style(Color(0.30, 0.10, 0.05, 0.95), Color(1.0, 0.5, 0.2, 1.0)))
-	_next_button.add_theme_color_override("font_color", Color(1.0, 0.92, 0.7))
-	_next_button.pressed.connect(close_shop)
+	_next_button.text = "VÀO HIỆP TIẾP THEO (SPACE / ENTER)"
+	_next_button.custom_minimum_size = Vector2(380, 44)
+	_next_button.add_theme_font_override("font", UITheme.get_body_bold_font())
+	_next_button.add_theme_font_size_override("font_size", 15)
+	_next_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+	_next_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+	_next_button.add_theme_stylebox_override("pressed", UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
+	_next_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+	_next_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+	_next_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+	_next_button.mouse_entered.connect(func(): SoundManager.play_ui_hover())
+	_next_button.pressed.connect(func():
+		SoundManager.play_ui_click()
+		close_shop()
+	)
 	bar.add_child(_next_button)
 
 func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = bg
-	sb.border_color = border
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(8)
-	return sb
+	return UITheme.make_card_panel(bg, border, 8, 2)
 
 func _refresh_all() -> void:
 	_refresh_header()
@@ -362,7 +384,7 @@ func _refresh_all() -> void:
 
 func _refresh_header() -> void:
 	if _title_label:
-		_title_label.text = "🏛️ TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
+		_title_label.text = "TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
 		var summary := get_wave_summary()
 		if summary != "":
 			_title_label.text += "\n" + summary
@@ -370,13 +392,13 @@ func _refresh_header() -> void:
 
 func _refresh_gold() -> void:
 	if _gold_label and GameManager:
-		_gold_label.text = "💰 %d Vàng" % (GameManager.run_gold + GameManager.total_gold)
+		_gold_label.text = "VÀNG: %d" % (GameManager.run_gold + GameManager.total_gold)
 
 func _refresh_reroll_button() -> void:
 	if not _reroll_button:
 		return
 	var cost := get_reroll_cost()
-	_reroll_button.text = "🎲 TẨY TỦY (%d Vàng)" % cost
+	_reroll_button.text = "TẨY TỦY (%d Vàng)" % cost
 	_reroll_button.disabled = get_gold() < cost
 
 func _refresh_arsenal() -> void:
@@ -391,66 +413,95 @@ func _refresh_arsenal() -> void:
 	var arsenal: Array = up.arsenal
 	var title := _arsenal_row.get_parent().get_node_or_null("ArsenalTitle")
 	if title:
-		title.text = "🗄️ TỦ BINH ĐẠI (%d/%d)" % [arsenal.size(), up.MAX_WEAPONS]
+		title.text = "TỦ BINH KHÍ (%d/%d)" % [arsenal.size(), up.MAX_WEAPONS]
 
 	for i in range(up.MAX_WEAPONS):
 		_arsenal_row.add_child(_build_slot(up, arsenal, i))
 
 func _build_slot(up: Node, arsenal: Array, index: int) -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(196, 120)
+	panel.custom_minimum_size = Vector2(190, 116)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	if index >= arsenal.size():
-		panel.add_theme_stylebox_override("panel", _panel_style(Color(0.06, 0.06, 0.08, 0.9), Color(0.25, 0.25, 0.3, 0.6)))
+		panel.add_theme_stylebox_override("panel", UITheme.make_card_panel(UITheme.INK_DIM, UITheme.BORDER, 8, 1))
 		var empty := Label.new()
-		empty.text = "Ô %d\n\n— trống —" % (index + 1)
+		empty.text = "Ô %d\n— TRỐNG —" % (index + 1)
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		empty.add_theme_color_override("font_color", Color(0.5, 0.5, 0.55))
+		empty.add_theme_font_override("font", UITheme.get_body_font())
+		empty.add_theme_color_override("font_color", UITheme.MUTED)
 		panel.add_child(empty)
 		return panel
 
 	var w: Dictionary = arsenal[index]
-	var info: Dictionary = up.WEAPON_INFO.get(w["id"], {"name": w["id"], "icon": "❓"}).duplicate()
-	info["name"] = up.get_weapon_name(w["id"]) # localised, canonical
+	var wid := String(w["id"])
+	var info: Dictionary = up.WEAPON_INFO.get(wid, {"name": wid, "icon": ""}).duplicate()
+	info["name"] = up.get_weapon_name(wid)
 	var tier := int(w.get("tier", 1))
-	panel.add_theme_stylebox_override("panel", _panel_style(Color(0.08, 0.11, 0.17, 0.95), up.tier_color(tier)))
+	var tier_col: Color = up.tier_color(tier)
+
+	panel.add_theme_stylebox_override("panel", UITheme.make_card_panel(UITheme.LACQUER, tier_col, 8, 2))
+
+	var margin := MarginContainer.new()
+	for s in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(s, 8)
+	panel.add_child(margin)
 
 	var box := VBoxContainer.new()
-	panel.add_child(box)
+	box.add_theme_constant_override("separation", 4)
+	margin.add_child(box)
 
 	var name_label := Label.new()
-	name_label.text = "%s %s" % [info["icon"], info["name"]]
-	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.text = info["name"]
+	name_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+	name_label.add_theme_font_size_override("font_size", 13)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT)
 	box.add_child(name_label)
 
 	var tier_label := Label.new()
-	tier_label.text = "⚔️ %s  •  ô %d" % [up.tier_label(tier), index + 1]
-	tier_label.add_theme_color_override("font_color", up.tier_color(tier))
+	tier_label.text = "%s  •  Ô %d" % [up.tier_label(tier), index + 1]
+	tier_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+	tier_label.add_theme_font_size_override("font_size", 11)
+	tier_label.add_theme_color_override("font_color", tier_col)
 	box.add_child(tier_label)
 
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(spacer)
+
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
 
-	# Two of the same type AND the same tier fuse into one tier higher, freeing
-	# the slot. A maxed tier has nothing to fuse into.
 	var fuseable: bool = tier < up.MAX_WEAPON_TIER and up.count_at_tier(w["id"], tier) >= 2
 	var fuse_btn := Button.new()
-	fuse_btn.text = "⚡ GHÉP" if fuseable else "⚡ —"
-	fuse_btn.custom_minimum_size = Vector2(86, 30)
+	fuse_btn.text = "GHÉP" if fuseable else "—"
+	fuse_btn.custom_minimum_size = Vector2(80, 26)
 	fuse_btn.disabled = not fuseable
+	fuse_btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+	fuse_btn.add_theme_font_size_override("font_size", 11)
 	if fuseable:
-		fuse_btn.add_theme_stylebox_override("normal", _panel_style(Color(0.10, 0.28, 0.14, 0.95), Color(0.4, 1.0, 0.6, 0.9)))
-		fuse_btn.add_theme_color_override("font_color", Color(0.7, 1.0, 0.8))
-		var wid := String(w["id"])
-		fuse_btn.pressed.connect(func(): _fuse(up, wid, tier))
+		fuse_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(Color("#10281E"), UITheme.JADE, 6))
+		fuse_btn.add_theme_color_override("font_color", UITheme.JADE)
+		fuse_btn.mouse_entered.connect(func(): SoundManager.play_ui_hover())
+		fuse_btn.pressed.connect(func():
+			_fuse(up, wid, tier)
+			SoundManager.play_ui_click()
+		)
+	else:
+		fuse_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 6))
+		fuse_btn.add_theme_color_override("font_color", UITheme.MUTED)
 	row.add_child(fuse_btn)
 
 	var sell_btn := Button.new()
-	sell_btn.text = "💰 BÁN %d" % _sell_value(w["id"])
-	sell_btn.custom_minimum_size = Vector2(100, 30)
+	sell_btn.text = "BÁN %d" % _sell_value(w["id"])
+	sell_btn.custom_minimum_size = Vector2(80, 26)
+	sell_btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+	sell_btn.add_theme_font_size_override("font_size", 11)
+	sell_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.INK, UITheme.BORDER, 6))
+	sell_btn.add_theme_color_override("font_color", UITheme.GOLD)
+	sell_btn.mouse_entered.connect(func(): SoundManager.play_ui_hover())
 	sell_btn.pressed.connect(func(): _sell(up, index))
 	row.add_child(sell_btn)
 
@@ -489,30 +540,115 @@ func _refresh_cards() -> void:
 func _build_card(index: int) -> Control:
 	var entry: Dictionary = cards[index]["data"]
 	var locked: bool = cards[index].get("locked", false)
-	var box := VBoxContainer.new()
-	box.custom_minimum_size = Vector2(288, 0)
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 3)
 
-	var buy := Button.new()
-	buy.custom_minimum_size = Vector2(0, 116)
-	buy.disabled = entry.is_empty() or get_gold() < int(entry.get("price", 0))
+	var card_panel := PanelContainer.new()
+	card_panel.custom_minimum_size = Vector2(270, 185)
+	card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var is_scroll: bool = entry.get("kind", "") == "scroll"
+	var border_col: Color = UITheme.GOLD if locked else (Color("#5C7CFA") if is_scroll else UITheme.BORDER)
+	var bg_col: Color = Color("#181B26") if locked else UITheme.LACQUER
+	card_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel(bg_col, border_col, 10, 2 if locked else 1))
+
+	var margin := MarginContainer.new()
+	for s in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(s, 10)
+	card_panel.add_child(margin)
+
+	var card_vbox := VBoxContainer.new()
+	card_vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(card_vbox)
 
 	if entry.is_empty():
-		buy.text = "Ô %d\n\n— đã mua —" % (index + 1)
-	else:
-		buy.text = "%s\n%s\n\n💰 %d Vàng" % [entry["title"], entry["desc"], int(entry["price"])]
-		if entry.get("kind", "") == "scroll":
-			buy.add_theme_stylebox_override("normal", _panel_style(Color(0.16, 0.10, 0.05, 0.95), Color(0.9, 0.6, 0.25, 0.9)))
-		else:
-			buy.add_theme_stylebox_override("normal", _panel_style(Color(0.10, 0.12, 0.18, 0.95), Color(0.3, 0.5, 0.7, 0.85)))
-	buy.pressed.connect(func(): purchase_card(index))
-	box.add_child(buy)
+		var empty_lbl := Label.new()
+		empty_lbl.text = "— ĐÃ MUA —"
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		empty_lbl.add_theme_font_override("font", UITheme.get_body_bold_font())
+		empty_lbl.add_theme_color_override("font_color", UITheme.MUTED)
+		card_vbox.add_child(empty_lbl)
+		return card_panel
+
+	# 1. Top row: Type Tag + Lock toggle button
+	var top_bar := HBoxContainer.new()
+	card_vbox.add_child(top_bar)
+
+	var type_badge := Label.new()
+	type_badge.text = "[ BÍ TỊCH ]" if is_scroll else "[ VÕ HỌC T1 ]"
+	type_badge.add_theme_font_override("font", UITheme.get_body_bold_font())
+	type_badge.add_theme_font_size_override("font_size", 11)
+	type_badge.add_theme_color_override("font_color", Color("#5C7CFA") if is_scroll else UITheme.GOLD)
+	top_bar.add_child(type_badge)
+
+	var top_spacer := Control.new()
+	top_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top_bar.add_child(top_spacer)
 
 	var lock_btn := Button.new()
-	lock_btn.custom_minimum_size = Vector2(0, 28)
-	lock_btn.text = "🔒 KHÓA — giữ qua tẩy tủy" if locked else "🔓 MỞ KHÓA"
-	lock_btn.pressed.connect(func(): toggle_lock(index))
-	box.add_child(lock_btn)
+	lock_btn.text = "ĐÃ KHÓA" if locked else "KHÓA"
+	lock_btn.custom_minimum_size = Vector2(74, 24)
+	lock_btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+	lock_btn.add_theme_font_size_override("font_size", 10)
+	if locked:
+		lock_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(Color("#2A2410"), UITheme.GOLD, 5))
+		lock_btn.add_theme_color_override("font_color", UITheme.GOLD)
+	else:
+		lock_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.INK, UITheme.BORDER, 5))
+		lock_btn.add_theme_color_override("font_color", UITheme.MUTED)
+	lock_btn.mouse_entered.connect(func(): SoundManager.play_ui_hover())
+	lock_btn.pressed.connect(func():
+		toggle_lock(index)
+		SoundManager.play_ui_click()
+	)
+	top_bar.add_child(lock_btn)
 
-	return box
+	# 2. Title
+	var title_lbl := Label.new()
+	title_lbl.text = entry.get("title", "")
+	title_lbl.add_theme_font_override("font", UITheme.get_body_bold_font())
+	title_lbl.add_theme_font_size_override("font_size", 15)
+	title_lbl.add_theme_color_override("font_color", UITheme.TEXT)
+	card_vbox.add_child(title_lbl)
+
+	# 3. Description
+	var desc_lbl := Label.new()
+	desc_lbl.text = entry.get("desc", "")
+	desc_lbl.add_theme_font_override("font", UITheme.get_body_font())
+	desc_lbl.add_theme_font_size_override("font_size", 12)
+	desc_lbl.add_theme_color_override("font_color", UITheme.MUTED)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card_vbox.add_child(desc_lbl)
+
+	# 4. Buy Button
+	var price := int(entry.get("price", 0))
+	var can_afford: bool = get_gold() >= price
+	var buy_btn := Button.new()
+	buy_btn.text = "MUA: %d VÀNG" % price
+	buy_btn.custom_minimum_size = Vector2(0, 36)
+	buy_btn.disabled = not can_afford
+	buy_btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+	buy_btn.add_theme_font_size_override("font_size", 13)
+
+	if can_afford:
+		buy_btn.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+		buy_btn.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+		buy_btn.add_theme_stylebox_override("pressed", UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
+		buy_btn.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+		buy_btn.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+		buy_btn.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+	else:
+		buy_btn.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
+		buy_btn.add_theme_stylebox_override("disabled", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
+		buy_btn.add_theme_color_override("font_color", UITheme.MUTED)
+		buy_btn.add_theme_color_override("font_disabled_color", UITheme.MUTED)
+
+	buy_btn.mouse_entered.connect(func():
+		if can_afford:
+			SoundManager.play_ui_hover()
+	)
+	buy_btn.pressed.connect(func(): purchase_card(index))
+	card_vbox.add_child(buy_btn)
+
+	return card_panel

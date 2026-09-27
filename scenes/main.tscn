@@ -82,6 +82,32 @@ func _setup_arena_boundaries() -> void:
 		line.default_color = ring[1]
 		line.z_index = ring[2]
 		bounds.add_child(line)
+
+	# Corner Braziers with martial flame embers
+	var corner_pts = [Vector2(-half_w, -half_h), Vector2(half_w, -half_h), Vector2(half_w, half_h), Vector2(-half_w, half_h)]
+	var brazier_tex = load(\"res://assets/textures/brazier.png\") if ResourceLoader.exists(\"res://assets/textures/brazier.png\") else null
+	for pt in corner_pts:
+		if brazier_tex:
+			var sp = Sprite2D.new()
+			sp.texture = brazier_tex
+			sp.position = pt
+			sp.scale = Vector2(2.5, 2.5)
+			sp.z_index = 950
+			bounds.add_child(sp)
+		var fire = CPUParticles2D.new()
+		fire.position = pt + Vector2(0, -16)
+		fire.amount = 8
+		fire.lifetime = 0.8
+		fire.direction = Vector2(0, -1)
+		fire.spread = 20.0
+		fire.gravity = Vector2(0, -30)
+		fire.initial_velocity_min = 20.0
+		fire.initial_velocity_max = 45.0
+		fire.scale_amount_min = 2.0
+		fire.scale_amount_max = 4.0
+		fire.color = Color(1.0, 0.65, 0.2, 0.85)
+		fire.z_index = 951
+		bounds.add_child(fire)
 	add_child(bounds)
 "
 

@@ -49,7 +49,10 @@ func _test_synergy_card_availability() -> void:
 	var bao_card = _catalog_get(up_mgr.get_upgrade_catalog(), "synergy_bao_vu")
 	assert(not bao_card.is_empty(), "Lotus Storm synergy offered at Dagger Lv.5 + Axe Lv.5")
 	assert(bao_card.get("is_synergy", false) == true, "Lotus Storm card flagged is_synergy = true")
-	assert(bao_card.get("title", "") == "🌟 BÃO VŨ LÊ HOA CHÂM (Lotus Storm)", "Lotus Storm card title matches spec")
+	# The emoji star was replaced by the [HỢP NHẤT] tag in d71418c ("de-slop
+	# visual UI cards"). An assert() aborts the rest of _ready(), so while this
+	# one was stale the Frost Sovereign assertion below never even ran.
+	assert(bao_card.get("title", "") == "[HỢP NHẤT] BÃO VŨ LÊ HOA CHÂM (Lotus Storm)", "Lotus Storm card title matches spec")
 	assert((bao_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Lotus Storm card advertises the fusion")
 
 	# Not offered again once the fusion has been consumed
@@ -67,7 +70,7 @@ func _test_synergy_card_availability() -> void:
 	var phach_card = _catalog_get(up_mgr.get_upgrade_catalog(), "synergy_bang_phach")
 	assert(not phach_card.is_empty(), "Frost Sovereign synergy offered at Slash Lv.5 + Shield Lv.5")
 	assert(phach_card.get("is_synergy", false) == true, "Frost Sovereign card flagged is_synergy = true")
-	assert(phach_card.get("title", "") == "🌟 BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)", "Frost Sovereign card title matches spec")
+	assert(phach_card.get("title", "") == "[HỢP NHẤT] BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)", "Frost Sovereign card title matches spec")
 	assert((phach_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Frost Sovereign card advertises the fusion")
 
 	up_mgr.synergies_evolved["bang_phach"] = true

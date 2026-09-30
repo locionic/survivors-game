@@ -316,8 +316,15 @@ func load_codex_data() -> void:
 				if cfg.has_section_key(q["id"], "claimed"):
 					q["claimed"] = bool(cfg.get_value(q["id"], "claimed"))
 					if q["claimed"]:
+						# Never re-apply the reward on load. The permanent modifiers are
+						# restored from the "global" section just below and the relics from
+						# unlocked_relic_keys after that -- all written by the same
+						# save_codex_data() call as these flags, so they cannot drift apart.
+						# "claimed" already means the reward was paid; calling
+						# _apply_reward() here re-granted slay_500's 600 meta gold on every
+						# single boot. Restoring a modifier and paying a reward are different
+						# jobs -- only claim_reward() pays.
 						claimed_count += 1
-						_apply_reward(q)
 			bonus_speed = float(cfg.get_value("global", "bonus_speed", 0.0))
 			bonus_attack_speed = float(cfg.get_value("global", "bonus_attack_speed", 0.0))
 			bonus_gold_drop_mult = float(cfg.get_value("global", "bonus_gold_drop_mult", 1.0))
@@ -343,8 +350,10 @@ func _apply_save_dict(dict: Dictionary) -> void:
 					if q["unlocked"]:
 						unlocked_count += 1
 					if q["claimed"]:
+						# Same rule as the ConfigFile path: claimed is a record of a
+						# payout, not a trigger for one. The modifiers below are read
+						# straight out of the save dict.
 						claimed_count += 1
-						_apply_reward(q)
 					break
 	if dict.has("bonus_speed"):
 		bonus_speed = float(dict["bonus_speed"])

@@ -661,9 +661,11 @@ func die() -> void:
 	# dead, restarts, and stops dead again -- in a browser that reads as a tab
 	# freeze, not as impact. Only a boss/elite death earns the real stop, and at
 	# 0.2 the stop is shallow enough to feel like a hit rather than a hitch.
+	# Milestone 4p2: GameManager owns the scale and its release, so this node
+	# free()ing itself the instant after the freeze cannot strand the engine.
 	if GameManager and GameManager.has_method("trigger_hitstop"):
 		if is_boss or is_champion or is_elite_champion:
-			GameManager.trigger_hitstop(0.04, 0.2)
+			GameManager.trigger_hitstop(0.09, GameManager.HITSTOP_SCALE)
 	
 	# Record kill in GameManager with enemy type and champion flag
 	var enemy_type = "bat" if is_bat_type else ("skeleton" if name.begins_with("Skeleton") else "")

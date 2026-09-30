@@ -530,6 +530,9 @@ func get_danger_name() -> String:
 	return Loc.t("danger.%d.name" % danger_level, "Novice")
 
 func _process(delta: float) -> void:
+	# Ahead of the run block so a freeze always releases, even with no run live.
+	_update_hitstop()
+
 	if is_run_active and not get_tree().paused:
 		run_time += delta
 		emit_signal("score_updated", kills, run_time)
@@ -589,22 +592,59 @@ func enter_endless_mode() -> void:
 	is_run_active = true
 	get_tree().paused = false
 
+## Milestone 4 Part 2 -- impact hit-stop. Engine.time_scale is global engine
+## state, so exactly ONE node owns it. Callers ask this autoload for a freeze;
+## they never touch time_scale themselves, which is what keeps a node freed
+## mid-impact (the enemy that just died, the player) from stranding the engine
+## at 0.15 forever.
 var _hitstop_timer: float = 0.0
+var _hitstop_until_msec: int = 0
 
-func trigger_hitstop(duration: float = 0.038, scale: float = 0.05) -> void:
+## Depth floor for every in-game freeze. Below ~0.2 the engine stops dead
+## instead of punching, and in the browser that reads as a tab freeze rather
+## than an impact -- see the Milestone 3b boss-hitstop guard in
+## test_web_perf_milestone_3b.gd, which fails below 0.2.
+const HITSTOP_SCALE: float = 0.2
+
+func trigger_hitstop(duration: float = 0.075, scale: float = HITSTOP_SCALE) -> void:
 	if Engine.is_editor_hint():
 		return
+	# Re-entrancy: one live freeze owns the scale outright. A second impact
+	# arriving mid-freeze is dropped rather than stacked, so a swarm of
+	# simultaneous hits can neither deepen the dip nor push the release out.
 	if _hitstop_timer > 0.0:
 		return
 	_hitstop_timer = duration
+	_hitstop_until_msec = Time.get_ticks_msec() + int(duration * 1000.0)
 	Engine.time_scale = scale
-	var tree = get_tree()
-	if tree:
-		var timer = tree.create_timer(duration, true, false, true)
-		timer.timeout.connect(func():
-			Engine.time_scale = 1.0
-			_hitstop_timer = 0.0
-		)
+
+## The release is a wall-clock deadline, NOT a Timer or create_timer(): those
+## tick on scaled time, so every retrigger would slide the deadline further
+## out and the freeze would never end. Time.get_ticks_msec() keeps running at
+## 0.15, so one check per frame is enough and the dip lasts the requested
+## wall-clock duration no matter how slow the frozen frames are.
+func _update_hitstop() -> void:
+	if _hitstop_timer <= 0.0:
+		return
+	if Time.get_ticks_msec() < _hitstop_until_msec:
+		return
+	_release_hitstop()
+
+## Idempotent. Safe to call with no freeze live, and safe to call from the
+## predelete backstop below.
+func _release_hitstop() -> void:
+	_hitstop_timer = 0.0
+	_hitstop_until_msec = 0
+	if Engine.time_scale < 1.0:
+		Engine.time_scale = 1.0
+
+## Backstop for "never leave time_scale below 1.0". If the owner is ever torn
+## down while a freeze is live, the engine goes back to full speed instead of
+## running the rest of the session in slow motion. PREDELETE fires on free()
+## whether or not the node was ever added to the tree.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		_release_hitstop()
 
 func start_new_run() -> void:
 	Engine.time_scale = 1.0

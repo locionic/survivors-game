@@ -314,3 +314,7 @@ func evolve_to_frost_sovereign() -> void:
 	base_cooldown = 0.55
 	slash_range = max(slash_range, 150.0)
 	FloatingText.spawn(global_position + Vector2(0, -45), "🌟 HỢP NHẤT: BĂNG PHÁCH THẦN KIẾM! 🌟", Color(0.45, 1.0, 0.85))
+	# Milestone 4p2: a synergy fusion is the biggest payoff in a run, so it earns
+	# the deepest stop the web export tolerates.
+	if GameManager and GameManager.has_method("trigger_hitstop"):
+		GameManager.trigger_hitstop(0.09, GameManager.HITSTOP_SCALE)

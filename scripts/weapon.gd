@@ -119,6 +119,10 @@ func evolve_to_lotus_storm() -> void:
 	base_cooldown = 0.36
 	attack_range = max(attack_range, 620.0)
 	FloatingText.spawn(global_position + Vector2(0, -45), "🌟 HỢP NHẤT: BÃO VŨ LÊ HOA CHÂM! 🌟", Color(0.45, 1.0, 0.85))
+	# Milestone 4p2: a synergy fusion is the biggest payoff in a run, so it earns
+	# the deepest stop the web export tolerates.
+	if GameManager and GameManager.has_method("trigger_hitstop"):
+		GameManager.trigger_hitstop(0.09, GameManager.HITSTOP_SCALE)
 
 func _get_player_might() -> float:
 	var p = get_tree().get_first_node_in_group("player")

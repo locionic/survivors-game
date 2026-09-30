@@ -661,7 +661,14 @@ func take_damage(amount: float) -> void:
 	var cam = get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("shake"):
 		cam.shake(9.0)
-	
+
+	# Milestone 4p2: the hit itself. Shake sells the shove, hit-stop sells the
+	# weight -- the 70ms of real time where the world holds still is what tells
+	# the player something actually connected. GameManager owns the release, so
+	# a dying player cannot leave the engine at 0.2 for the rest of the session.
+	if GameManager and GameManager.has_method("trigger_hitstop"):
+		GameManager.trigger_hitstop(0.07, GameManager.HITSTOP_SCALE)
+
 	# Visual feedback: flash red & squish slightly
 	modulate = Color(1.0, 0.4, 0.4)
 	var tween = create_tween()

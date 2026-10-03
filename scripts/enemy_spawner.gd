@@ -102,6 +102,7 @@ func spawn_intro_ambush() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 300.0
 		var bat = bat_scene.instantiate()
 		if bat:
+			_scale_for_wave(bat)
 			bat.global_position = spawn_pos
 			get_tree().current_scene.call_deferred("add_child", bat)
 
@@ -340,10 +341,7 @@ func spawn_enemy_wave() -> void:
 		if chosen_scene:
 			var enemy = chosen_scene.instantiate()
 			if enemy:
-				var cur_max_hp = enemy.get("max_health")
-				if cur_max_hp != null:
-					enemy.set("max_health", cur_max_hp + floor(r_time * 0.22))
-				_apply_danger(enemy)
+				_scale_for_wave(enemy)
 				enemy.global_position = spawn_pos
 
 				# Champion chance: scales up to 26% late game, plus one step per
@@ -359,6 +357,49 @@ func spawn_enemy_wave() -> void:
 ## instance BEFORE it enters the tree, because enemy.gd's _ready() seeds
 ## current_health from max_health -- scaling afterwards would leave a tier-5 bat
 ## at full health on a bar sized for a tier-0 one.
+## The hiệp HP curve plus the danger tier, applied to an instance BEFORE it enters
+## the tree. Every spawn path routes through here -- and "every" is load-bearing, so
+## it is worth saying what it took: trigger_swarm() and the hermit's Hạ Hạ Quẻ summons
+## did neither and dropped a tier-0 bat into a tier-5 hiệp; then all four boss spawns,
+## the treasure goblin and the opening ambush did neither, which left a hiệp-20 boss
+## the same size as a hiệp-1 one. A new spawn path that skips this is silent, so the
+## assertion belongs in tests/test_expansion_35.gd rather than in a comment here.
+##
+## spawn_hermit() is the one enemy-ish spawn still outside it, deliberately: the Lão
+## Ngọan Đồng is the pact NPC, and putting the combat HP curve on a non-combatant
+## would be a new bug.
+func _scale_for_wave(node: Node2D) -> void:
+	var hp = node.get("max_health")
+	if hp != null:
+		node.set("max_health", float(hp) + floor(get_difficulty_seconds() * 0.22))
+	_apply_danger(node)
+
+## Spawn one named enemy at an exact position. The ids are a map rather than a
+## bare string because every caller that needs this can only see the spawner
+## through its group -- it has no handle on the exported PackedScenes.
+const NAMED_ENEMIES: Dictionary = {
+	"skeleton_brute": "skeleton_scene",
+	"bat": "bat_scene",
+	"necromancer": "necromancer_scene",
+}
+
+func spawn_specific_enemy(enemy_id: String, pos: Vector2) -> void:
+	if not is_instance_valid(player) or not is_inside_tree():
+		return
+	var prop: String = NAMED_ENEMIES.get(enemy_id, "")
+	if prop.is_empty() or not (prop in self):
+		push_warning("spawn_specific_enemy: unknown id '%s'" % enemy_id)
+		return
+	var scene: PackedScene = get(prop)
+	if not scene:
+		return
+	var enemy = scene.instantiate()
+	if not enemy:
+		return
+	_scale_for_wave(enemy)
+	enemy.global_position = pos
+	get_tree().current_scene.add_child(enemy)
+
 func _apply_danger(node: Node2D) -> void:
 	var d := GameManager.get_danger_data()
 	var hp = node.get("max_health")
@@ -384,6 +425,7 @@ func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> v
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 520.0
 		var enemy = enemy_scene.instantiate()
 		if enemy:
+			_scale_for_wave(enemy)
 			enemy.global_position = spawn_pos
 			# 1 in 8 swarm enemies is a champion leader
 			if i % 8 == 0 and enemy.has_method("make_champion"):
@@ -403,6 +445,7 @@ func spawn_boss_1() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 620.0
 		var boss = boss_scene.instantiate()
 		if boss:
+			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
 			
@@ -424,9 +467,10 @@ func spawn_boss_2() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
 		var boss = b_scene.instantiate()
 		if boss:
+			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
-			
+
 			var hud = get_tree().get_first_node_in_group("hud")
 			if hud and hud.has_method("attach_boss_bar"):
 				hud.attach_boss_bar(boss)
@@ -445,6 +489,11 @@ func spawn_boss_3() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
 		var boss = b_scene.instantiate()
 		if boss:
+			# Scaling first, then the boss's own bonus: the 1.8 is 80% on top of a
+			# Behemoth that has already been put through the hiệp curve and the tier.
+			# It read max_health and wrote cur_hp * 1.8 off a flat scene value, so
+			# Sòng Thủ was the same fight on hiệp 20 as on hiệp 1.
+			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
 			boss.set("boss_name", "👑 SONG THỦ MA TƯỚNG")
 			var cur_hp = boss.get("max_health")
@@ -470,6 +519,10 @@ func spawn_demon_emperor() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 650.0
 		var boss = de_scene.instantiate()
 		if boss:
+			# The final boss, the one wired to trigger_victory(). It was 2400 on every
+			# wave of the run: (2400 + 105) * 3.0 = 7515 is what hiệp 20 at Hắc Ám asks
+			# for, so the fight that decides the run arrived at a third of its size.
+			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
 			
@@ -507,6 +560,7 @@ func spawn_treasure_goblin() -> void:
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 380.0
 		var gob = goblin_scene.instantiate()
 		if gob:
+			_scale_for_wave(gob)
 			gob.global_position = spawn_pos
 			get_tree().current_scene.call_deferred("add_child", gob)
 
@@ -538,7 +592,10 @@ func spawn_elite_champion(pos: Vector2 = Vector2.ZERO) -> Node2D:
 		return null
 
 	elite.set("is_elite_champion", true)
-	_apply_danger(elite)
+	# _scale_for_wave() rather than _apply_danger(), and not both: it already calls
+	# _apply_danger() itself, so adding it here as well would square the tier -- a
+	# tier-5 elite at 9x HP, which is a worse bug than the curve this adds.
+	_scale_for_wave(elite)
 	if pos != Vector2.ZERO:
 		elite.global_position = pos
 	elif is_instance_valid(player):

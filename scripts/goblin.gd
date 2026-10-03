@@ -110,9 +110,14 @@ func _escape() -> void:
 
 func die() -> void:
 	is_dead = true
-	GameManager.add_kill("goblin", true)
+	# The second argument credits the "Slay an Elite Champion" bounty. A Treasure Goblin
+	# is not a champion of any kind, and this passed a hardcoded true, so every goblin
+	# completed a second bounty on top of the one "goblin" already earns. False is
+	# stated rather than left to the default so the rejection reads as deliberate.
+	GameManager.add_kill("goblin", false)
 	GameManager.add_gold(80)
-	
+	_award_dragon_soul()
+
 	FloatingText.spawn(global_position + Vector2(0, -40), "👑 GOBLIN SLAIN! +80 GOLD 👑", Color(1.0, 0.85, 0.2))
 	SoundManager.play("powerup", 0.3)
 	
@@ -137,5 +142,25 @@ func die() -> void:
 			var angle = (float(i) / 10.0) * TAU
 			coin.global_position = global_position + Vector2(cos(angle), sin(angle)) * randf_range(20.0, 60.0)
 			get_tree().current_scene.call_deferred("add_child", coin)
-			
+
 	queue_free()
+
+## Long Hồn (dragon soul), 15 of the 100-point bar -- against 2 for a trash mob, 12
+## for a champion and 35 for a boss.
+##
+## This award used to live in enemy.gd, on an elif that could never fire. A
+## TreasureGoblin is its own class and does not extend Enemy, so enemy.gd's die()
+## never runs for one, and both of that branch's disjuncts were false besides:
+## `enemy_type` is not a member there at all but a local (enemy.gd:691) that can
+## only ever hold "bat", "skeleton" or ""; and the other tested a node name only a
+## goblin has, on a goblin that never runs enemy.gd. Every goblin therefore paid 0
+## soul -- on the loudest kill in the run, the one that drops a guaranteed mega
+## chest, a relic and ten coins for 80 gold.
+##
+## Split out of die() on purpose: the payout above runs through add_gold(), which
+## saves to user://save_data.cfg unconditionally, so this is the only part of a
+## goblin's death that a test can measure without writing outside the repo.
+func _award_dragon_soul() -> void:
+	var p = get_tree().get_first_node_in_group("player")
+	if is_instance_valid(p) and p.has_method("add_dragon_soul"):
+		p.add_dragon_soul(15.0)

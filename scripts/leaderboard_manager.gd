@@ -136,7 +136,21 @@ func calculate_score(run_time: float, kills: int, gold: int, scrolls_count: int)
 	return int(run_time * 12.0) + (kills * 28) + (gold * 2) + (scrolls_count * 2500)
 
 func submit_run(hero_id: String, run_time: float, kills: int, gold: int, scrolls: Array = []) -> int:
-	var total_score = calculate_score(run_time, kills, gold, scrolls.size())
+	var base_score := calculate_score(run_time, kills, gold, scrolls.size())
+	# The difficulty screen promises the tier a score multiplier -- "Score x11.0" on
+	# Tuyệt Thế, read off DANGER[level]["score"] at character_select_ui.gd:160 and
+	# shown right next to the hp and speed percentages. Those two were already applied
+	# by EnemySpawner._apply_danger(); this one was printed and never read again, so
+	# picking the hardest tier for the eleven-times board banked a Novice's score on
+	# the fight the whole ladder exists to be worth surviving.
+	#
+	# Applied here, in the one place a run becomes a leaderboard score, and not in
+	# calculate_score() -- that stays the raw formula, so a caller which has already
+	# scaled cannot be scaled twice, and every score already banked under x1.0 stays
+	# the canonical number for its run. daily_high_score a few lines below is written
+	# from the same total, so the daily board moves with the tournament one.
+	var tier_score := float(GameManager.get_danger_data().get("score", 1.0))
+	var total_score := int(roundf(float(base_score) * tier_score))
 	var date_dict = Time.get_date_dict_from_system()
 	var date_str = "%04d-%02d-%02d" % [date_dict.get("year", 2026), date_dict.get("month", 9), date_dict.get("day", 17)]
 	
@@ -155,11 +169,19 @@ func submit_run(hero_id: String, run_time: float, kills: int, gold: int, scrolls
 	tournament_entries.append(new_entry)
 	_sort_entries()
 	
-	# Check daily score
+	# Check daily score. get_daily_trial_info() runs first on purpose: it is the
+	# only thing that rolls the date over, and the rollover is what clears
+	# daily_completed. Calling it below the guard instead would leave yesterday's
+	# true in place for the whole check -- so the first run of a new day would
+	# score, skip the payout, and then have its own completion flag cleared, and
+	# the panel would go on reading "CHƯA THAM GIA" for a run that just happened.
+	var trial := get_daily_trial_info()
 	if total_score > daily_high_score:
 		daily_high_score = total_score
-		daily_completed = true
-		
+		if not daily_completed:
+			daily_completed = true
+			_pay_daily_reward(trial.get("reward_gold", 0))
+
 	save_leaderboard_data()
 	emit_signal("leaderboard_updated")
 	
@@ -167,6 +189,18 @@ func submit_run(hero_id: String, run_time: float, kills: int, gold: int, scrolls
 	if rank <= 10:
 		SoundManager.play("fanfare", 0.05)
 	return rank
+
+## The daily panel has always advertised a flat payout -- leaderboard_ui.gd:211
+## renders "Phần Thưởng Hoàn Thành: +%d Vàng" straight off the reward_gold this
+## function's caller just looked up -- and submit_run() above is the only place in
+## the codebase that ever sets daily_completed, the flag the panel reads back as
+## "✅ ĐÃ THAM GIA HÔM NAY". So the completion was detected and the gold was never
+## paid, on any day, for any of the four trials. Nothing in the code path is
+## missing a key or a spelling: there was simply no line that moved the money.
+func _pay_daily_reward(reward: int) -> void:
+	if not GameManager:
+		return
+	GameManager.add_meta_gold(reward)
 
 func _sort_entries() -> void:
 	tournament_entries.sort_custom(func(a: Dictionary, b: Dictionary):
@@ -202,6 +236,50 @@ func set_player_nickname(new_name: String) -> void:
 		save_leaderboard_data()
 		emit_signal("leaderboard_updated")
 
+## The four daily challenges. Hoisted out of get_daily_trial_info() so the whole
+## table is one reviewable constant instead of a literal rebuilt on every call --
+## and so a test can see all four, not just the one the calendar picked today.
+##
+## There are no gameplay modifiers in here, and that is deliberate rather than
+## unfinished. The table used to advertise twelve of them -- "+50% damage",
+## "quái vật +20% tốc độ", "champion x2", "hồi chiêu −30%" -- carried as
+## `might_mult` / `speed_mult` keys that *nothing in the codebase ever read*.
+## There is no trial run to apply them to: submit_run() fires on every run the
+## player finishes, and the payout is for beating today's score. So the only way
+## to wire them would have been to hand every player a silent +35% might on that
+## date, with nothing in the HUD saying why. The copy was wrong, not the code:
+## the daily trial is a score-and-reward challenge, and now it says so.
+##
+## Keys must stay in lockstep with what reads them -- tests/test_daily_trial.gd
+## holds both halves: nothing in this table may be unread, and no description may
+## quote a gameplay number the game does not implement.
+const MUTATORS: Array = [
+	{
+		"id": "fire_surge",
+		"title": "Hỏa Diệm Sơn Khí",
+		"desc": "🔥 Hỏa thử thách: đốt sạch bảng điểm. Hoàn thành một trận hôm nay để nhận thưởng vàng.",
+		"reward_gold": 600
+	},
+	{
+		"id": "diamond_body",
+		"title": "Kim Cương Bất Hoại",
+		"desc": "🛡️ Thử thách bất khả xâm phạm: giữ mạng, giữ điểm. Hoàn thành một trận hôm nay để nhận thưởng vàng.",
+		"reward_gold": 750
+	},
+	{
+		"id": "sword_rain",
+		"title": "Vạn Kiếm Quy Tông",
+		"desc": "⚔️ Thử thách vạn kiếm: chém nhiều, ghi điểm cao. Hoàn thành một trận hôm nay để nhận thưởng vàng.",
+		"reward_gold": 800
+	},
+	{
+		"id": "drunken_goblins",
+		"title": "Bát Tiên Túy Võ",
+		"desc": "🍶 Thử thách túy võ: say sưa trận chiến. Hoàn thành một trận hôm nay để nhận thưởng vàng.",
+		"reward_gold": 900
+	}
+]
+
 func get_daily_trial_info() -> Dictionary:
 	var date_dict = Time.get_date_dict_from_system()
 	var day_num = date_dict.get("year", 2026) * 10000 + date_dict.get("month", 9) * 100 + date_dict.get("day", 17)
@@ -214,42 +292,8 @@ func get_daily_trial_info() -> Dictionary:
 		daily_high_score = 0
 		save_leaderboard_data()
 	
-	var mutators = [
-		{
-			"id": "fire_surge",
-			"title": "Hỏa Diệm Sơn Khí",
-			"desc": "🔥 Hỏa thương +50% Sát thương, Quái vật tăng +20% Tốc độ",
-			"reward_gold": 600,
-			"might_mult": 1.25,
-			"speed_mult": 1.15
-		},
-		{
-			"id": "diamond_body",
-			"title": "Kim Cương Bất Hoại",
-			"desc": "🛡️ Khí Thuẫn x2 dung lượng, Quái Thủ Lĩnh (Champion) xuất hiện gấp đôi",
-			"reward_gold": 750,
-			"might_mult": 1.0,
-			"speed_mult": 1.0
-		},
-		{
-			"id": "sword_rain",
-			"title": "Vạn Kiếm Quy Tông",
-			"desc": "⚔️ Thời gian hồi chiêu giảm 30%, Đợt quái đông hơn +40%",
-			"reward_gold": 800,
-			"might_mult": 1.35,
-			"speed_mult": 1.10
-		},
-		{
-			"id": "drunken_goblins",
-			"title": "Bát Tiên Túy Võ",
-			"desc": "🍶 Tỷ lệ Né đòn +25%, Yêu Tinh Kho Báu (Goblin) xuất hiện gấp 3 lần",
-			"reward_gold": 900,
-			"might_mult": 1.15,
-			"speed_mult": 1.20
-		}
-	]
-	var selected_idx = day_num % mutators.size()
-	var trial = mutators[selected_idx].duplicate()
+	var selected_idx = day_num % MUTATORS.size()
+	var trial: Dictionary = MUTATORS[selected_idx].duplicate()
 	trial["date"] = date_str
 	trial["day_seed"] = day_num
 	trial["completed"] = daily_completed

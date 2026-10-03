@@ -163,42 +163,42 @@ var RELICS: Dictionary = {
 		"id": "vampire_fang",
 		"name": "Vampire Fang",
 		"icon": "🩸",
-		"desc": "+3 HP every 10 kills",
+		"desc": "+3 HP mỗi khi hạ 10 kẻ địch",
 		"color": Color(0.9, 0.2, 0.25)
 	},
 	"storm_amulet": {
 		"id": "storm_amulet",
 		"name": "Storm Amulet",
 		"icon": "⚡",
-		"desc": "25% chance on hit to call bonus lightning",
+		"desc": "25% cơ hội triệu hồi sấm sét bổ trợ khi trúng đòn",
 		"color": Color(0.2, 0.85, 1.0)
 	},
 	"phoenix_feather": {
 		"id": "phoenix_feather",
 		"name": "Phoenix Feather",
 		"icon": "🪶",
-		"desc": "Revive with 40% HP & blast enemies (1x/run)",
+		"desc": "Hồi sinh với 40% Máu Tối Đa & nổ tung kẻ địch (1 lần/trận)",
 		"color": Color(1.0, 0.5, 0.1)
 	},
 	"golden_horseshoe": {
 		"id": "golden_horseshoe",
 		"name": "Golden Horseshoe",
 		"icon": "👑",
-		"desc": "+50% Gold drops & +60 Magnet Radius",
+		"desc": "+50% Vàng rơi & +60 Bán kính Hút Ngọc",
 		"color": Color(1.0, 0.85, 0.2)
 	},
 	"berserker_brand": {
 		"id": "berserker_brand",
 		"name": "Berserker Brand",
 		"icon": "🔥",
-		"desc": "+50% Damage when below 40% HP",
+		"desc": "+50% Sát Thương khi Máu dưới 40%",
 		"color": Color(1.0, 0.3, 0.15)
 	},
 	"chrono_hourglass": {
 		"id": "chrono_hourglass",
 		"name": "Chrono Hourglass",
 		"icon": "⏳",
-		"desc": "-20% Weapon Cooldowns",
+		"desc": "Giảm 20% Thời Gian Hồi Chiêu",
 		"color": Color(0.4, 0.95, 0.7)
 	}
 }
@@ -252,7 +252,7 @@ const SHENRON_WISHES: Dictionary = {
 		"id": "wish_swords",
 		"title": "Vạn Kiếm Quy Tông",
 		"icon": "⚔️",
-		"desc": "Triệu hồi bão Thần Kiếm thiên hà trong 20s tiêu diệt toàn bộ ma vật trên bản đồ!",
+		"desc": "Bão Thần Kiếm thiên hà giáng liên tục 20s: mỗi kiếm xuyên 5 mục tiêu, bão đao bào phá diện rộng!",
 		"color": Color(0.3, 0.8, 1.0)
 	}
 }
@@ -391,19 +391,19 @@ const COMPANIONS: Dictionary = {
 		"id": "dragon_whelp",
 		"name": "Tiểu Kim Long",
 		"icon": "🐉",
-		"desc": "Chi Dragon Orbs & Gem Magnet"
+		"desc": "Bắn Chi Long Ngọc & Hút Nam Châm"
 	},
 	"white_tiger": {
 		"id": "white_tiger",
 		"name": "Bạch Hổ Thần Thú",
 		"icon": "🐅",
-		"desc": "Pounce Cleave & Coin Snatcher"
+		"desc": "Nhảy Liền Cắt & Tự Thu Vàng"
 	}
 }
 
 # Hệ Thống Kinh Mạch (Meridian Cultivation)
 var meridian_upgrades: Dictionary = {
-	"nham_mach": 0,  # +30 Qi Shield & +1.5 HP/s Regen per level
+	"nham_mach": 0,  # +30 Khí Thuẫn & +1.5 HP/s Hồi Phục mỗi cấp
 	"doc_mach": 0,   # +7% Crit Chance & +35% Crit Damage per level
 	"xung_mach": 0,  # +15 Move Speed & -10% Skill Cooldown per level
 	"dan_dien": 0    # +30% Dragon Soul Harvest & +20% AoE per level
@@ -416,25 +416,25 @@ const MERIDIANS: Dictionary = {
 		"id": "nham_mach",
 		"name": "Nhâm Mạch (Âm Nhu)",
 		"icon": "☯️",
-		"desc": "+30 Qi Shield & +1.5 HP/s Regen"
+		"desc": "+30 Khí Thuẫn & +1.5 HP/s Hồi Phục"
 	},
 	"doc_mach": {
 		"id": "doc_mach",
 		"name": "Đốc Mạch (Dương Cương)",
 		"icon": "⚡",
-		"desc": "+7% Crit Chance & +35% Crit DMG"
+		"desc": "+7% Tỷ Lệ Bạo Kích & +35% Sức Bạo Kích"
 	},
 	"xung_mach": {
 		"id": "xung_mach",
 		"name": "Xung Mạch (Thân Pháp)",
 		"icon": "💨",
-		"desc": "+15 Move Speed & -10% Cooldown"
+		"desc": "+15 Tốc Độ Di Chuyển & -10% Thời Gian Hồi Chiêu"
 	},
 	"dan_dien": {
 		"id": "dan_dien",
 		"name": "Đan Điền (Tụ Khí)",
 		"icon": "🐉",
-		"desc": "+30% Dragon Soul & +20% AoE"
+		"desc": "+30% Linh Hồn Rồng & +20% Phạm Vi AoE"
 	}
 }
 
@@ -450,6 +450,12 @@ const BASE_COSTS: Dictionary = {
 
 var is_run_active: bool = false
 var has_revived_this_run: bool = false
+## The rewarded-ad doubling is the second claim the game-over panel offers, and it
+## needed the same guard revive got. It had none: double_run_gold() paid out and
+## doubled with nothing recording that it had been paid, and hud.gd re-enabled the
+## button from inside the very callback that disabled it, so one ad view bought a
+## button that stayed live and the repeats compounded. Per-run, like has_revived.
+var has_doubled_gold_this_run: bool = false
 
 const SAVE_PATH: String = "user://save_data.cfg"
 
@@ -655,6 +661,7 @@ func start_new_run() -> void:
 	is_blood_moon = false
 	blood_moon_timer = 0.0
 	has_revived_this_run = false
+	has_doubled_gold_this_run = false
 	is_endless_mode = false
 	is_victory_triggered = false
 	discovered_landmarks.clear()
@@ -706,9 +713,9 @@ func add_scroll(scroll_id: String) -> bool:
 	collected_scrolls.append(scroll_id)
 	SoundManager.play("powerup")
 	emit_signal("scroll_collected", scroll_id)
-	var p = get_tree().get_first_node_in_group("player")
-	if p and p.has_method("apply_scroll_effects"):
-		p.apply_scroll_effects()
+	# No apply pass here: the three Võ Học Bí Tịch read GameManager.has_scroll()
+	# from Player._physics_process, so a collected scroll starts ticking on the
+	# next frame. This used to call an empty Player.apply_scroll_effects().
 	return true
 
 func select_shenron_wish(wish_id: String) -> void:
@@ -790,7 +797,13 @@ func discover_landmark(id: String, name: String) -> void:
 		discovered_landmarks[id] = true
 		emit_signal("landmark_discovered", id, name)
 
-func add_kill(enemy_type: String = "", is_champ: bool = false) -> void:
+## is_elite_champ credits the "Champion Slayer" bounty, which advertises an Elite
+## Champion. It was named is_champ and fed is_champion, and those are siblings rather
+## than a nesting: make_champion() sets is_champion, make_elite_champion() sets
+## is_elite_champion and never touches the other. So the flag credited ordinary affix
+## champions and not the elite ones the text promises. Renamed at the boundary because
+## is_champ is exactly the near-miss that produced that inversion.
+func add_kill(enemy_type: String = "", is_elite_champ: bool = false) -> void:
 	kills += 1
 	emit_signal("score_updated", kills, run_time)
 	_check_kill_milestones()
@@ -807,7 +820,7 @@ func add_kill(enemy_type: String = "", is_champ: bool = false) -> void:
 		record_bounty_event("kill_bat", 1)
 	if enemy_type == "goblin":
 		record_bounty_event("kill_goblin", 1)
-	if is_champ:
+	if is_elite_champ:
 		record_bounty_event("kill_champion", 1)
 
 # --- Expansion 21.0: Chiến Tích Bảng (Weapon Damage Tracking & DPS Breakdown) --
@@ -920,7 +933,33 @@ func add_gold(amount: int) -> void:
 	if CodexManager:
 		CodexManager.report_stat("total_gold", total_gold)
 
+## Gold that belongs to the meta layer rather than to the run in progress -- a
+## once-a-day Daily Trial payout, not a coin picked up mid-arena. The single
+## difference from add_gold() above is that it skips run_gold on purpose: run_gold
+## is what the end-of-run Double Gold rewarded ad doubles, and the golden_horseshoe
+## / Blood Moon / Codex multipliers in add_gold() are meant for loot that dropped
+## while those conditions were live. Routing a flat daily reward through add_gold()
+## would scale it by whatever relics the finished run happened to hold, and would
+## hand the player a second doubling of the same 600 for the price of an ad.
+func add_meta_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	total_gold += amount
+	save_game_data()
+	emit_signal("gold_updated", total_gold)
+	if CodexManager:
+		CodexManager.report_stat("total_gold", total_gold)
+
+## The claim guard lives here rather than in the HUD, because the flag and the gold
+## have to move together. hud.gd used to grey the button out inside the ad callback
+## and then call _on_player_died(), which set disabled = false again one line later --
+## so nothing held the claim except a button that undid its own guard. This is the
+## same shape as the codex reward guards: a function you can call twice must decide
+## for itself, because it cannot know whether a button was drawn correctly.
 func double_run_gold() -> void:
+	if has_doubled_gold_this_run:
+		return
+	has_doubled_gold_this_run = true
 	total_gold += run_gold
 	run_gold *= 2
 	save_game_data()

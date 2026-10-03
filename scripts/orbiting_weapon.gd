@@ -87,8 +87,16 @@ func upgrade_speed(bonus: float) -> void:
 func evolve_to_solar_bulwark() -> void:
 	is_evolved = true
 	is_active = true
-	shield_count = 5
-	orbit_speed = 5.2
+	# A floor, not an assignment, and this one starts from 2 rather than 1, so four
+	# "Lưỡng Nghi Khiên" cards reach 6 -- the evolution's own advertised 5 is a full
+	# card BELOW what the player already had. See Expansion 44.0 in the README.
+	shield_count = maxi(shield_count, 5)
+	# A floor, not an assignment. "Phong Toàn Bộ" adds to this field at ranks 1-4 and
+	# the evolution is only offered at rank 5, so a full build arrives here at 8.6 and
+	# a bare `=` handed it back 5.2 -- the payoff for owning the card was a slower
+	# weapon. Same form as the evolutions beside it in slash_weapon.gd:325 and
+	# weapon.gd:118, which already floor their own fields for exactly this reason.
+	orbit_speed = max(orbit_speed, 5.2)
 	orbit_radius = 110.0
 	base_damage = 28.0
 	rebuild_shields()

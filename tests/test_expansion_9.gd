@@ -1,4 +1,4 @@
-extends Node
+extends "res://tests/suite_base.gd"
 
 ## Comprehensive test suite verifying Expansion 9.0:
 ## Active Hero Skills, Tactical Dash, Treasure Goblin, and Blood Moon Eclipse.
@@ -9,35 +9,35 @@ func _ready() -> void:
 	# 1. Test Player Hero Skill Setup for Knight (Sir Kaelen)
 	GameManager.select_character("knight")
 	var player_scene = load("res://scenes/player.tscn")
-	assert(player_scene != null, "Player scene exists")
+	check(player_scene != null, "Player scene exists")
 	var player = player_scene.instantiate()
 	add_child(player)
 	player.apply_character_data()
 	
-	assert(player.skill_id == "shield_charge", "Knight has shield_charge skill")
-	assert(player.skill_cooldown_max == 5.5, "Knight skill cooldown is 5.5s")
-	assert(player.skill_cooldown_timer == 0.0, "Skill starts off cooldown")
+	check(player.skill_id == "shield_charge", "Knight has shield_charge skill")
+	check(player.skill_cooldown_max == 5.5, "Knight skill cooldown is 5.5s")
+	check(player.skill_cooldown_timer == 0.0, "Skill starts off cooldown")
 	
 	# Test Knight Shield Charge Activation
 	var activated = player.activate_hero_skill()
-	assert(activated == true, "Skill activated successfully")
-	assert(player.is_dashing == true, "Player is dashing")
-	assert(player.invulnerability_timer >= 0.8, "Shield charge grants invulnerability window")
-	assert(player.skill_cooldown_timer > 5.0, "Cooldown timer is running")
+	check(activated == true, "Skill activated successfully")
+	check(player.is_dashing == true, "Player is dashing")
+	check(player.invulnerability_timer >= 0.8, "Shield charge grants invulnerability window")
+	check(player.skill_cooldown_timer > 5.0, "Cooldown timer is running")
 	
 	# Test Cooldown prevention
 	var double_tap = player.activate_hero_skill()
-	assert(double_tap == false, "Cannot activate skill while on cooldown")
+	check(double_tap == false, "Cannot activate skill while on cooldown")
 	
 	# Advance physics process through dash
 	player._physics_process(0.40)
-	assert(player.is_dashing == false, "Dash completes after duration")
+	check(player.is_dashing == false, "Dash completes after duration")
 	
 	# 2. Test Chrono Hourglass cooldown reduction synergy
 	GameManager.add_relic("chrono_hourglass")
 	player.skill_cooldown_timer = 0.0
 	player.activate_hero_skill()
-	assert(player.skill_cooldown_timer <= 5.5 * 0.85, "Chrono hourglass reduces skill cooldown by 20%")
+	check(player.skill_cooldown_timer <= 5.5 * 0.85, "Chrono hourglass reduces skill cooldown by 20%")
 	player.free()
 	print("✔ Knight Shield Charge activation, dash physics, and relic reduction verified.")
 	
@@ -46,13 +46,13 @@ func _ready() -> void:
 	player = player_scene.instantiate()
 	add_child(player)
 	player.apply_character_data()
-	assert(player.skill_id == "inferno_blink", "Pyro has inferno_blink")
-	assert(player.skill_cooldown_max == 5.0, "Pyro skill cooldown is 5.0s")
+	check(player.skill_id == "inferno_blink", "Pyro has inferno_blink")
+	check(player.skill_cooldown_max == 5.0, "Pyro skill cooldown is 5.0s")
 	var start_pos = player.global_position
 	player.last_move_dir = Vector2.RIGHT
 	player.activate_hero_skill()
-	assert(player.global_position.x > start_pos.x + 150.0, "Inferno blink teleports forward")
-	assert(player.invulnerability_timer >= 0.45, "Inferno blink grants i-frames")
+	check(player.global_position.x > start_pos.x + 150.0, "Inferno blink teleports forward")
+	check(player.invulnerability_timer >= 0.45, "Inferno blink grants i-frames")
 	player.free()
 	print("✔ Pyromancer Inferno Blink teleportation and invulnerability verified.")
 	
@@ -61,10 +61,10 @@ func _ready() -> void:
 	player = player_scene.instantiate()
 	add_child(player)
 	player.apply_character_data()
-	assert(player.skill_id == "shadow_roll", "Ranger has shadow_roll")
-	assert(player.skill_cooldown_max == 4.2, "Ranger skill cooldown is 4.2s")
+	check(player.skill_id == "shadow_roll", "Ranger has shadow_roll")
+	check(player.skill_cooldown_max == 4.2, "Ranger skill cooldown is 4.2s")
 	player.activate_hero_skill()
-	assert(player.is_dashing == true, "Ranger enters roll state")
+	check(player.is_dashing == true, "Ranger enters roll state")
 	player.free()
 	print("✔ Ranger Shadow Roll evasive tumble verified.")
 	
@@ -73,12 +73,12 @@ func _ready() -> void:
 	player = player_scene.instantiate()
 	add_child(player)
 	player.apply_character_data()
-	assert(player.skill_id == "frost_singularity", "Mage has frost_singularity")
-	assert(player.skill_cooldown_max == 6.5, "Mage skill cooldown is 6.5s")
+	check(player.skill_id == "frost_singularity", "Mage has frost_singularity")
+	check(player.skill_cooldown_max == 6.5, "Mage skill cooldown is 6.5s")
 	
 	# Spawn test enemy nearby
 	var bat_scene = load("res://scenes/bat.tscn")
-	assert(bat_scene != null, "Bat scene exists")
+	check(bat_scene != null, "Bat scene exists")
 	var enemy = bat_scene.instantiate()
 	enemy.max_health = 100.0
 	enemy.current_health = 100.0
@@ -86,12 +86,12 @@ func _ready() -> void:
 	add_child(enemy)
 	
 	player.activate_hero_skill()
-	assert(enemy.freeze_timer > 2.0, "Enemy in frost stasis radius is frozen")
+	check(enemy.freeze_timer > 2.0, "Enemy in frost stasis radius is frozen")
 	
 	# Advance enemy physics while frozen - should not move towards player
 	var old_enemy_x = enemy.global_position.x
 	enemy._physics_process(0.1)
-	assert(abs(enemy.global_position.x - old_enemy_x) < 2.0, "Frozen enemy remains immobilized")
+	check(abs(enemy.global_position.x - old_enemy_x) < 2.0, "Frozen enemy remains immobilized")
 	
 	enemy.free()
 	player.free()
@@ -99,43 +99,50 @@ func _ready() -> void:
 	
 	# 6. Test Treasure Goblin Entity
 	var goblin_scene = load("res://scenes/goblin.tscn")
-	assert(goblin_scene != null, "TreasureGoblin scene exists")
+	check(goblin_scene != null, "TreasureGoblin scene exists")
 	var goblin = goblin_scene.instantiate()
 	add_child(goblin)
-	assert(goblin.is_in_group("enemies"), "Goblin is in enemies group")
-	assert(goblin.is_in_group("goblins"), "Goblin is in goblins group")
-	assert(goblin.current_health == 75.0, "Goblin starts with 75 HP")
+	check(goblin.is_in_group("enemies"), "Goblin is in enemies group")
+	check(goblin.is_in_group("goblins"), "Goblin is in goblins group")
+	check(goblin.current_health == 75.0, "Goblin starts with 75 HP")
 	
 	# Test Goblin Damage reaction (drops coin)
 	var prev_gold = GameManager.total_gold
+	# enemy.take_damage() rolls a 12% crit before it does anything else, and a crit
+	# multiplies the whole hit by 2.2 -- so this used to assert 65.0 against a coin-flip,
+	# and take the goblin to 53.0 roughly one run in eight. The goblin is instantiated
+	# with no player reference, so crit_chance is the bare 0.12 default and there is no
+	# lever on it from the test; seeding is the only handle, as in milestone_2 and 21.
+	# Nothing else in this suite consumes the RNG, so shifting the stream is free.
+	seed(20260927)
 	goblin.take_damage(10.0)
-	assert(goblin.current_health == 65.0, "Goblin takes damage")
+	check(goblin.current_health == 65.0, "Goblin takes damage")
 	
 	# Test Goblin Death (Drops mega rewards + completes Greed Hunter bounty)
 	GameManager.init_run_bounties()
 	goblin.die()
-	assert(goblin.is_dead == true, "Goblin marked as dead")
-	assert(GameManager.total_gold > prev_gold, "Goblin death awards gold")
+	check(goblin.is_dead == true, "Goblin marked as dead")
+	check(GameManager.total_gold > prev_gold, "Goblin death awards gold")
 	
 	var bounty_found = false
 	for b in GameManager.active_bounties:
 		if b["id"] == "defeat_goblin" and b["completed"]:
 			bounty_found = true
 			break
-	assert(bounty_found == true, "Greed Hunter bounty completed upon slaying Goblin")
+	check(bounty_found == true, "Greed Hunter bounty completed upon slaying Goblin")
 	print("✔ Treasure Goblin flee behavior, damage reaction, death rewards, and bounty verified.")
 	
 	# 7. Test Blood Moon Eclipse Mechanics
-	assert(GameManager.is_blood_moon == false, "Blood moon initially inactive")
+	check(GameManager.is_blood_moon == false, "Blood moon initially inactive")
 	GameManager.trigger_blood_moon(30.0)
-	assert(GameManager.is_blood_moon == true, "Blood moon is active")
-	assert(GameManager.blood_moon_timer == 30.0, "Blood moon timer set to 30s")
+	check(GameManager.is_blood_moon == true, "Blood moon is active")
+	check(GameManager.blood_moon_timer == 30.0, "Blood moon timer set to 30s")
 	
 	# Test 2x Gold during Blood Moon
 	var gold_before = GameManager.total_gold
 	GameManager.collected_relics.clear() # clear horseshoe for pure 2x test
 	GameManager.add_gold(50)
-	assert(GameManager.total_gold == gold_before + 100, "Blood Moon doubles gold drops (50 * 2 = 100)")
+	check(GameManager.total_gold == gold_before + 100, "Blood Moon doubles gold drops (50 * 2 = 100)")
 	
 	# Test 2x XP during Blood Moon
 	GameManager.select_character("knight")
@@ -143,25 +150,26 @@ func _ready() -> void:
 	add_child(player)
 	player.apply_character_data()
 	player.add_xp(10.0)
-	assert(player.level == 2, "Blood Moon 2x XP (20 XP) leveled player up to Level 2")
-	assert(player.current_xp == 10.0, "10 overflow XP carried over to Level 2")
+	check(player.level == 2, "Blood Moon 2x XP (20 XP) leveled player up to Level 2")
+	check(player.current_xp == 10.0, "10 overflow XP carried over to Level 2")
 	player.free()
 	
 	# Test Blood Moon timeout countdown
 	GameManager.is_run_active = true
 	GameManager._process(30.5)
-	assert(GameManager.is_blood_moon == false, "Blood Moon ends when timer expires")
+	check(GameManager.is_blood_moon == false, "Blood Moon ends when timer expires")
 	print("✔ Blood Moon Eclipse 2x Gold, 2x XP, and lifecycle duration verified.")
 	
 	# 8. Test EnemySpawner Event Timers
 	var spawner_script = load("res://scripts/enemy_spawner.gd")
-	assert(spawner_script != null, "EnemySpawner script exists")
+	check(spawner_script != null, "EnemySpawner script exists")
 	var spawner = Node2D.new()
 	spawner.set_script(spawner_script)
 	add_child(spawner)
-	assert(spawner.goblin_scene != null, "EnemySpawner has goblin_scene preloaded")
+	check(spawner.goblin_scene != null, "EnemySpawner has goblin_scene preloaded")
 	spawner.free()
 	print("✔ EnemySpawner Goblin and Blood Moon event triggers verified.")
 	
-	print("=== ALL EXPANSION 9.0 TESTS PASSED CLEANLY! ===")
-	get_tree().quit(0)
+	if _failures.is_empty():
+		print("=== ALL EXPANSION 9.0 TESTS PASSED CLEANLY! ===")
+	get_tree().quit(_exit_code())

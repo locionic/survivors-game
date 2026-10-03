@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 		if target != null or is_evolved:
 			var target_pos = target.global_position if target else global_position + Vector2.RIGHT
 			fire_at(target_pos)
-			cooldown_timer = max(0.12, base_cooldown / speed_multiplier)
+			cooldown_timer = max(0.12, base_cooldown / (speed_multiplier * _get_player_attack_speed()))
 
 func find_closest_enemy() -> Node2D:
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -128,5 +128,15 @@ func _get_player_might() -> float:
 	var p = get_tree().get_first_node_in_group("player")
 	if p and p.has_method("get_might_multiplier"):
 		return p.get_might_multiplier()
+	return 1.0
+
+## Expansion 22.0: Tà Ma Lệnh Bài's +15% attack speed below 50% HP. Divided into
+## the cooldown here rather than multiplied into speed_multiplier, so the relic
+## applies to a weapon bought mid-rage and cannot compound while the player is
+## already under the threshold.
+func _get_player_attack_speed() -> float:
+	var p = get_tree().get_first_node_in_group("player")
+	if p and p.has_method("get_attack_speed_multiplier"):
+		return p.get_attack_speed_multiplier()
 	return 1.0
 

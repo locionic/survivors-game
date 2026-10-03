@@ -1,3 +1,6 @@
 .godot/editor/
 .godot/exported/
 *.translation
+# Scratch user:// tree written by scripts/ci.sh so a gate run never touches the
+# save Godot keeps outside this repo. See the XDG_DATA_HOME block in ci.sh.
+.ci_userdata/

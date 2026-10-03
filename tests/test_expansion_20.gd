@@ -1,4 +1,4 @@
-extends Node
+extends "res://tests/suite_base.gd"
 
 ## Automated Test Suite for Expansion 20.0:
 ## "Tinh Võ Hợp Nhất & Tinh Anh Lệnh"
@@ -16,8 +16,9 @@ func _ready() -> void:
 	_test_elite_champion_behaviour()
 	_test_elite_champion_spawner()
 
-	print("=== ALL EXPANSION 20.0 TESTS PASSED 100% CLEANLY! ===")
-	get_tree().quit(0)
+	if _failures.is_empty():
+		print("=== ALL EXPANSION 20.0 TESTS PASSED 100% CLEANLY! ===")
+	get_tree().quit(_exit_code())
 
 # --- 1. Synergy card offering rules -----------------------------------------
 
@@ -43,38 +44,38 @@ func _test_synergy_card_availability() -> void:
 	# --- Lotus Storm: Dagger Lv.5 + Axe Lv.5 ---
 	up_mgr.weapon_levels["dagger"] = 5
 	up_mgr.weapon_levels["axe"] = 4
-	assert(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bao_vu"),
+	check(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bao_vu"),
 		"Lotus Storm NOT offered while Axe is only Lv.4")
 	up_mgr.weapon_levels["axe"] = 5
 	var bao_card = _catalog_get(up_mgr.get_upgrade_catalog(), "synergy_bao_vu")
-	assert(not bao_card.is_empty(), "Lotus Storm synergy offered at Dagger Lv.5 + Axe Lv.5")
-	assert(bao_card.get("is_synergy", false) == true, "Lotus Storm card flagged is_synergy = true")
+	check(not bao_card.is_empty(), "Lotus Storm synergy offered at Dagger Lv.5 + Axe Lv.5")
+	check(bao_card.get("is_synergy", false) == true, "Lotus Storm card flagged is_synergy = true")
 	# The emoji star was replaced by the [HỢP NHẤT] tag in d71418c ("de-slop
 	# visual UI cards"). An assert() aborts the rest of _ready(), so while this
 	# one was stale the Frost Sovereign assertion below never even ran.
-	assert(bao_card.get("title", "") == "[HỢP NHẤT] BÃO VŨ LÊ HOA CHÂM (Lotus Storm)", "Lotus Storm card title matches spec")
-	assert((bao_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Lotus Storm card advertises the fusion")
+	check(bao_card.get("title", "") == "[HỢP NHẤT] BÃO VŨ LÊ HOA CHÂM (Lotus Storm)", "Lotus Storm card title matches spec")
+	check((bao_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Lotus Storm card advertises the fusion")
 
 	# Not offered again once the fusion has been consumed
 	up_mgr.synergies_evolved["bao_vu"] = true
-	assert(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bao_vu"),
+	check(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bao_vu"),
 		"Lotus Storm NOT offered again after it has been fused")
 	up_mgr.synergies_evolved["bao_vu"] = false
 
 	# --- Frost Sovereign: Slash Lv.5 + Shield Lv.5 ---
 	up_mgr.weapon_levels["slash"] = 4
 	up_mgr.weapon_levels["shield"] = 5
-	assert(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bang_phach"),
+	check(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bang_phach"),
 		"Frost Sovereign NOT offered while Slash is only Lv.4")
 	up_mgr.weapon_levels["slash"] = 5
 	var phach_card = _catalog_get(up_mgr.get_upgrade_catalog(), "synergy_bang_phach")
-	assert(not phach_card.is_empty(), "Frost Sovereign synergy offered at Slash Lv.5 + Shield Lv.5")
-	assert(phach_card.get("is_synergy", false) == true, "Frost Sovereign card flagged is_synergy = true")
-	assert(phach_card.get("title", "") == "[HỢP NHẤT] BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)", "Frost Sovereign card title matches spec")
-	assert((phach_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Frost Sovereign card advertises the fusion")
+	check(not phach_card.is_empty(), "Frost Sovereign synergy offered at Slash Lv.5 + Shield Lv.5")
+	check(phach_card.get("is_synergy", false) == true, "Frost Sovereign card flagged is_synergy = true")
+	check(phach_card.get("title", "") == "[HỢP NHẤT] BĂNG PHÁCH THẦN KIẾM (Frost Sovereign)", "Frost Sovereign card title matches spec")
+	check((phach_card.get("desc", "") as String).contains("TIỆT KỸ HỢP NHẤT"), "Frost Sovereign card advertises the fusion")
 
 	up_mgr.synergies_evolved["bang_phach"] = true
-	assert(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bang_phach"),
+	check(not _catalog_has(up_mgr.get_upgrade_catalog(), "synergy_bang_phach"),
 		"Frost Sovereign NOT offered again after it has been fused")
 
 	# --- Selecting the card drives the weapon node ---
@@ -89,9 +90,9 @@ func _test_synergy_card_availability() -> void:
 	up_mgr.slash_weapon = slash
 
 	up_mgr.select_upgrade(_catalog_get(up_mgr.get_upgrade_catalog(), "synergy_bang_phach"))
-	assert(dagger.is_lotus_storm == false, "Selecting Frost Sovereign does not touch the Dagger")
-	assert(slash.is_frost_sovereign == true, "Selecting Frost Sovereign calls evolve_to_frost_sovereign() on the SlashWeapon")
-	assert(up_mgr.synergies_evolved["bang_phach"] == true, "Synergy marked consumed in synergies_evolved")
+	check(dagger.is_lotus_storm == false, "Selecting Frost Sovereign does not touch the Dagger")
+	check(slash.is_frost_sovereign == true, "Selecting Frost Sovereign calls evolve_to_frost_sovereign() on the SlashWeapon")
+	check(up_mgr.synergies_evolved["bang_phach"] == true, "Synergy marked consumed in synergies_evolved")
 
 	get_tree().paused = false
 	up_mgr.queue_free()
@@ -103,35 +104,35 @@ func _test_synergy_card_availability() -> void:
 
 func _test_lotus_storm_evolution() -> void:
 	var dagger_scene = load("res://scenes/weapon.tscn")
-	assert(dagger_scene != null, "Dagger weapon scene loaded")
+	check(dagger_scene != null, "Dagger weapon scene loaded")
 	var dagger = dagger_scene.instantiate()
 	add_child(dagger)
 	dagger.global_position = Vector2.ZERO
 	dagger.is_active = false # keep _process from auto-firing mid-test
 
-	assert(dagger.is_lotus_storm == false, "Dagger starts without the Lotus Storm fusion")
+	check(dagger.is_lotus_storm == false, "Dagger starts without the Lotus Storm fusion")
 	dagger.evolve_to_lotus_storm()
 
-	assert(dagger.is_lotus_storm == true, "is_lotus_storm flag activated by evolve_to_lotus_storm()")
-	assert(dagger.is_evolved == true, "Lotus Storm marks the weapon as evolved")
-	assert(dagger.projectile_count == 16, "Lotus Storm fires exactly 16 needles per volley")
-	assert(dagger.base_damage >= 90.0, "Lotus Storm damage boosted to at least 90.0")
+	check(dagger.is_lotus_storm == true, "is_lotus_storm flag activated by evolve_to_lotus_storm()")
+	check(dagger.is_evolved == true, "Lotus Storm marks the weapon as evolved")
+	check(dagger.projectile_count == 16, "Lotus Storm fires exactly 16 needles per volley")
+	check(dagger.base_damage >= 90.0, "Lotus Storm damage boosted to at least 90.0")
 
 	# Fire a real volley and confirm the needles cover a full 360-degree circle
 	dagger.fire_at(Vector2(300, 0))
 	var spawned: Array = get_tree().get_nodes_in_group("projectiles")
-	assert(spawned.size() == 16, "A single Lotus Storm volley spawns 16 projectiles (got %d)" % spawned.size())
+	check(spawned.size() == 16, "A single Lotus Storm volley spawns 16 projectiles (got %d)" % spawned.size())
 
 	var angles: Array[float] = []
 	for p in spawned:
 		angles.append(p.direction.angle())
-		assert(p.pierce >= 999, "Lotus Storm needles pierce the whole screen")
+		check(p.pierce >= 999, "Lotus Storm needles pierce the whole screen")
 	angles.sort()
 	# Evenly spaced by 2*PI/16, and the wrap-around closes the circle
 	for i in range(angles.size()):
 		var next_angle = angles[(i + 1) % angles.size()]
 		var gap = next_angle - angles[i] if i < angles.size() - 1 else (angles[0] + TAU) - angles[i]
-		assert(absf(gap - TAU_STEP_16) < 0.001,
+		check(absf(gap - TAU_STEP_16) < 0.001,
 			"Needle %d spaced by exactly 2*PI/16 (got %.6f)" % [i, gap])
 
 	for p in spawned:
@@ -145,19 +146,19 @@ func _test_frost_sovereign_evolution() -> void:
 	var enemy_scene = load("res://scenes/enemy.tscn")
 	var boss_scene = load("res://scenes/boss.tscn")
 	var slash_scene = load("res://scenes/slash_weapon.tscn")
-	assert(enemy_scene != null and boss_scene != null and slash_scene != null, "Slash, enemy and boss scenes loaded")
+	check(enemy_scene != null and boss_scene != null and slash_scene != null, "Slash, enemy and boss scenes loaded")
 
 	var slash = slash_scene.instantiate()
 	add_child(slash)
 	slash.global_position = Vector2.ZERO
 	slash.is_active = false
 
-	assert(slash.is_frost_sovereign == false, "Slash starts without the Frost Sovereign fusion")
+	check(slash.is_frost_sovereign == false, "Slash starts without the Frost Sovereign fusion")
 	slash.evolve_to_frost_sovereign()
 
-	assert(slash.is_frost_sovereign == true, "is_frost_sovereign flag activated by evolve_to_frost_sovereign()")
-	assert(slash.slash_damage >= 110.0, "Frost Sovereign slash damage boosted to at least 110.0")
-	assert(slash.slash_arc >= PI * 1.25, "Frost Sovereign arc widened to at least PI * 1.25 radians")
+	check(slash.is_frost_sovereign == true, "is_frost_sovereign flag activated by evolve_to_frost_sovereign()")
+	check(slash.slash_damage >= 110.0, "Frost Sovereign slash damage boosted to at least 110.0")
+	check(slash.slash_arc >= PI * 1.25, "Frost Sovereign arc widened to at least PI * 1.25 radians")
 
 	# Non-boss target: struck and flash-frozen for 1.5s
 	var victim = enemy_scene.instantiate()
@@ -165,12 +166,12 @@ func _test_frost_sovereign_evolution() -> void:
 	victim.global_position = Vector2(60, 0)
 	victim.max_health = 9999.0
 	victim.current_health = 9999.0
-	assert(victim.freeze_timer == 0.0, "Target is unfrozen before the cleave")
+	check(victim.freeze_timer == 0.0, "Target is unfrozen before the cleave")
 
 	var hits = slash.perform_slash(Vector2.RIGHT)
-	assert(hits.has(victim), "Frost Sovereign cleave connects with the target")
-	assert(victim.current_health < 9999.0, "Target takes Frost Sovereign damage")
-	assert(victim.freeze_timer == 1.5, "Non-boss target is flash-frozen for exactly 1.5s")
+	check(hits.has(victim), "Frost Sovereign cleave connects with the target")
+	check(victim.current_health < 9999.0, "Target takes Frost Sovereign damage")
+	check(victim.freeze_timer == 1.5, "Non-boss target is flash-frozen for exactly 1.5s")
 
 	# Boss target: takes damage but bosses are immune to the freeze
 	var boss = boss_scene.instantiate()
@@ -179,8 +180,8 @@ func _test_frost_sovereign_evolution() -> void:
 	boss.max_health = 99999.0
 	boss.current_health = 99999.0
 	var boss_hits = slash.perform_slash(Vector2.RIGHT)
-	assert(boss_hits.has(boss), "Frost Sovereign cleave also connects with bosses")
-	assert(boss.freeze_timer == 0.0, "Bosses are NOT frozen by Frost Sovereign")
+	check(boss_hits.has(boss), "Frost Sovereign cleave also connects with bosses")
+	check(boss.freeze_timer == 0.0, "Bosses are NOT frozen by Frost Sovereign")
 
 	victim.queue_free()
 	boss.queue_free()
@@ -191,7 +192,7 @@ func _test_frost_sovereign_evolution() -> void:
 
 func _test_elite_champion_behaviour() -> void:
 	var skeleton_scene = load("res://scenes/skeleton.tscn")
-	assert(skeleton_scene != null, "Skeleton scene loaded")
+	check(skeleton_scene != null, "Skeleton scene loaded")
 
 	# --- Scaling + health ---
 	var plain = skeleton_scene.instantiate()
@@ -199,16 +200,16 @@ func _test_elite_champion_behaviour() -> void:
 	var plain_node_scale = plain.scale.x
 	var plain_sprite_scale = plain.sprite.scale.x
 	var plain_hp = plain.max_health
-	assert(plain.is_elite_champion == false, "Skeleton starts as an ordinary enemy")
+	check(plain.is_elite_champion == false, "Skeleton starts as an ordinary enemy")
 
 	plain.is_elite_champion = true
 	plain.make_elite_champion()
-	assert(plain.is_elite_champion == true, "is_elite_champion flag is set by make_elite_champion()")
-	assert(is_equal_approx(plain.scale.x, plain_node_scale * 1.6), "Elite Champion body scales to 1.6x the base sprite")
-	assert(is_equal_approx(plain.sprite.scale.x, plain_sprite_scale * 1.6), "Elite Champion sprite scales to 1.6x")
-	assert(is_equal_approx(plain.max_health, plain_hp * 3.5), "Elite Champion max_health multiplied by 3.5x")
-	assert(is_equal_approx(plain.current_health, plain.max_health), "Elite Champion current_health tracks the boosted max_health")
-	assert(plain.is_in_group("elite_champions"), "Elite Champion joins the elite_champions group")
+	check(plain.is_elite_champion == true, "is_elite_champion flag is set by make_elite_champion()")
+	check(is_equal_approx(plain.scale.x, plain_node_scale * 1.6), "Elite Champion body scales to 1.6x the base sprite")
+	check(is_equal_approx(plain.sprite.scale.x, plain_sprite_scale * 1.6), "Elite Champion sprite scales to 1.6x")
+	check(is_equal_approx(plain.max_health, plain_hp * 3.5), "Elite Champion max_health multiplied by 3.5x")
+	check(is_equal_approx(plain.current_health, plain.max_health), "Elite Champion current_health tracks the boosted max_health")
+	check(plain.is_in_group("elite_champions"), "Elite Champion joins the elite_champions group")
 	plain.queue_free()
 
 	# --- Telegraph -> burst ---
@@ -222,28 +223,33 @@ func _test_elite_champion_behaviour() -> void:
 	add_child(elite)
 	elite.global_position = Vector2(300, 0)
 	elite.make_elite_champion()
-	assert(elite.is_telegraphing_burst == false, "Elite Champion is not telegraphing on spawn")
+	check(elite.is_telegraphing_burst == false, "Elite Champion is not telegraphing on spawn")
 
 	# Wind the internal timer down to the burst window
 	elite.elite_telegraph_timer = 0.05
 	elite._physics_process(0.1)
-	assert(elite.is_telegraphing_burst == true, "Elite Champion enters the 0.8s telegraph warning")
-	assert(is_equal_approx(elite.elite_telegraph_timer, elite.elite_telegraph_duration), "Telegraph lasts the full 0.8s warning window")
+	check(elite.is_telegraphing_burst == true, "Elite Champion enters the 0.8s telegraph warning")
+	check(is_equal_approx(elite.elite_telegraph_timer, elite.elite_telegraph_duration), "Telegraph lasts the full 0.8s warning window")
 
 	# The player is 300px away — outside the 190px burst ring — so this must be a clean miss
 	var hp_before_burst = player.current_health
 	elite._physics_process(0.9)
-	assert(elite.is_telegraphing_burst == false, "Telegraph clears and the shockwave unleashes")
-	assert(is_equal_approx(elite.elite_telegraph_timer, elite.elite_burst_interval), "Burst cooldown resets after the shockwave")
-	assert(player.current_health == hp_before_burst, "Shockwave misses a player outside the burst radius")
+	check(elite.is_telegraphing_burst == false, "Telegraph clears and the shockwave unleashes")
+	check(is_equal_approx(elite.elite_telegraph_timer, elite.elite_burst_interval), "Burst cooldown resets after the shockwave")
+	check(player.current_health == hp_before_burst, "Shockwave misses a player outside the burst radius")
 
-	# Player inside the ring takes the contact damage
+	# Player inside the ring takes the contact damage.
+	# Expansion 48.0: shield pinned out, for the reason in test_expansion_19.gd --
+	# every suite inherits the developer's real save, and a saved Nhâm Mạch rank puts
+	# a 30-point Qi Shield between this burst and the HP the assert is watching.
+	player.qi_shield_max = 0.0
+	player.qi_shield_current = 0.0
 	player.global_position = elite.global_position + Vector2(60, 0)
 	var hp_inside = player.current_health
 	elite.elite_telegraph_timer = 0.05
 	elite._physics_process(0.1)
 	elite._physics_process(0.9)
-	assert(player.current_health < hp_inside, "Shockwave deals contact damage to a player inside the burst radius")
+	check(player.current_health < hp_inside, "Shockwave deals contact damage to a player inside the burst radius")
 
 	# --- Guaranteed death loot ---
 	var loot = skeleton_scene.instantiate()
@@ -254,11 +260,11 @@ func _test_elite_champion_behaviour() -> void:
 	var coins_before = get_tree().get_nodes_in_group("coins").size()
 	loot.die()
 	var new_coins := get_tree().get_nodes_in_group("coins")
-	assert(new_coins.size() - coins_before == 10, "Elite Champion death drops 10 guaranteed gold coins (got %d)" % (new_coins.size() - coins_before))
+	check(new_coins.size() - coins_before == 10, "Elite Champion death drops 10 guaranteed gold coins (got %d)" % (new_coins.size() - coins_before))
 	var gold_total := 0
 	for i in range(coins_before, new_coins.size()):
 		gold_total += new_coins[i].gold_value
-	assert(gold_total == 50, "Elite Champion guaranteed payout totals 50 gold (got %d)" % gold_total)
+	check(gold_total == 50, "Elite Champion guaranteed payout totals 50 gold (got %d)" % gold_total)
 	for c in new_coins:
 		c.queue_free()
 
@@ -278,11 +284,11 @@ func _test_elite_champion_spawner() -> void:
 	var before := get_tree().get_nodes_in_group("elite_champions").size()
 
 	var elite = spawner.spawn_elite_champion(Vector2(900, 900))
-	assert(elite != null, "spawn_elite_champion() returns a spawned enemy")
-	assert(elite.is_elite_champion == true, "Spawned enemy is flagged as an Elite Champion")
-	assert(elite.get_parent() != null, "Spawned Elite Champion is parented into the scene tree")
-	assert(get_tree().get_nodes_in_group("elite_champions").size() == before + 1, "Elite Champion registers in the elite_champions group")
-	assert(elite.max_health > 50.0, "Spawned Elite Champion carries the boosted health pool")
+	check(elite != null, "spawn_elite_champion() returns a spawned enemy")
+	check(elite.is_elite_champion == true, "Spawned enemy is flagged as an Elite Champion")
+	check(elite.get_parent() != null, "Spawned Elite Champion is parented into the scene tree")
+	check(get_tree().get_nodes_in_group("elite_champions").size() == before + 1, "Elite Champion registers in the elite_champions group")
+	check(elite.max_health > 50.0, "Spawned Elite Champion carries the boosted health pool")
 
 	# A bare spawner with no elite-capable scenes must degrade instead of crashing
 	var bare = EnemySpawner.new()
@@ -291,12 +297,12 @@ func _test_elite_champion_spawner() -> void:
 	bare.necromancer_scene = null
 	bare.bat_scene = load("res://scenes/bat.tscn")
 	var fallback = bare.spawn_elite_champion(Vector2(1200, 1200))
-	assert(fallback != null and fallback.is_elite_champion == true, "Spawner falls back to a bat when skeleton/necromancer are unavailable")
+	check(fallback != null and fallback.is_elite_champion == true, "Spawner falls back to a bat when skeleton/necromancer are unavailable")
 
 	var announced := [false]
 	spawner.wave_event_announced.connect(func(_m: String, _b: bool): announced[0] = true)
 	spawner.spawn_elite_champion(Vector2(1400, 1400))
-	assert(announced[0] == true, "Elite Champion spawn announces itself on the wave event signal")
+	check(announced[0] == true, "Elite Champion spawn announces itself on the wave event signal")
 
 	elite.queue_free()
 	fallback.queue_free()

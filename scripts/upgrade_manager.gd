@@ -352,11 +352,28 @@ func get_upgrade_catalog() -> Array[Dictionary]:
 	if weapon_levels.get("lightning", 0) >= 1 and weapon_levels.get("lightning", 0) < 5:
 		options.append({"id": "lightning_strike", "title": "Lôi Đình Vạn Quân", "desc": "+1 Luồng Sấm Sét đồng thời (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
 		options.append({"id": "lightning_damage", "title": "Cửu Tiêu Lôi Đình", "desc": "+30%% Sát Thương Sấm Sét (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
+		# The last weapon with a cooldown and no card for it. Sấm Sét reads
+		# speed_multiplier into base_cooldown / (speed_multiplier * attack_speed) at
+		# lightning_weapon.gd:25 -- the same formula character for character as the
+		# Cầu Lửa at fireball_weapon.gd:42 -- and the Chrono Hourglass relic sweeps
+		# that field on it like any other weapon, so the axis is live and
+		# player-facing. It was simply unreachable: lightning exposed upgrade_strikes
+		# and upgrade_damage and no third, so no level-up could ever touch it, and a
+		# lightning build could not make its slowest weapon (base_cooldown 2.4, the
+		# longest in the tray) any faster. +25% is the same number Cầu Lửa, Rìu and
+		# Cửu Kiếm grant for this formula.
+		options.append({"id": "lightning_speed", "title": "Lôi Trận Vân Tung", "desc": "+25%% Tốc Đánh Sấm Sét (Cấp %d/5)" % (weapon_levels["lightning"] + 1)})
 		
 	if weapon_levels.get("fireball", 0) >= 1 and weapon_levels.get("fireball", 0) < 5:
 		options.append({"id": "fireball_count", "title": "Tam Muội Chân Hỏa", "desc": "+1 Cầu Lửa đồng thời (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
 		options.append({"id": "fireball_damage", "title": "Bộc Liệt Chưởng", "desc": "+35%% Sát Thương Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
 		options.append({"id": "fireball_radius", "title": "Liệt Hỏa Phần Thiên", "desc": "+35%% Phạm Vi Nổ Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
+		# Every other weapon offers a card for its speed axis, and the fireball's own
+		# upgrade_fire_rate() was the only upgrade method in the codebase that no card
+		# could reach. Its cooldown is base_cooldown / (speed_multiplier * attack_speed),
+		# character for character the same formula as slash_weapon.gd:82 -- so this is
+		# the same "+25%" the Cửu Kiếm card grants, not a new mechanic.
+		options.append({"id": "fireball_speed", "title": "Chuyển Luân Hỏa Chương", "desc": "+25%% Tốc Đánh Cầu Lửa (Cấp %d/5)" % (weapon_levels["fireball"] + 1)})
 		
 	if weapon_levels.get("axe", 0) >= 1 and weapon_levels.get("axe", 0) < 5:
 		options.append({"id": "axe_count", "title": "Bổng Ảnh Tung Hoành", "desc": "+1 Rìu/Bổng ném ra (Cấp %d/5)" % (weapon_levels["axe"] + 1)})
@@ -637,6 +654,12 @@ func select_upgrade(upgrade_data: Dictionary) -> void:
 			weapon_levels["lightning"] += 1
 			if lightning_weapon and lightning_weapon.has_method("upgrade_damage"):
 				lightning_weapon.upgrade_damage(0.30)
+		# Written onto the field directly rather than through a new upgrade_speed()
+		# method, matching "attack_speed" above for the one other weapon whose cards
+		# touch speed_multiplier without an upgrade_ wrapper.
+		"lightning_speed":
+			weapon_levels["lightning"] += 1
+			if lightning_weapon: lightning_weapon.speed_multiplier += 0.25
 		"fireball_count":
 			weapon_levels["fireball"] += 1
 			if fire_weapon and fire_weapon.has_method("upgrade_count"):
@@ -649,6 +672,10 @@ func select_upgrade(upgrade_data: Dictionary) -> void:
 			weapon_levels["fireball"] += 1
 			if fire_weapon and fire_weapon.has_method("upgrade_blast_radius"):
 				fire_weapon.upgrade_blast_radius(0.35)
+		"fireball_speed":
+			weapon_levels["fireball"] += 1
+			if fire_weapon and fire_weapon.has_method("upgrade_fire_rate"):
+				fire_weapon.upgrade_fire_rate(0.25)
 		"axe_count":
 			weapon_levels["axe"] += 1
 			if axe_weapon and axe_weapon.has_method("upgrade_count"):
@@ -673,22 +700,22 @@ func select_upgrade(upgrade_data: Dictionary) -> void:
 			weapon_levels["slash"] += 1
 			if slash_weapon and slash_weapon.has_method("upgrade_range"):
 				slash_weapon.upgrade_range(0.25)
+		# Both of these used to multiply the field in place, which the next
+		# refresh_meta_stats() undid -- the run's most-picked card silently did
+		# nothing the moment the player opened the pause shop. They are offered at
+		# every level-up, so this is the most-repeated bug in the file. See
+		# Player.run_speed_mult / run_magnet_mult.
 		"move_speed":
-			if player: player.move_speed *= 1.15
+			if player: player.multiply_run_speed(1.15)
 		"magnet":
-			if player:
-				player.magnet_radius *= 1.30
-				if player.magnet_area and player.magnet_area.has_node("CollisionShape2D"):
-					var shape = player.magnet_area.get_node("CollisionShape2D").shape
-					if shape is CircleShape2D:
-						shape.radius = player.magnet_radius
+			if player: player.multiply_run_magnet(1.30)
 		"max_hp":
 			if player:
-				player.max_health += 25.0
+				player.add_run_max_hp(25.0)
 				player.heal(25.0)
 		"might_surge":
 			if player:
-				player.meta_might_bonus += 0.12
+				player.add_run_might(0.12)
 
 	if panel:
 		panel.visible = false

@@ -35,11 +35,11 @@ const WEAPON_POOL: Array[Dictionary] = [
 const SCROLL_POOL: Array[Dictionary] = [
 	{"kind": "scroll", "id": "cuu_am_chan_kinh", "title": "📜 Cửu Âm Chân Kinh", "price": 55,
 		"desc": "+30% Sức Mạnh toàn thân\n−20 Máu Tối Đa", "apply": "might_up", "value": 0.30},
-	{"kind": "scroll", "id": "lang_ba_vi_bo", "title": "🥋 Lăng Ba Vi Bộ", "price": 50,
+	{"kind": "scroll", "id": "lang_ba_vi_bo", "title": "🥋 Phi Hành Thủ Pháp", "price": 50,
 		"desc": "+25% Tốc Chạy\n−4 Giáp", "apply": "speed_up", "value": 0.25},
 	{"kind": "scroll", "id": "kim_cuong_bat_hoai", "title": "💎 Kim Cương Bất Hoại", "price": 60,
 		"desc": "+8 Giáp\n−15% Tốc Chạy", "apply": "armor_up", "value": 8.0},
-	{"kind": "scroll", "id": "hap_tinh_dai_phap", "title": "🩸 Hấp Tinh Đại Pháp", "price": 65,
+	{"kind": "scroll", "id": "hap_tinh_dai_phap", "title": "🩸 Hút Hồn Thủ Pháp", "price": 65,
 		"desc": "+8% Hút Sinh Lực\n−15% Máu Tối Đa", "apply": "lifesteal", "value": 0.08},
 	{"kind": "scroll", "id": "bat_hoang_bi_dien", "title": "⚡ Bát Hoang Bí Điển", "price": 55,
 		"desc": "+35% Tỷ Lệ Bạo Kích\n−15% Tốc Đánh", "apply": "crit", "value": 0.35},
@@ -166,30 +166,43 @@ func _apply_scroll(entry: Dictionary) -> void:
 	if not is_instance_valid(p):
 		return
 	var value := float(entry.get("value", 0.0))
+	# Every branch goes through the player's add_run_* helpers rather than writing
+	# the live stat. The meta shop is reachable from the pause menu, so a direct
+	# `p.max_health -= 20` here used to evaporate the moment the player bought a
+	# single Vitality level with the run's own gold.
 	match entry.get("apply", ""):
 		"might_up":
-			p.meta_might_bonus += value
-			p.max_health = maxf(20.0, p.max_health - 20.0)
+			p.add_run_might(value)
+			p.add_run_max_hp(-20.0)
 		"speed_up":
-			p.move_speed *= 1.0 + value
+			p.multiply_run_speed(1.0 + value)
 			p.shop_armor_bonus = maxi(0, p.shop_armor_bonus - 4)
 		"armor_up":
 			p.shop_armor_bonus += int(value)
-			p.move_speed *= 0.85
+			p.multiply_run_speed(0.85)
 		"lifesteal":
 			p.shop_lifesteal += value
-			p.max_health = maxf(20.0, p.max_health * 0.85)
+			p.add_run_max_hp(-p.max_health * 0.15)
 		"crit":
-			p.crit_chance_bonus += value
+			p.add_run_crit(value)
 			_set_weapon_speed(0.85)
 		"max_hp":
-			p.max_health += value
+			p.add_run_max_hp(value)
 			p.heal(value)
-			p.move_speed *= 0.90
+			p.multiply_run_speed(0.90)
 	p.current_health = minf(p.current_health, p.max_health)
 
 ## Attack-speed trade-off: every weapon already exposes speed_multiplier, so the
 ## penalty is applied across the whole arsenal in one sweep.
+##
+## The Chrono Hourglass floor is re-asserted afterwards, which caps this penalty: a
+## player holding the relic never drops below 1.25x no matter how many crit upgrades
+## they buy, so on a Knight with the relic this specific trade-off is worth nothing.
+## That is the rule stated plainly rather than an accident of ordering -- leaving the
+## floor out of this path only moves the erasure from "the hero switch eats the relic"
+## to "the hero switch eats the penalty", which is the same defect pointed the other
+## way. If the crit item should stay a real cost for relic owners, the floor belongs
+## in _apply_cooldown_floor()'s callers instead of here.
 func _set_weapon_speed(mult: float) -> void:
 	var p := _get_player()
 	if not is_instance_valid(p):
@@ -200,6 +213,8 @@ func _set_weapon_speed(mult: float) -> void:
 	for node in container.get_children():
 		if "speed_multiplier" in node:
 			node.set("speed_multiplier", float(node.get("speed_multiplier")) * mult)
+	if p.has_method("_apply_cooldown_floor"):
+		p.call("_apply_cooldown_floor")
 
 func _get_player() -> Node2D:
 	return get_tree().get_first_node_in_group("player") if get_tree() else null
@@ -392,7 +407,15 @@ func _refresh_header() -> void:
 
 func _refresh_gold() -> void:
 	if _gold_label and GameManager:
-		_gold_label.text = "VÀNG: %d" % (GameManager.run_gold + GameManager.total_gold)
+		# run_gold, not the sum. get_gold() below returns run_gold and _spend()
+		# deducts from it, and every card's buy button is gated on get_gold() >= price
+		# -- so this label is the number the player reasons with when deciding what to
+		# buy, and it was showing a total_gold the shop would never spend. A player
+		# holding 100 run gold and 2831 banked read "VÀNG: 2931" over a shop that
+		# refused everything under 2931. The hermit shop has always displayed the one
+		# currency it spends; this is the same rule, and it is the run currency rather
+		# than the persistent one because a wave purchase is a run purchase.
+		_gold_label.text = "VÀNG: %d" % get_gold()
 
 func _refresh_reroll_button() -> void:
 	if not _reroll_button:

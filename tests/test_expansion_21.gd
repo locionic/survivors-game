@@ -7,8 +7,11 @@ extends Node
 
 const WEAPON_IDS: Array[String] = ["dagger", "shield", "lightning", "fireball", "axe", "slash"]
 
-## Godot's assert() only logs a SCRIPT ERROR and keeps running -- the process still
-## exits 0, so a suite built on it can never fail a regression run. This records
+## assert() ABORTS the calling function when it fails: the rest of it never runs, the
+## scene never reaches get_tree().quit(), and the suite hangs until the CI timeout
+## kills it. Measured 2026-09-30 -- a single failed assert() on a passing suite
+## prints the PASS banner and still exits 0. This records each broken expectation
+## and drives the exit code from the failure count instead.
 ## each broken expectation and drives the exit code from the failure count.
 var _failures: Array[String] = []
 

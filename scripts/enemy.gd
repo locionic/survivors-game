@@ -181,6 +181,12 @@ func _physics_process(delta: float) -> void:
 	# Process Ngũ Hành (Five Elements) DoT status effects
 	if burn_timer > 0.0:
 		burn_timer -= delta
+		# burn_dps is a high-water mark (apply_burn max()-es it), so it has to be
+		# handed back the moment the effect ends. Left latched, one strong burn
+		# made every later weak one tick at the strong rate for the rest of the
+		# fight -- a 35.2 dragon breath permanently upgraded every fireball.
+		if burn_timer <= 0.0:
+			burn_dps = 0.0
 		burn_tick_timer -= delta
 		if burn_tick_timer <= 0.0:
 			burn_tick_timer = 0.35
@@ -197,6 +203,8 @@ func _physics_process(delta: float) -> void:
 
 	if poison_timer > 0.0:
 		poison_timer -= delta
+		if poison_timer <= 0.0:
+			poison_dps = 0.0
 		poison_tick_timer -= delta
 		if poison_tick_timer <= 0.0:
 			poison_tick_timer = 0.45
@@ -234,9 +242,13 @@ func _physics_process(delta: float) -> void:
 	if is_champion and is_near_screen:
 		if Engine.get_physics_frames() % 3 == 0:
 			queue_redraw()
-		# Glacial champion slowing aura
+		# Glacial champion slowing aura. Refreshes a short lease on the player
+		# rather than writing speed_multiplier outright: the champion could pin
+		# the aura on but had no way to take it off, so one brush past a glacial
+		# champion left the player at 65% speed for the rest of the run, and the
+		# min() crushed any Wind Surge to the same 0.65 on sight.
 		if champion_affix == "glacial" and dist_sq < 28900.0:
-			player.speed_multiplier = min(player.speed_multiplier, 0.65)
+			player.glacial_slow_timer = maxf(player.glacial_slow_timer, 0.2)
 
 	# --- BOSS TELEGRAPHED COMBAT ---
 	if is_boss and is_instance_valid(player):
@@ -545,6 +557,7 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 	# weapon funnels through this one function, so this is the only roll that matters.
 	var crit_chance := 0.12
 	var lifesteal := 0.0
+	var crit_damage := 1.0
 	if is_instance_valid(player):
 		if "crit_chance_bonus" in player:
 			crit_chance += player.crit_chance_bonus
@@ -552,9 +565,15 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 			lifesteal = player.shop_lifesteal
 		if "char_lifesteal_bonus" in player:
 			lifesteal += player.char_lifesteal_bonus
+		# Expansion 22.0: Huyết Ma Kiếm and Tà Ma Lệnh Bài. Both are relic-gated
+		# passives, so they ride the same two reads the character passives use.
+		if "RELIC_LIFESTEAL" in player and GameManager and GameManager.has_relic("blood_blade"):
+			lifesteal += float(player.get("RELIC_LIFESTEAL"))
+		if player.has_method("get_crit_damage_multiplier"):
+			crit_damage = player.get_crit_damage_multiplier()
 
 	var is_crit = randf() < crit_chance
-	var final_amount = amount * 2.2 if is_crit else amount
+	var final_amount = amount * 2.2 * crit_damage if is_crit else amount
 	current_health -= final_amount
 
 	if lifesteal > 0.0 and player.has_method("heal"):
@@ -627,6 +646,7 @@ func apply_burn(duration: float, dps: float = 18.0) -> void:
 func _trigger_thermal_shockwave() -> void:
 	freeze_timer = 0.0
 	burn_timer = 0.0
+	burn_dps = 0.0
 	SoundManager.play("elemental_burst", 0.15)
 	FloatingText.spawn(global_position + Vector2(0, -32), "💥 BĂNG HỎA BẠO KÍCH (140)!", Color(0.2, 0.95, 1.0))
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -670,7 +690,11 @@ func die() -> void:
 	# Record kill in GameManager with enemy type and champion flag
 	var enemy_type = "bat" if is_bat_type else ("skeleton" if name.begins_with("Skeleton") else "")
 	if GameManager:
-		GameManager.add_kill(enemy_type, is_champion)
+		# is_elite_champion, not is_champion: the only thing this flag credits is the
+		# "Champion Slayer" bounty, which advertises an Elite Champion. is_champion is
+		# the ordinary affix champion and is false for every real elite, so passing it
+		# here credited the wrong enemy and let a Treasure Goblin take the bounty.
+		GameManager.add_kill(enemy_type, is_elite_champion)
 		
 	# Report to CodexManager
 	if CodexManager:
@@ -688,8 +712,12 @@ func die() -> void:
 			charge_gain = 35.0
 		elif is_champion:
 			charge_gain = 12.0
-		elif name.begins_with("TreasureGoblin") or enemy_type == "goblin":
-			charge_gain = 15.0
+		# A TreasureGoblin's 15.0 does NOT belong here. It sat on this elif for a
+		# while and could never fire: TreasureGoblin is its own class and does not
+		# extend Enemy, and both disjuncts were false regardless -- `enemy_type` is
+		# a local holding only "bat"/"skkeleton"/"" (enemy.gd:691), and the other
+		# tested a node name only a goblin has, on a goblin that never runs
+		# enemy.gd. It lives in goblin.die() now, where it actually executes.
 		p.add_dragon_soul(charge_gain)
 	
 	# Volatile Champion death explosion

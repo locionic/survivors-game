@@ -685,9 +685,31 @@ func _refresh_pause_stats() -> void:
 	var max_hp = int(player.max_health) if player else 100
 	var spd = int(player.move_speed) if player else 230
 	var mag = int(player.magnet_radius) if player else 140
-	var might = GameManager.get_meta_stat("might") * 10
-	var armor = GameManager.get_meta_stat("armor")
+	# The whole bonus, read off the player, rather than the meta upgrade's single term.
+	# _build_might_bonus() sums four sources -- meta, character, run-scoped, and the
+	# equipped Ỷ Thiên Kiếm -- and this used to report only the first, so the player was
+	# shown a smaller number than the damage they were actually dealing.
+	# See Expansion 45.0 in the README.
+	var might = int(roundf(player.meta_might_bonus * 100.0)) if player else int(GameManager.get_meta_stat("might") * 10)
+	var armor = player.get_armor_bonus() if player else int(GameManager.get_meta_stat("armor"))
+	# The same mistake as might, one line below it: pyro is the smallest of the six
+	# sources in refresh_meta_stats()'s blast expression and this reported only it.
+	# Measured 2026-10-01 at pyro 5 + Dan Dien 3 + Y Thien Kiem: the panel read
+	# "PYRO: +60%" while the fireball was being thrown at (1.0 + 0.60 + 0.60) * 1.25
+	# = 2.75, i.e. +175%. The other four terms -- the character's area_of_effect_bonus,
+	# the Dan Dien meridian, the run-scoped blast radius, and Y Thien Kiem's 1.25 --
+	# were all applied to every fireball and none of them were on screen. A player at
+	# pyro 0 with Cai Bang was told they had no AoE bonus at all while firing a blast
+	# 40% wider than base.
+	#
+	# Read off the fireball rather than recomputed: blast_radius_multiplier is the one
+	# field fireball_weapon.gd:86 actually multiplies blast_radius by, so whatever it
+	# says is the blast, with no chance of this drifting from player.gd:391 again.
 	var pyro = GameManager.get_meta_stat("pyro") * 12
+	if player:
+		var fire_wpn = player.get_node_or_null("Weapons/FireballWeapon")
+		if fire_wpn and "blast_radius_multiplier" in fire_wpn:
+			pyro = int(roundf((fire_wpn.blast_radius_multiplier - 1.0) * 100.0))
 	
 	var relic_info = "None"
 	if GameManager and not GameManager.collected_relics.is_empty():
@@ -922,7 +944,7 @@ func _on_gold_updated(new_total: int) -> void:
 		tw.tween_property(gold_label, "scale", Vector2(1.22, 1.22), 0.08)
 		tw.tween_property(gold_label, "scale", Vector2(1.0, 1.0), 0.12)
 	if shop_gold_label:
-		shop_gold_label.text = "Total Gold: %d" % new_total
+		shop_gold_label.text = "Tổng Vàng: %d" % new_total
 
 func _on_arsenal_updated(levels: Dictionary) -> void:
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
@@ -959,8 +981,13 @@ func _update_passives_display() -> void:
 		return
 	var spd = int(player.move_speed) if player else 230
 	var mag = int(player.magnet_radius) if player else 140
-	var might = GameManager.get_meta_stat("might") * 10
-	var armor = GameManager.get_meta_stat("armor")
+	# The whole bonus, read off the player, rather than the meta upgrade's single term.
+	# _build_might_bonus() sums four sources -- meta, character, run-scoped, and the
+	# equipped Ỷ Thiên Kiếm -- and this used to report only the first, so the player was
+	# shown a smaller number than the damage they were actually dealing.
+	# See Expansion 45.0 in the README.
+	var might = int(roundf(player.meta_might_bonus * 100.0)) if player else int(GameManager.get_meta_stat("might") * 10)
+	var armor = player.get_armor_bonus() if player else int(GameManager.get_meta_stat("armor"))
 	
 	var relic_str = ""
 	if GameManager and not GameManager.collected_relics.is_empty():
@@ -1056,7 +1083,12 @@ func _on_player_died() -> void:
 	
 	revive_button.visible = not GameManager.has_revived_this_run
 	double_gold_button.visible = true
-	double_gold_button.disabled = false
+	# Derived from the claim rather than hardcoded false. This line used to re-enable
+	# the button unconditionally, which is what undid the disabled = true the ad
+	# callback had just set two lines into _on_double_gold_pressed() -- one ad view,
+	# then a button that stayed live. The claim is closed in double_run_gold(); this
+	# only reports it, and the two now agree because there is one of each.
+	double_gold_button.disabled = GameManager.has_doubled_gold_this_run
 	_render_dps_breakdown("game_over", game_over_panel)
 
 func _on_victory_achieved(stats: Dictionary) -> void:
@@ -1129,9 +1161,13 @@ func _on_revive_pressed() -> void:
 ## Rewarded Ad: Double Gold
 func _on_double_gold_pressed() -> void:
 	AdManager.show_rewarded_ad("double_gold", func():
+		# double_run_gold() owns the claim, so a second press on this run costs the
+		# player another ad view and pays nothing. Nothing here decides whether the
+		# claim was already spent -- _on_player_died() below re-derives the button from
+		# the flag, which is why the explicit disabled = true it used to set had to go.
 		GameManager.double_run_gold()
-		double_gold_button.disabled = true
-		double_gold_button.text = "Gold Doubled! (x2)"
+		if GameManager.has_doubled_gold_this_run:
+			double_gold_button.text = "Gold Doubled! (x2)"
 		_on_player_died() # Refresh stats label
 	)
 
@@ -1186,18 +1222,18 @@ func render_shop_items() -> void:
 	if not shop_items_container:
 		return
 		
-	shop_gold_label.text = "Total Gold: %d 💰" % GameManager.total_gold
+	shop_gold_label.text = "Tổng Vàng: %d 💰" % GameManager.total_gold
 	
 	for child in shop_items_container.get_children():
 		child.queue_free()
 		
 	var stats = [
-		{"id": "might", "name": "⚔️ Might", "desc": "+10% Weapon Damage"},
-		{"id": "vitality", "name": "💖 Vitality", "desc": "+25 Max Health"},
-		{"id": "swiftness", "name": "👢 Swiftness", "desc": "+20 Movement Speed"},
-		{"id": "magnetism", "name": "🧲 Magnetism", "desc": "+30 XP Pickup Range"},
-		{"id": "pyro", "name": "🔥 Pyro Power", "desc": "+12% AoE Blast Radius"},
-		{"id": "armor", "name": "🛡️ Armor Plating", "desc": "-1 Flat Damage Taken"}
+		{"id": "might", "name": "⚔️ Cường Lực", "desc": "+10% Sát Thương Vũ Khí"},
+		{"id": "vitality", "name": "💖 Sinh Lực", "desc": "+25 Máu Tối Đa"},
+		{"id": "swiftness", "name": "👢 Nhanh Nhẹn", "desc": "+20 Tốc Độ Di Chuyển"},
+		{"id": "magnetism", "name": "🧲 Hút Nam Châm", "desc": "+30 Bán Kính Hút Ngọc"},
+		{"id": "pyro", "name": "🔥 Uy Lực Hỏa", "desc": "+12% Bán Kính Nổ AoE"},
+		{"id": "armor", "name": "🛡️ Giáp Bọc Thép", "desc": "-1 Sát Thương Phải Nhận"}
 	]
 	
 	for s in stats:
@@ -1211,16 +1247,16 @@ func render_shop_items() -> void:
 		
 		var info = Label.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.text = "%s (Rank %d/%d)\n%s" % [s["name"], current_lvl, GameManager.MAX_META_LEVEL, s["desc"]]
+		info.text = "%s (Cấp %d/%d)\n%s" % [s["name"], current_lvl, GameManager.MAX_META_LEVEL, s["desc"]]
 		row.add_child(info)
 		
 		var buy_btn = Button.new()
 		buy_btn.custom_minimum_size = Vector2(140, 42)
 		if is_max:
-			buy_btn.text = "MAXED"
+			buy_btn.text = "ĐẠI THÀNH"
 			buy_btn.disabled = true
 		else:
-			buy_btn.text = "Buy (%d 💰)" % cost
+			buy_btn.text = "Mua (%d 💰)" % cost
 			buy_btn.disabled = GameManager.total_gold < cost
 			buy_btn.pressed.connect(func():
 				if GameManager.buy_meta_upgrade(stat_id):

@@ -12,8 +12,11 @@ extends Node
 
 const GAMEMANAGER_SCRIPT: Script = preload("res://scripts/game_manager.gd")
 
-## Godot's assert() only logs a SCRIPT ERROR and keeps running -- the process
-## still exits 0, so a suite built on it can never fail a regression run. This
+## assert() ABORTS the calling function when it fails: the rest of it never runs, the
+## scene never reaches get_tree().quit(), and the suite hangs until the CI timeout
+## kills it. Measured 2026-09-30 -- a single failed assert() on a passing suite
+## prints the PASS banner and still exits 0. This records each broken expectation
+## and drives the exit code from the failure count instead.
 ## records each broken expectation and drives the exit code from the failure count.
 var _failures: Array[String] = []
 
@@ -221,6 +224,11 @@ func _test_impacts_are_actually_wired() -> void:
 	player.char_dodge_bonus = 0.0
 	player.drunken_buff_timer = 0.0
 	player.is_invulnerable = false
+	# Expansion 48.0: the fifth rider. A saved Nhâm Mạch rank in the shared save puts a
+	# 30-point Qi Shield on this player, it eats the 20 damage below, and the hit-stop
+	# this is checking never fires. Same reason as the three lines above it.
+	player.qi_shield_max = 0.0
+	player.qi_shield_current = 0.0
 	player.current_health = 9999.0
 	player.take_damage(20.0)
 	check(Engine.time_scale < 1.0,

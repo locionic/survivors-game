@@ -12,8 +12,11 @@ extends Node
 ## but never pays a one-time reward. Restoring must be idempotent, so these
 ## tests assert exact numbers rather than merely "it did not crash".
 
-## Godot's assert() only logs a SCRIPT ERROR and keeps running -- the process
-## still exits 0, so a suite built on it can never fail a regression run. This
+## assert() ABORTS the calling function when it fails: the rest of it never runs, the
+## scene never reaches get_tree().quit(), and the suite hangs until the CI timeout
+## kills it. Measured 2026-09-30 -- a single failed assert() on a passing suite
+## prints the PASS banner and still exits 0. This records each broken expectation
+## and drives the exit code from the failure count instead.
 ## records each broken expectation and drives the exit code from the failure count.
 var _failures: Array[String] = []
 

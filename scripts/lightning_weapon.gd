@@ -22,7 +22,7 @@ func _process(delta: float) -> void:
 	cooldown_timer -= delta
 	if cooldown_timer <= 0.0:
 		fire_lightning()
-		cooldown_timer = max(0.25, base_cooldown / speed_multiplier)
+		cooldown_timer = max(0.25, base_cooldown / (speed_multiplier * _get_player_attack_speed()))
 
 func fire_lightning() -> void:
 	var enemies = get_tree().get_nodes_in_group("enemies")
@@ -114,6 +114,16 @@ func _get_player_might() -> float:
 		return p.get_might_multiplier()
 	return 1.0
 
+## Expansion 22.0: Tà Ma Lệnh Bài's +15% attack speed below 50% HP. Divided into
+## the cooldown here rather than multiplied into speed_multiplier, so the relic
+## applies to a weapon bought mid-rage and cannot compound while the player is
+## already under the threshold.
+func _get_player_attack_speed() -> float:
+	var p = get_tree().get_first_node_in_group("player")
+	if p and p.has_method("get_attack_speed_multiplier"):
+		return p.get_attack_speed_multiplier()
+	return 1.0
+
 func upgrade_strikes() -> void:
 	strike_count += 1
 
@@ -123,7 +133,11 @@ func upgrade_damage(bonus: float) -> void:
 func evolve_to_heavens_wrath() -> void:
 	is_evolved = true
 	is_active = true
-	strike_count = 4
+	# A floor, not an assignment. "Lôi Đình Vạn Quân" adds to this field at ranks 1-4
+	# and the evolution is only offered at rank 5, so a full build arrives here at 5
+	# and a bare `=` handed it back 4. Same fault as orbit_speed in the sibling file;
+	# see Expansion 44.0 in the README.
+	strike_count = maxi(strike_count, 4)
 	base_damage = 90.0
 	base_cooldown = 1.1
 	SoundManager.play("powerup", 0.25)

@@ -7,8 +7,11 @@ extends Node
 const PLAYER_SCENE: PackedScene = preload("res://scenes/player.tscn")
 const SHOP_SCENE: PackedScene = preload("res://scenes/wave_shop_ui.tscn")
 
-## Godot's assert() only logs a SCRIPT ERROR and keeps running -- the process
-## still exits 0, so a suite built on it can never fail a regression run. This
+## assert() ABORTS the calling function when it fails: the rest of it never runs, the
+## scene never reaches get_tree().quit(), and the suite hangs until the CI timeout
+## kills it. Measured 2026-09-30 -- a single failed assert() on a passing suite
+## prints the PASS banner and still exits 0. This records each broken expectation
+## and drives the exit code from the failure count instead.
 ## records each broken expectation and drives the exit code from the failure count.
 var _failures: Array[String] = []
 
@@ -400,15 +403,24 @@ func _test_sect_mechanics_in_combat() -> void:
 	check(is_equal_approx(deaf, baseline * 0.50),
 		"Đường Môn's melee swing lands at exactly 50%% of the neutral swing (%.1f vs %.1f)" % [deaf, baseline])
 
-	# Minh Giáo's fragility, measured on the real damage path. The developer's
-	# save carries meta armour and the Nhuyễn Vị Giáp relic, so absolute HP is not
-	# a fixed number -- level both sects to the same armour and the +15% is the
-	# only thing left in the difference.
-	var pyro_loss := _taken_by("pyro", 30.0)
-	var knight_loss := _taken_by("knight", 30.0)
+	# Minh Giáo's fragility, measured on the real damage path. Both heroes are
+	# levelled to the same armour, so the +15% is the only thing left in the ratio.
+	# Absolute HP is not a fixed number, because two of get_armor_bonus()'s four terms
+	# come from the save rather than from the hero: GameManager's meta armour stat
+	# and the Nhuyễn Vị Giáp relic slot (player.gd:947-948). The zeroes in _taken_by()
+	# are on player members, so neither is reachable from there -- a knight loses 28
+	# with the relic equipped and exactly 30 without it. A "< 30.0" therefore passed on
+	# the developer's save and failed from a blank one; asserting against the armour
+	# the hero actually had holds on either.
+	var pyro_taken := _taken_by("pyro", 30.0)
+	var knight_taken := _taken_by("knight", 30.0)
+	var pyro_loss: float = pyro_taken.x
+	var knight_loss: float = knight_taken.x
 	check(is_equal_approx(pyro_loss / knight_loss, 1.15),
 		"Minh Giáo bleeds 15%% harder than the generalist (%.2f vs %.2f)" % [pyro_loss, knight_loss])
-	check(knight_loss < 30.0, "Even levelled, the full damage path still runs (knight lost %.2f)" % knight_loss)
+	check(is_equal_approx(knight_loss, maxf(1.0, 30.0 - float(knight_taken.y))),
+		"The full damage path still runs: 30 less the armour it actually had (lost %.2f at %d armour)"
+		% [knight_loss, int(knight_taken.y)])
 
 	# Nga Mi's lifesteal, through the enemy's own hit resolution.
 	var bat_scene := load("res://scenes/bat.tscn") as PackedScene
@@ -437,17 +449,20 @@ func _test_sect_mechanics_in_combat() -> void:
 ## Sect armour is zeroed so two sects can be compared head to head; the shared
 ## meta armour and relic stay in place, which is fine because they are identical
 ## on both sides and the point of the check is the ratio.
-func _taken_by(char_id: String, amount: float) -> float:
+func _taken_by(char_id: String, amount: float) -> Vector2:
 	var p := _spawn_as(char_id)
 	p.char_armor_bonus = 0
 	p.shop_armor_bonus = 0
 	p.current_health = 100.0
 	p.invulnerability_timer = 0.0
 	p.qi_shield_current = 0.0
+	# Read back rather than assumed: get_armor_bonus() (player.gd:946-949) sums four
+	# terms and the two zeroes above only reach two of them.
+	var armour := p.get_armor_bonus()
 	p.take_damage(amount)
 	var lost: float = 100.0 - p.current_health
 	_drop(p)
-	return lost
+	return Vector2(lost, armour)
 
 ## Swing the real blade at a stationary dummy and report the damage, divided by the
 ## player's shared Might term. Meta upgrades, the Codex, meridian levels and the

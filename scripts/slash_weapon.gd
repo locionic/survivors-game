@@ -79,7 +79,7 @@ func _process(delta: float) -> void:
 		# Auto fallback always plays the plain opening strike; the finisher is
 		# earned by the player clicking through the chain.
 		perform_slash()
-		cooldown_timer = max(0.18, base_cooldown / speed_multiplier)
+		cooldown_timer = max(0.18, base_cooldown / (speed_multiplier * _get_player_attack_speed()))
 
 ## Player-driven swing. Returns false when the blade is still in recovery.
 func trigger_combo_attack() -> bool:
@@ -146,6 +146,16 @@ func _get_player_might() -> float:
 	var p = _get_player()
 	if is_instance_valid(p) and p.has_method("get_might_multiplier"):
 		return p.get_might_multiplier()
+	return 1.0
+
+## Expansion 22.0: Tà Ma Lệnh Bài's +15% attack speed below 50% HP. Divided into
+## the cooldown here rather than multiplied into speed_multiplier, so the relic
+## applies to a weapon bought mid-rage and cannot compound while the player is
+## already under the threshold.
+func _get_player_attack_speed() -> float:
+	var p = _get_player()
+	if is_instance_valid(p) and p.has_method("get_attack_speed_multiplier"):
+		return p.get_attack_speed_multiplier()
 	return 1.0
 
 ## Đường Môn trades the blade for the blade-thrower: their melee is half a hit.
@@ -296,7 +306,13 @@ func evolve_to_nine_swords() -> void:
 	is_active = true
 	base_damage = 75.0
 	base_cooldown = 0.65
-	slash_range = 140.0
+	# A floor, not an assignment, and this file is the proof of why: the other slash
+	# evolution nine lines below already writes `max(slash_range, 150.0)`. "Phá Khí
+	# Thức" scales this field by 1.25 at ranks 1-4, so a full build reaches 268.55
+	# before the rank-5 evolution is even offered, and a bare `=` handed it back 140.
+	# It also made the two fusions order-dependent: evolving frost-first left 150 here,
+	# evolving nine-swords-first left 140, for a weapon that is otherwise identical.
+	slash_range = max(slash_range, 140.0)
 	slash_angle_deg = 180.0
 	FloatingText.spawn(global_position + Vector2(0, -45), "⚡ TIẾN HÓA: ĐỘC CÔ CỬU KIẾM QUY TÔNG! ⚡", Color(1.0, 0.88, 0.2))
 

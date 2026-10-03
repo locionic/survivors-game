@@ -1,4 +1,4 @@
-extends Node
+extends "res://tests/suite_base.gd"
 
 ## Automated Test Suite for Expansion 19.0:
 ## "Cửu Kiếm Quy Tông & Tẩy Tủy Quyết"
@@ -13,15 +13,16 @@ func _ready() -> void:
 	_test_dash_invulnerability_window()
 	_test_player_arsenal_slash_integration()
 	
-	print("=== ALL EXPANSION 19.0 TESTS PASSED 100% CLEANLY! ===")
-	get_tree().quit(0)
+	if _failures.is_empty():
+		print("=== ALL EXPANSION 19.0 TESTS PASSED 100% CLEANLY! ===")
+	get_tree().quit(_exit_code())
 
 func _test_directional_slash_weapon() -> void:
 	var enemy_scene = load("res://scenes/enemy.tscn")
-	assert(enemy_scene != null, "Enemy scene loaded")
+	check(enemy_scene != null, "Enemy scene loaded")
 	
 	var slash_scene = load("res://scenes/slash_weapon.tscn")
-	assert(slash_scene != null, "SlashWeapon scene loaded")
+	check(slash_scene != null, "SlashWeapon scene loaded")
 	var slash = slash_scene.instantiate()
 	add_child(slash)
 	slash.global_position = Vector2.ZERO
@@ -45,13 +46,13 @@ func _test_directional_slash_weapon() -> void:
 	
 	# Perform directional slash facing RIGHT
 	var hits_right = slash.perform_slash(Vector2.RIGHT)
-	assert(slash.last_slash_direction == Vector2.RIGHT, "Last slash direction recorded as Vector2.RIGHT")
-	assert(hits_right.has(e_front), "Enemy in front is hit by directional slash")
-	assert(hits_right.has(e_cleave), "Enemy in forward cleave cone is hit by directional slash")
-	assert(not hits_right.has(e_behind), "Enemy behind player is NOT hit by directional slash")
-	assert(e_front.current_health < front_hp_init, "Enemy in front took damage")
-	assert(e_cleave.current_health < cleave_hp_init, "Enemy in cleave cone took damage")
-	assert(e_behind.current_health == behind_hp_init, "Enemy behind took zero damage")
+	check(slash.last_slash_direction == Vector2.RIGHT, "Last slash direction recorded as Vector2.RIGHT")
+	check(hits_right.has(e_front), "Enemy in front is hit by directional slash")
+	check(hits_right.has(e_cleave), "Enemy in forward cleave cone is hit by directional slash")
+	check(not hits_right.has(e_behind), "Enemy behind player is NOT hit by directional slash")
+	check(e_front.current_health < front_hp_init, "Enemy in front took damage")
+	check(e_cleave.current_health < cleave_hp_init, "Enemy in cleave cone took damage")
+	check(e_behind.current_health == behind_hp_init, "Enemy behind took zero damage")
 	
 	# Test facing UP
 	var e_up = enemy_scene.instantiate()
@@ -65,17 +66,17 @@ func _test_directional_slash_weapon() -> void:
 	var down_hp_init = e_down.current_health
 	
 	var hits_up = slash.perform_slash(Vector2.UP)
-	assert(slash.last_slash_direction == Vector2.UP, "Last slash direction recorded as Vector2.UP")
-	assert(hits_up.has(e_up), "Enemy in UP direction is hit when facing UP")
-	assert(not hits_up.has(e_down), "Enemy in DOWN direction is NOT hit when facing UP")
-	assert(e_up.current_health < up_hp_init, "Enemy above took damage")
-	assert(e_down.current_health == down_hp_init, "Enemy below took zero damage")
+	check(slash.last_slash_direction == Vector2.UP, "Last slash direction recorded as Vector2.UP")
+	check(hits_up.has(e_up), "Enemy in UP direction is hit when facing UP")
+	check(not hits_up.has(e_down), "Enemy in DOWN direction is NOT hit when facing UP")
+	check(e_up.current_health < up_hp_init, "Enemy above took damage")
+	check(e_down.current_health == down_hp_init, "Enemy below took zero damage")
 	
 	# Test Evolution to Nine Swords
 	slash.evolve_to_nine_swords()
-	assert(slash.is_evolved == true, "SlashWeapon evolved state active")
-	assert(slash.base_damage >= 75.0, "Evolved slash damage boosted to at least 75.0")
-	assert(slash.slash_angle_deg >= 180.0, "Evolved slash sweeping arc expanded to at least 180 degrees")
+	check(slash.is_evolved == true, "SlashWeapon evolved state active")
+	check(slash.base_damage >= 75.0, "Evolved slash damage boosted to at least 75.0")
+	check(slash.slash_angle_deg >= 180.0, "Evolved slash sweeping arc expanded to at least 180 degrees")
 	
 	# Cleanup
 	e_front.queue_free()
@@ -90,33 +91,33 @@ func _test_upgrade_reroll_agency() -> void:
 	var up_mgr = UpgradeManager.new()
 	add_child(up_mgr)
 	
-	assert(up_mgr.max_rerolls == 2, "UpgradeManager provides 2 default rerolls per run")
-	assert(up_mgr.rerolls_remaining == 2, "Starts with 2 rerolls remaining")
+	check(up_mgr.max_rerolls == 2, "UpgradeManager provides 2 default rerolls per run")
+	check(up_mgr.rerolls_remaining == 2, "Starts with 2 rerolls remaining")
 	
 	up_mgr.show_upgrade_selection()
-	assert(up_mgr.panel.visible == true, "UpgradePanel is visible upon level up")
-	assert(get_tree().paused == true, "Game pauses during upgrade selection")
-	assert(up_mgr.current_offered_upgrades.size() > 0, "Cards offered to player")
+	check(up_mgr.panel.visible == true, "UpgradePanel is visible upon level up")
+	check(get_tree().paused == true, "Game pauses during upgrade selection")
+	check(up_mgr.current_offered_upgrades.size() > 0, "Cards offered to player")
 	
 	# First Reroll
 	var success1 = up_mgr.reroll_upgrades()
-	assert(success1 == true, "First reroll successful")
-	assert(up_mgr.rerolls_remaining == 1, "Rerolls remaining decremented to 1")
-	assert(up_mgr.current_offered_upgrades.size() > 0, "New cards generated after reroll")
+	check(success1 == true, "First reroll successful")
+	check(up_mgr.rerolls_remaining == 1, "Rerolls remaining decremented to 1")
+	check(up_mgr.current_offered_upgrades.size() > 0, "New cards generated after reroll")
 	
 	# Second Reroll
 	var success2 = up_mgr.reroll_upgrades()
-	assert(success2 == true, "Second reroll successful")
-	assert(up_mgr.rerolls_remaining == 0, "Rerolls remaining decremented to 0")
+	check(success2 == true, "Second reroll successful")
+	check(up_mgr.rerolls_remaining == 0, "Rerolls remaining decremented to 0")
 	
 	# Third Reroll (should fail since exhausted)
 	var success3 = up_mgr.reroll_upgrades()
-	assert(success3 == false, "Third reroll rejected when rerolls_remaining == 0")
-	assert(up_mgr.rerolls_remaining == 0, "Rerolls counter stays at 0")
+	check(success3 == false, "Third reroll rejected when rerolls_remaining == 0")
+	check(up_mgr.rerolls_remaining == 0, "Rerolls counter stays at 0")
 	
 	# Test Reset Rerolls
 	up_mgr.reset_rerolls()
-	assert(up_mgr.rerolls_remaining == 2, "Rerolls reset back to max_rerolls")
+	check(up_mgr.rerolls_remaining == 2, "Rerolls reset back to max_rerolls")
 	
 	up_mgr.queue_free()
 	get_tree().paused = false
@@ -128,54 +129,62 @@ func _test_upgrade_skip_agency() -> void:
 	
 	var initial_gold = GameManager.total_gold if GameManager else 0
 	up_mgr.show_upgrade_selection()
-	assert(up_mgr.panel.visible == true, "UpgradePanel open before skip")
-	assert(get_tree().paused == true, "Tree paused before skip")
+	check(up_mgr.panel.visible == true, "UpgradePanel open before skip")
+	check(get_tree().paused == true, "Tree paused before skip")
 	
 	# Execute Skip
 	up_mgr.skip_upgrade()
 	
 	if GameManager:
-		assert(GameManager.total_gold >= initial_gold + 30, "+30 Gold bonus awarded on Skip")
-	assert(up_mgr.panel.visible == false, "UpgradePanel cleanly closed after skip")
-	assert(get_tree().paused == false, "Game unpaused and gameplay resumes after skip")
+		check(GameManager.total_gold >= initial_gold + 30, "+30 Gold bonus awarded on Skip")
+	check(up_mgr.panel.visible == false, "UpgradePanel cleanly closed after skip")
+	check(get_tree().paused == false, "Game unpaused and gameplay resumes after skip")
 	
 	up_mgr.queue_free()
 	print("✔ Skip functionality (+30 gold bonus, panel closed, game unpaused) verified.")
 
 func _test_dash_invulnerability_window() -> void:
 	var player_scene = load("res://scenes/player.tscn")
-	assert(player_scene != null, "Player scene loaded")
+	check(player_scene != null, "Player scene loaded")
 	var player = player_scene.instantiate() as Player
 	add_child(player)
 	player.apply_character_data()
 	
-	assert(player.is_invulnerable == false, "Player is not invulnerable initially")
+	check(player.is_invulnerable == false, "Player is not invulnerable initially")
 	
 	# Trigger Tactical Dash / Thân Pháp
 	player.perform_dash(Vector2.RIGHT)
-	assert(player.is_dashing == true, "Player is in dashing state")
-	assert(player.is_invulnerable == true, "Player enters invulnerable state during dash")
-	assert(player.invulnerability_timer >= 0.25, "Dash grants at least 0.25s i-frame window")
+	check(player.is_dashing == true, "Player is in dashing state")
+	check(player.is_invulnerable == true, "Player enters invulnerable state during dash")
+	check(player.invulnerability_timer >= 0.25, "Dash grants at least 0.25s i-frame window")
 	
 	# Test incoming damage nullification during i-frames
 	var hp_before = player.current_health
 	player.take_damage(50.0)
-	assert(player.current_health == hp_before, "Incoming damage completely nullified during dash i-frame window")
+	check(player.current_health == hp_before, "Incoming damage completely nullified during dash i-frame window")
 	
 	# Advance physics time past the 0.25s window
 	player._physics_process(0.26)
-	assert(player.is_dashing == false, "Dash ends after duration")
-	assert(player.is_invulnerable == false, "Invulnerability expires after i-frame window")
+	check(player.is_dashing == false, "Dash ends after duration")
+	check(player.is_invulnerable == false, "Invulnerability expires after i-frame window")
 	
-	# Take damage outside window
+	# Take damage outside window.
+	# Expansion 48.0: the shield has to be out of the way first. Every suite starts
+	# from the developer's real save, and a saved Nhâm Mạch rank means a 30-point Qi
+	# Shield, which absorbs exactly this 30 damage -- so the hit lands, the shield
+	# takes it, HP is untouched, and the assert blames the i-frame window it was
+	# written to check. Pinned next to the i-frame clear above for the same reason:
+	# both are state this probe cannot afford to inherit.
+	player.qi_shield_max = 0.0
+	player.qi_shield_current = 0.0
 	player.take_damage(30.0)
-	assert(player.current_health < hp_before, "Player takes damage normally once i-frame window expires")
+	check(player.current_health < hp_before, "Player takes damage normally once i-frame window expires")
 	
 	# Test setter for is_invulnerable
 	player.is_invulnerable = true
-	assert(player.is_invulnerable == true, "Setter turns on invulnerability")
+	check(player.is_invulnerable == true, "Setter turns on invulnerability")
 	player.is_invulnerable = false
-	assert(player.is_invulnerable == false, "Setter turns off invulnerability")
+	check(player.is_invulnerable == false, "Setter turns off invulnerability")
 	
 	player.queue_free()
 	print("✔ Dash invulnerability window (0.25s i-frames and collision damage nullification) verified.")
@@ -188,15 +197,15 @@ func _test_player_arsenal_slash_integration() -> void:
 	
 	# Check SlashWeapon node exists in Player tree
 	var slash_node = player.get_node_or_null("Weapons/SlashWeapon")
-	assert(slash_node != null, "SlashWeapon node exists in Player weapons container")
+	check(slash_node != null, "SlashWeapon node exists in Player weapons container")
 	
 	# Activate weapon
 	player.activate_weapon("slash")
-	assert(slash_node.is_active == true, "SlashWeapon active after activate_weapon('slash')")
+	check(slash_node.is_active == true, "SlashWeapon active after activate_weapon('slash')")
 	
 	# Test perform_slash helper
 	var hits = player.perform_slash(Vector2.RIGHT)
-	assert(hits is Array, "perform_slash returns hit array")
+	check(hits is Array, "perform_slash returns hit array")
 	
 	# Test UpgradeManager catalog inclusion
 	var up_mgr = UpgradeManager.new()
@@ -208,7 +217,7 @@ func _test_player_arsenal_slash_integration() -> void:
 		if item.get("id") == "unlock_slash":
 			has_unlock_slash = true
 			break
-	assert(has_unlock_slash == true, "unlock_slash is offered in catalog when active weapons < 3")
+	check(has_unlock_slash == true, "unlock_slash is offered in catalog when active weapons < 3")
 	
 	# Test Slash Evolution offer at Lv.5
 	up_mgr.weapon_levels["slash"] = 5
@@ -219,7 +228,7 @@ func _test_player_arsenal_slash_integration() -> void:
 		if item.get("id") == "evolve_slash":
 			has_evolve_slash = true
 			break
-	assert(has_evolve_slash == true, "evolve_slash offered when slash reaches Lv.5")
+	check(has_evolve_slash == true, "evolve_slash offered when slash reaches Lv.5")
 	
 	up_mgr.queue_free()
 	player.queue_free()

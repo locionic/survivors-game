@@ -119,8 +119,11 @@ func _spawn_vault_treasures() -> void:
 		if coin_scene:
 			var coin = coin_scene.instantiate()
 			coin.global_position = global_position + Vector2(randf_range(-70, 70), randf_range(-50, 50))
-			if coin.has_method("set"):
-				coin.set("coin_value", 5)
+			# "gold_value", not "coin_value" -- see obstacle.break_tomb(). Writing
+			# the enemy's property name onto the coin was a silent no-op, so all eight
+			# of these paid 1 gold each instead of 5, and the player lost 32 of the
+			# 40 a landmark is worth. Measured 2026-10-01.
+			coin.set("gold_value", 5)
 			get_tree().current_scene.call_deferred("add_child", coin)
 			
 	# Guaranteed Ancient Relic from Vault of the Ancients

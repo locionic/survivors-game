@@ -38,6 +38,11 @@ var skill_id: String = "shield_charge"
 var skill_name: String = "Shield Charge"
 var skill_icon: String = "🛡️"
 var skill_cooldown_timer: float = 0.0
+## The character's un-upgraded timer. refresh_meta_stats() derives skill_cooldown_max
+## from THIS, never from its own output: a multiplier computed off a value it just
+## wrote compounds, so every unrelated meta purchase shaved another 8% off the timer
+## (0.92^20 by the late-game shop is a skill firing 3x faster than it ever sold for).
+var skill_cooldown_base: float = 5.5
 var skill_cooldown_max: float = 5.5
 var is_dashing: bool = false
 var dash_timer: float = 0.0
@@ -51,6 +56,17 @@ var might_multiplier: float = 1.0
 var speed_buff_timer: float = 0.0
 var speed_multiplier: float = 1.0
 var meta_might_bonus: float = 0.0
+## Permanent multiplicative might from the hermit's pacts. Held apart from
+## might_multiplier so a Might Surge landing on top of the Blood Covenant and
+## expiring 25s later takes its own bonus back and leaves the pact standing --
+## these used to share one field with a single reset, so whichever writer
+## touched it last silently deleted whichever writer went quiet.
+var might_flat_bonus: float = 1.0
+## A lease, refreshed every frame by a nearby glacial champion's aura and decayed
+## here. The champion can hold an aura but cannot un-hold it, so the speed comes
+## back on its own when the player walks away or kills it.
+var glacial_slow_timer: float = 0.0
+const GLACIAL_SLOW: float = 0.65
 
 # Expansion 21.0: Vạn Nhân Trảm — Blood Rush (kill-streak rampage buff)
 var blood_rush_timer: float = 0.0
@@ -103,11 +119,14 @@ var char_lifesteal_bonus: float = 0.0
 var char_combo_heal: float = 0.0
 var char_burn_mult: float = 1.0
 var char_area_bonus: float = 0.0
+## Expansion 47.0: how much of MainWeapon.speed_multiplier *this* character
+## added, so re-applying a character can take its own contribution back out
+## instead of stacking another copy of it on top. See apply_character_data().
+var applied_char_attack_speed: float = 0.0
 var drunken_buff_timer: float = 0.0
 var walk_phase: float = 0.0
 var footstep_side: float = 1.0
 var phoenix_feather_used: bool = false
-var relic_magnet_bonus: float = 0.0
 var has_blood_covenant: bool = false
 var has_abyssal_frenzy: bool = false
 var has_hermit_sacrifice: bool = false
@@ -119,6 +138,39 @@ var base_sprite_scale: Vector2 = Vector2(0.42, 0.42)
 # stays legible in one place.
 var shop_lifesteal: float = 0.0
 var shop_armor_bonus: int = 0
+
+## Expansion 22.0: everything bought *during a run* that touches one of the four
+## headline stats. These live in their own fields for the same reason the char_*
+## fields above do: refresh_meta_stats() rebuilds max_health / move_speed /
+## meta_might_bonus / crit_chance_bonus from their bases, and that recompute is
+## reachable mid-run from the pause-menu meta shop. Anything a run-scoped source
+## wrote straight onto the live stat was therefore erased by the player's next
+## Vitality purchase -- the +100 HP from a Shenron wish, the +15% from a hermit
+## elixir, the crit from Bát Hoang Bí Điển, all silently refunded to zero.
+var run_max_hp_bonus: float = 0.0
+var run_might_bonus: float = 0.0
+var run_speed_mult: float = 1.0
+
+## The "Hấp Tinh Đại Pháp" card used to do `magnet_radius *= 1.30` in place, but the
+## next refresh_meta_stats() reassigns that field from a base expression -- and that
+## refresh also writes the CircleShape2D the MagnetArea actually collects with, so
+## the number and the collector were rolled back together. Same shape as
+## run_speed_mult, and same fix: a run-scoped source the rebuild reads from.
+var run_magnet_mult: float = 1.0
+var run_crit_bonus: float = 0.0
+
+## Tà Ma Lệnh Bài's three numbers, kept together so the codex description and the
+## implementation cannot drift apart.
+const RELIC_RAGE_HP_RATIO: float = 0.50
+const RELIC_RAGE_CRIT_DAMAGE: float = 0.25
+const RELIC_RAGE_ATTACK_SPEED: float = 1.15
+## Huyết Ma Kiếm: healed straight off damage dealt, read beside the shop and
+## character lifesteal in enemy.take_damage().
+const RELIC_LIFESTEAL: float = 0.04
+## Chrono Hourglass: the floor every weapon's speed_multiplier is held to. Named so
+## the codex text and the implementation cannot drift apart. Read by
+## _apply_cooldown_floor() and wave_shop_ui._set_weapon_speed().
+const CHRONO_COOLDOWN_FLOOR: float = 1.25
 
 # Milestone 3: Võ Lâm Cộng Hưởng. Both synergies are passive and key off the live
 # arsenal rather than a level gate -- carry both halves and the passive is simply
@@ -195,8 +247,20 @@ func apply_character_data() -> void:
 	var main_wpn = get_node_or_null("Weapons/MainWeapon")
 	if main_wpn:
 		main_wpn.set("pierce_bonus", pierce_bonus)
-		if data.has("attack_speed_bonus"):
-			main_wpn.speed_multiplier += data["attack_speed_bonus"]
+		# Idempotent, not a ratchet. The pause menu's hero button (hud.gd:245) opens
+		# this screen mid-run and character_select_ui.gd:325 re-applies the character to
+		# the live player, so hero -> hero -> back to Ranger stacked "+35% Tốc Đánh" to
+		# +70%, then +105%. A bare `= 1.0 + bonus` would also be idempotent, and would
+		# refund every Tốc Đánh card the player has bought, because upgrade_fire_rate
+		# accumulates into this same field. So take back exactly what this line last
+		# added -- no more. The old `if data.has()` guard is gone because a hero with
+		# no bonus now correctly *removes* the previous hero's rather than leaving it.
+		main_wpn.speed_multiplier -= applied_char_attack_speed
+		applied_char_attack_speed = float(data.get("attack_speed_bonus", 0.0))
+		main_wpn.speed_multiplier += applied_char_attack_speed
+		# The subtract above can land below the Chrono Hourglass floor, so the relic
+		# has to be re-asserted here. See _apply_cooldown_floor().
+		_apply_cooldown_floor()
 			
 	# Active Skill Setup
 	skill_id = data.get("skill_id", "shield_charge")
@@ -215,6 +279,9 @@ func apply_character_data() -> void:
 			skill_cooldown_max = 7.5
 		_:
 			skill_cooldown_max = 5.0
+	# The derived value is rebuilt from this, so it has to be reseated whenever the
+	# character (and with it the un-upgraded timer) changes.
+	skill_cooldown_base = skill_cooldown_max
 
 ## The six arsenal slots, id -> live node. Built per call rather than cached at
 ## @onready because the shop grants weapons mid-run and the tree is only fully
@@ -287,17 +354,16 @@ func get_combo_step() -> int:
 func refresh_meta_stats() -> void:
 	if not GameManager:
 		return
-	var base_hp = 100.0 + char_hp_bonus
-	var new_max = base_hp + GameManager.get_meta_stat("vitality") * 25.0
+	var new_max = _base_max_health()
 	var hp_delta = new_max - max_health
 	max_health = new_max
 	if hp_delta > 0:
 		current_health = min(max_health, current_health + hp_delta)
-		
+
 	var codex_spd = CodexManager.bonus_speed if CodexManager else 0.0
-	move_speed = (230.0 + char_speed_bonus + codex_spd + GameManager.get_meta_stat("swiftness") * 20.0) * char_speed_mult
-	magnet_radius = 140.0 + char_magnet_bonus + GameManager.get_meta_stat("magnetism") * 30.0
-	meta_might_bonus = GameManager.get_meta_stat("might") * 0.10 + char_might_bonus
+	move_speed = (230.0 + char_speed_bonus + codex_spd + GameManager.get_meta_stat("swiftness") * 20.0) * char_speed_mult * run_speed_mult
+	magnet_radius = _base_magnet_radius()
+	meta_might_bonus = _build_might_bonus()
 
 	if magnet_area and magnet_area.has_node("CollisionShape2D"):
 		var shape = magnet_area.get_node("CollisionShape2D").shape
@@ -308,22 +374,63 @@ func refresh_meta_stats() -> void:
 	# every meta-upgrade, so anything applied to blast_radius_multiplier directly
 	# in apply_character_data() would be wiped on the first refresh.
 	var fire_wpn = get_node_or_null("Weapons/FireballWeapon")
-	if fire_wpn and "blast_radius_multiplier" in fire_wpn:
-		fire_wpn.blast_radius_multiplier = (1.0 + char_area_bonus) + GameManager.get_meta_stat("pyro") * 0.12
+	if fire_wpn and "blast_radius_multiplier" in fire_wpn and "run_blast_radius_bonus" in fire_wpn:
+		# Đan Điền's advertised "+20% AoE" rides here: blast_radius_multiplier is
+		# the only player-facing AoE radius that scales with a multiplier, and
+		# this is the one line that rebuilds it, so a source left out of it is a
+		# source that silently does nothing -- and, because this line *assigns*,
+		# a source that keeps its own field is one this line has to fold back in.
+		#
+		# That is what run_blast_radius_bonus is: the fireball's own run-scoped
+		# width, bought from the shop. It was written onto blast_radius_multiplier
+		# itself, so the Liệt Hỏa Phần Thiên card survived exactly until the player
+		# bought a meta upgrade, unlocked a codex quest, or re-equipped a piece of
+		# gear -- every one of which lands here, and equip_gear() is free.
+		#
+		# Ỷ Thiên Kiếm's "+25% Bán kính tầm đánh" is the one source that is
+		# multiplicative rather than additive, so it scales the sum -- the sword
+		# widens the blast by a quarter, whatever is in it. It used to be applied
+		# further down as `blast_radius_multiplier *= 1.25`, which was correct only
+		# by luck: it landed after this assignment, so it scaled a value that had
+		# just been rebuilt from base. A source sitting anywhere but this expression
+		# is either erased or, if it multiplies, a ratchet.
+		var sword_range := 1.25 if GameManager.has_equipped("y_thien_kiem") else 1.0
+		fire_wpn.blast_radius_multiplier = ((1.0 + char_area_bonus) \
+			+ GameManager.get_meta_stat("pyro") * 0.12 \
+			+ float(GameManager.get_meridian_stat("dan_dien") * 0.20) \
+			+ fire_wpn.run_blast_radius_bonus) * sword_range
 		
 	# Meridian Cultivation (Hệ Thống Kinh Mạch)
 	if GameManager:
 		var nham = GameManager.get_meridian_stat("nham_mach")
-		qi_shield_max = float(nham * 30)
+		var nham_max := float(nham * 30)
+		# Grant only the capacity that was just bought -- never top up to the new cap.
+		# This function is a stat rebuild and runs from a dozen call sites, the cheapest
+		# being _close_shop() and the free equip_gear(), so topping up here made every one
+		# of them a free full recharge. A shield broken to 0 by a hit refilled itself the
+		# moment the player opened and closed the menu. For a shield nothing has touched
+		# yet the two are the same number; they only diverge once the charge is spent.
+		qi_shield_current = minf(nham_max, qi_shield_current + maxf(0.0, nham_max - qi_shield_max))
+		qi_shield_max = nham_max
 		qi_shield_regen_rate = float(nham * 1.5)
-		qi_shield_current = qi_shield_max
 		
 		var doc = GameManager.get_meridian_stat("doc_mach")
-		crit_chance_bonus = float(doc * 0.07)
-		
+		crit_chance_bonus = float(doc * 0.07) + run_crit_bonus
+
 		var xung = GameManager.get_meridian_stat("xung_mach")
 		move_speed += float(xung * 15.0)
-		skill_cooldown_max = max(2.5, skill_cooldown_max * (1.0 - float(xung * 0.08)))
+		# From the character's base, not from the last derived value -- see
+		# skill_cooldown_base. This function runs on every meta and meridian
+		# purchase, so an in-place multiply was a silent infinite discount.
+		#
+		# 0.10, and the meridian row it applies is the one that says so: "+15 Move
+		# Speed & -10% Cooldown". It was 0.08 -- the only number in that table that
+		# did not match its own description, where Nhâm Mạch's 30/1.5, Đốc Mạch's
+		# 7/35 and Đan Điền's 30 are all applied verbatim and this row's other
+		# half, move_speed, lands on its 15 exactly. So a player paid 1437 gold
+		# across five ranks for a 40% cut against a 50% promise, and the 2.5s
+		# floor was never the reason: the knight's 5.5s base is 2.75s at this rate.
+		skill_cooldown_max = maxf(2.5, skill_cooldown_base * (1.0 - float(xung * 0.10)))
 		
 		var dan = GameManager.get_meridian_stat("dan_dien")
 		dragon_soul_harvest_mult = 1.0 + float(dan * 0.30)
@@ -331,10 +438,10 @@ func refresh_meta_stats() -> void:
 		# Wuxia Equipment bonuses
 		if GameManager.has_equipped("van_hac_hai"):
 			move_speed += 30.0
-		if GameManager.has_equipped("y_thien_kiem"):
-			meta_might_bonus += 0.15
-			if fire_wpn and fire_wpn.has_method("upgrade_blast_radius"):
-				fire_wpn.blast_radius_multiplier *= 1.25
+		# Ỷ Thiên Kiếm's radius bonus moved up into the blast_radius_multiplier
+		# assignment. It was here as `*=` on the value this function had just
+		# rebuilt, which is right only because the assignment happens to run first
+		# -- and every source of AoE radius now lives in one expression.
 
 		
 	emit_signal("qi_shield_changed", qi_shield_current, qi_shield_max)
@@ -353,6 +460,68 @@ func refresh_meta_stats() -> void:
 		fill_sb.bg_color = Color(0.18, 0.85, 0.4, 1.0)
 		fill_sb.set_corner_radius_all(3)
 		overhead_hp.add_theme_stylebox_override("fill", fill_sb)
+
+## The one place max_health is defined. refresh_meta_stats() and every add_run_max_hp()
+## both go through here, so the four callers that used to write the stat directly --
+## the wave shop's Tẩy Tủy Đan, the Shenron's Bất Tử Chân Thân, the hermit's Cửu
+## Chuyển Hoàn Hồn, UpgradeManager's universal +25 card -- cannot drift out of it.
+## The 20 HP floor lives here rather than at the callers: a stack of max-HP-cutting
+## scrolls drives the raw sum negative, and only the summed value knows that.
+func _base_max_health() -> float:
+	return maxf(20.0, 100.0 + char_hp_bonus + GameManager.get_meta_stat("vitality") * 25.0 + run_max_hp_bonus)
+
+## Same contract for might. Ỷ Thiên Kiếm's +15% used to be added inline at the tail
+## of refresh_meta_stats(), which meant add_run_might() -- rebuilding the stat
+## without that tail -- quietly deleted an equipped weapon the first time a player
+## bought Cửu Âm Chân Kinh. Every source is in the expression now.
+func _build_might_bonus() -> float:
+	var bonus := GameManager.get_meta_stat("might") * 0.10 + char_might_bonus + run_might_bonus
+	if GameManager.has_equipped("y_thien_kiem"):
+		bonus += 0.15
+	return bonus
+
+## Same contract for pickup range. The Golden Horseshoe's advertised "+60 Magnet
+## Radius" used to be written straight onto the MagnetArea's CircleShape2D by
+## apply_relic_effects(), while refresh_meta_stats() wrote that same shape from
+## plain magnet_radius -- so the relic bought radius the player kept until their
+## first pause-shop purchase, and the pause panel, which prints magnet_radius, sat
+## 60 below the circle the game was really collecting with. The same line also
+## re-added char_magnet_bonus on top of a base that already contained it, so a mage
+## (60) or a beggar (25) double-counted their own bonus while holding the relic.
+##
+## One expression, one writer, read from the relic list the way _build_might_bonus
+## reads the equipped gear -- so there is no ordering left to get wrong.
+func _base_magnet_radius() -> float:
+	var radius := 140.0 + char_magnet_bonus + GameManager.get_meta_stat("magnetism") * 30.0
+	if GameManager.has_relic("golden_horseshoe"):
+		radius += 60.0
+	return radius * run_magnet_mult
+
+# --- run-scoped stat sources --------------------------------------------------
+# Each returns the stat immediately (so the HUD is right before the next frame)
+# without writing the recomputed fields, which is what made the value erasable.
+
+func add_run_max_hp(amount: float) -> void:
+	run_max_hp_bonus += amount
+	max_health = _base_max_health()
+	current_health = minf(current_health, max_health)
+	_update_hp_displays()
+
+func add_run_might(amount: float) -> void:
+	run_might_bonus += amount
+	meta_might_bonus = _build_might_bonus()
+
+func multiply_run_speed(mult: float) -> void:
+	run_speed_mult *= mult
+	refresh_meta_stats()
+
+func multiply_run_magnet(mult: float) -> void:
+	run_magnet_mult *= mult
+	refresh_meta_stats()
+
+func add_run_crit(amount: float) -> void:
+	run_crit_bonus += amount
+	crit_chance_bonus = float(GameManager.get_meridian_stat("doc_mach") * 0.07) + run_crit_bonus
 
 func _draw() -> void:
 	# Soft dual-layer ellipse drop shadow beneath feet
@@ -376,6 +545,14 @@ func _physics_process(delta: float) -> void:
 		speed_buff_timer -= delta
 		if speed_buff_timer <= 0.0:
 			speed_multiplier = 1.0
+	if glacial_slow_timer > 0.0:
+		glacial_slow_timer = maxf(0.0, glacial_slow_timer - delta)
+	# The blizzard's decay used to sit in the non-dash branch below, beside the speed
+	# maths that consumes it, so dashing stopped the clock and handed the debuff the
+	# dash back as free time -- 4.5s of slow that lasted 4.5s plus every dash in it.
+	# A timer's decay belongs with the other timers.
+	if blizzard_slow_timer > 0.0:
+		blizzard_slow_timer = maxf(0.0, blizzard_slow_timer - delta)
 	if blood_rush_timer > 0.0:
 		blood_rush_timer = max(0.0, blood_rush_timer - delta)
 	if thunderfire_cd > 0.0:
@@ -398,12 +575,17 @@ func _physics_process(delta: float) -> void:
 			skill_cooldown_timer = 0.0
 			emit_signal("skill_ready")
 
+	# input_direction is a one-frame latch: cleared here, filled by the poll below, read
+	# by the movement maths. The clear used to sit in the non-dash branch, so a dash left
+	# the previous frame's stick reading frozen in place -- the poll below could not run
+	# again until the dash ended, and the frame after that the player drifted once in a
+	# direction they had already let go of.
+	input_direction = Vector2.ZERO
+	input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if input_direction == Vector2.ZERO:
-		input_direction = Input.get_vector("move_left", "move_right", "move_up", "move_down")
-		if input_direction == Vector2.ZERO:
-			var joy = get_tree().get_first_node_in_group("joystick")
-			if joy and joy.has_method("get_output"):
-				input_direction = joy.get_output()
+		var joy = get_tree().get_first_node_in_group("joystick")
+		if joy and joy.has_method("get_output"):
+			input_direction = joy.get_output()
 			
 	if input_direction.length_squared() > 0.01:
 		last_move_dir = input_direction.normalized()
@@ -483,11 +665,8 @@ func _physics_process(delta: float) -> void:
 		if dash_timer <= 0.0:
 			is_dashing = false
 	else:
-		var effective_speed = move_speed * speed_multiplier
+		var effective_speed = move_speed * speed_multiplier * get_slow_multiplier()
 		effective_speed *= get_blood_rush_speed_multiplier()
-		if blizzard_slow_timer > 0.0:
-			blizzard_slow_timer -= delta
-			effective_speed *= 0.75
 		if is_dragon_awakened:
 			effective_speed *= 1.65
 		elif drunken_buff_timer > 0.0:
@@ -497,7 +676,6 @@ func _physics_process(delta: float) -> void:
 			velocity = velocity.move_toward(target_vel, effective_speed * 14.0 * delta)
 		else:
 			velocity = velocity.move_toward(Vector2.ZERO, effective_speed * 18.0 * delta)
-		input_direction = Vector2.ZERO
 
 	
 	var is_moving = velocity.length_squared() > 1.0
@@ -551,13 +729,11 @@ func _physics_process(delta: float) -> void:
 			
 	# Relic: Berserker Brand damage boost when below 40% HP
 	if GameManager and GameManager.has_relic("berserker_brand"):
-		var hp_ratio = current_health / max(1.0, max_health)
-		if hp_ratio <= 0.40:
-			might_multiplier = max(might_multiplier, 1.50)
+		if is_berserker_brand_active():
 			if sprite and not is_moving:
 				var pulse = (sin(walk_phase * 3.0) + 1.0) * 0.5
 				sprite.modulate = Color(1.0 + pulse * 0.6, 0.4, 0.3)
-		elif might_buff_timer <= 0.0 and sprite:
+		elif sprite:
 			sprite.modulate = Color.WHITE
 
 	# Expansion 21.0: Blood Rush reddish-gold pulse (outranks the Berserker Brand tint)
@@ -596,12 +772,9 @@ func take_damage(amount: float) -> void:
 			_proc_drunken_gourd_splash()
 		return
 	
-	var meta_arm = GameManager.get_meta_stat("armor") if GameManager else 0
-	var equip_arm = 2 if (GameManager and GameManager.has_equipped("nhuyen_vi_giap")) else 0
-	var total_armor = meta_arm + char_armor_bonus + equip_arm + shop_armor_bonus
 	# Minh Giáo trades survivability for damage: 15% more of everything, applied
 	# after armor so the sect's fragility is a real flat multiplier.
-	var final_damage = max(1.0, amount - float(total_armor)) * char_damage_taken_mult
+	var final_damage = max(1.0, amount - float(get_armor_bonus())) * char_damage_taken_mult
 	if has_blood_covenant:
 		final_damage *= 1.20
 	
@@ -680,24 +853,48 @@ func take_damage(amount: float) -> void:
 func apply_relic_effects() -> void:
 	if not GameManager:
 		return
-		
-	if GameManager.has_relic("golden_horseshoe"):
-		relic_magnet_bonus = 60.0
-		if magnet_area and magnet_area.has_node("CollisionShape2D"):
-			var shape = magnet_area.get_node("CollisionShape2D").shape
-			if shape is CircleShape2D:
-				shape.radius = magnet_radius + char_magnet_bonus + relic_magnet_bonus
-				
+
+	# Relics that feed a stat are read inside refresh_meta_stats() now, so the rebuild
+	# is the only thing that has to run -- called here so picking a relic off the floor
+	# still moves the stat on that frame, which is what this function promised. The
+	# CircleShape2D it used to write here is written by that rebuild, and by nothing
+	# else; two writers that disagreed on the same shape is how the +60 came to live
+	# in the circle but never in the magnet_radius the pause panel displays.
+	refresh_meta_stats()
+
 	if GameManager.has_relic("chrono_hourglass"):
-		var wpns = [
-			get_node_or_null("Weapons/MainWeapon"),
-			get_node_or_null("Weapons/LightningWeapon"),
-			get_node_or_null("Weapons/FireballWeapon"),
-			get_node_or_null("Weapons/AxeWeapon")
-		]
-		for w in wpns:
-			if w and "speed_multiplier" in w:
-				w.speed_multiplier = max(w.speed_multiplier, 1.25)
+		_apply_cooldown_floor()
+
+## Chrono Hourglass ("Giảm 20% Thời Gian Hồi Chiêu") is a floor on every weapon's
+## speed_multiplier, not a one-time bump. Clamping it once at pickup left the relic
+## alive only by luck of arrival order, because the field has other writers: pick
+## the relic up on the Knight (1.0 -> 1.25) and a later hero switch subtracts the
+## *character's* bonus and lands back on 1.00; pick it up on the Ranger, whose +35%
+## has already carried the value past 1.25, and the clamp is a no-op that records
+## nothing -- so that same switch erases the relic outright. Measured 2026-10-01:
+## pickup as Ranger read 1.35, switching to the Knight read 1.00, the relic gone.
+##
+## Every writer of the field re-asserts it through here, which is what makes the
+## promise order-independent rather than a lottery. Rebuilding the field from a
+## base instead would have been the obvious fix and is wrong: upgrade_fire_rate and
+## the Tốc Đánh cards accumulate into this same float by `+=`, and the wave shop
+## multiplies it by 0.85, so any rebuild refunds cards the player paid for.
+##
+## Swept across the whole container rather than listed weapon by weapon. The list
+## this replaced named four of the five weapons that read speed_multiplier into
+## their cooldown -- SlashWeapon (Độc Cô Cửu Kiếm) was missing, so a relic reading
+## "-20% Weapon Cooldowns" did nothing at all for the blade. OrbitingWeapon has no
+## cooldown, so the "in node" guard skips it on its own, and the next weapon added
+## to the scene is covered without anyone having to remember to add it here.
+func _apply_cooldown_floor() -> void:
+	if not GameManager or not GameManager.has_relic("chrono_hourglass"):
+		return
+	var weapons := get_node_or_null("Weapons")
+	if not weapons:
+		return
+	for w in weapons.get_children():
+		if "speed_multiplier" in w:
+			w.set("speed_multiplier", maxf(float(w.get("speed_multiplier")), CHRONO_COOLDOWN_FLOOR))
 
 func trigger_storm_amulet_proc(origin_pos: Vector2) -> void:
 	if not GameManager or not GameManager.has_relic("storm_amulet"):
@@ -738,12 +935,76 @@ func apply_speed_buff(duration: float = 20.0, mult: float = 1.5) -> void:
 ## Nga Mi -15% base-damage trade-off has to be applied -- folding it in any other
 ## spot would miss whichever weapon nobody remembered to patch.
 func get_might_multiplier() -> float:
-	return (1.0 + meta_might_bonus) * might_multiplier * char_damage_mult
+	return (1.0 + meta_might_bonus) * might_flat_bonus * get_berserker_brand_multiplier() * might_multiplier * char_damage_mult
+
+## Expansion 46.0: the one copy of the armour sum. take_damage() built this inline
+## while the HUD's ARMOR and DEF readouts derived it from get_meta_stat("armor")
+## alone -- one term of four -- so a player holding +3 character armour, Nhuyễn Vị
+## Giáp and a wave-shop purchase was told he had 2. Repaired the way 45.0's might
+## readout was: by deleting the second copy rather than restating the first. Both
+## readers ask here, so a fifth source cannot be added without the panel seeing it.
+func get_armor_bonus() -> int:
+	var meta_arm = GameManager.get_meta_stat("armor") if GameManager else 0
+	var equip_arm = 2 if (GameManager and GameManager.has_equipped("nhuyen_vi_giap")) else 0
+	return meta_arm + char_armor_bonus + equip_arm + shop_armor_bonus
+
+## Berserker Brand: at least 1.5x damage below 40% HP, never *less* than what the
+## player already had. It used to be written straight onto might_multiplier with
+## max(), which overwrote the Blood Covenant's 1.45 and was then never given
+## back. Read here instead, so the relic lifts the player to 1.5x and no further.
+func is_berserker_brand_active() -> bool:
+	return GameManager != null and GameManager.has_relic("berserker_brand") \
+		and current_health / maxf(1.0, max_health) <= 0.40
+
+func get_berserker_brand_multiplier() -> float:
+	return 1.50 if is_berserker_brand_active() else 1.0
 
 ## Minh Giáo's +60% elemental burn, read by enemy.apply_burn() -- the single
 ## point every burn source (fireball, spirit sword, dragon breath) routes through.
 func get_burn_multiplier() -> float:
 	return char_burn_mult
+
+## Expansion 22.0: Tà Ma Lệnh Bài (demonic_token) and Huyết Ma Kiếm (blood_blade).
+## Both were registered in codex_manager._register_codex_relic() with a full
+## description and a quest behind them, and neither had an effect anywhere in the
+## codebase -- the codex told the player what the relic would do and then did
+## nothing. Same single-read-point contract as the two above: enemy.take_damage()
+## holds the only crit roll and the only lifesteal read, and each weapon holds one
+## cooldown line, so these stay honest without a single weapon knowing they exist.
+func is_demonic_rage_active() -> bool:
+	if not GameManager or not GameManager.has_relic("demonic_token"):
+		return false
+	return current_health / maxf(1.0, max_health) <= RELIC_RAGE_HP_RATIO
+
+## +25% crit damage while raging, plus Đốc Mạch's advertised +35% per rank -- the
+## meridian table has claimed that since the Codex shipped and nothing read it.
+## 2.2 is the engine constant, unchanged.
+func get_crit_damage_multiplier() -> float:
+	var bonus := float(GameManager.get_meridian_stat("doc_mach") * 0.35)
+	if is_demonic_rage_active():
+		bonus += RELIC_RAGE_CRIT_DAMAGE
+	return 1.0 + bonus
+
+## +15% attack speed while raging. Divided into the cooldown rather than multiplied
+## into each weapon's speed_multiplier, so a weapon bought mid-rage inherits it and
+## nothing compounds while the player sits below the threshold.
+##
+## Cái Bang's Say Rượu Bát Tiên contributes the second term. Its card advertises
+## "+40% Né Đòn & +50% Tốc Đánh trong 6.0s" and only the dodge half existed: the
+## dodge is gated on drunken_buff_timer at player.gd:766, and this function was the
+## sole attack-speed hook in the game -- it returned 1.0 with no timer check, so
+## measured 2026-10-01 the multiplier was 1.0 before the skill and 1.0 during it.
+##
+## Composed rather than ternary'd because the two are now independent sources and
+## the next one will be too. Multiplicative, like the relic: two buffs stacking to
+## +70% reads as stronger than either, which is what a player expects from a stack.
+func get_attack_speed_multiplier() -> float:
+	var mult := 1.0
+	if is_demonic_rage_active():
+		mult *= RELIC_RAGE_ATTACK_SPEED
+	if drunken_buff_timer > 0.0:
+		mult *= 1.50
+	return mult
 
 ## Lôi Hỏa Liên Hoàn: every crit detonates. enemy.take_damage() holds the only crit
 ## roll in the game, so that one call site is the entire hook -- no weapon has to
@@ -1102,9 +1363,6 @@ func _spawn_companion() -> void:
 		else:
 			call_deferred("add_child", comp)
 
-func apply_scroll_effects() -> void:
-	pass
-
 func _trigger_yijinjing_pulse() -> void:
 	SoundManager.play("buddha_gong", 0.15)
 	FloatingText.spawn(global_position + Vector2(0, -32), "🦁 SƯ TỬ HỐNG! 卍", Color(1.0, 0.85, 0.2))
@@ -1194,7 +1452,7 @@ func apply_shenron_wish(wish_id: String) -> void:
 			golden_frenzy_timer = 30.0
 			FloatingText.spawn(global_position + Vector2(0, -36), "💰 KIM SƠN BẠC HẢI! +1500 VÀNG", Color(1.0, 0.85, 0.2))
 		"wish_immortality":
-			max_health += 100.0
+			add_run_max_hp(100.0)
 			current_health = max_health
 			qi_shield_max += 50.0
 			qi_shield_current = qi_shield_max
@@ -1223,12 +1481,12 @@ func apply_demonic_pact(pact_id: String) -> void:
 		"blood_covenant":
 			has_blood_covenant = true
 			current_health = max(10.0, current_health * 0.65)
-			might_multiplier += 0.45
+			might_flat_bonus += 0.45
 			_update_hp_displays()
 			FloatingText.spawn(global_position + Vector2(0, -35), "🩸 HUYẾT KHẾ: +45% SÁT THƯƠNG!", Color(1.0, 0.2, 0.2))
 		"abyssal_frenzy":
 			has_abyssal_frenzy = true
-			var spawner = get_tree().get_first_node_in_group("spawner")
+			var spawner = get_tree().get_first_node_in_group("enemy_spawner")
 			if spawner:
 				if "spawn_interval" in spawner:
 					spawner.spawn_interval *= 0.70
@@ -1247,8 +1505,32 @@ func apply_demonic_pact(pact_id: String) -> void:
 					get_tree().current_scene.call_deferred("add_child", ch)
 			FloatingText.spawn(global_position + Vector2(0, -35), "🚫 ĐỘC CÔ: PHONG ẤN KHÍ THUẪN | +500 VÀNG & RƯƠNG!", Color(1.0, 0.75, 0.1))
 
+## Vân Hạc Hài advertises "Miễn Nhiễm Hiệu Ứng Làm Chậm" -- immune to slow effects,
+## not to one slow in particular. The check used to live only inside
+## apply_blizzard_slow(), so the glacial champion's aura, which writes the lease
+## field outright at enemy.gd:251 and never went near that function, slowed an
+## immune player for as long as they stood in a 170px aura.
+##
+## Both timers are consumed in one place, so the immunity is read here rather than
+## in each producer: one gate, and the next slow to be added is covered by writing
+## no new code at all.
+func is_slow_immune() -> bool:
+	return GameManager != null and GameManager.has_equipped("van_hac_hai")
+
+## Every slow that actually costs the player speed. The glacial lease expires on
+## its own (see _physics_process), so neither timer here needs a writer to undo it.
+func get_slow_multiplier() -> float:
+	if is_slow_immune():
+		return 1.0
+	var mult := 1.0
+	if glacial_slow_timer > 0.0:
+		mult *= GLACIAL_SLOW
+	if blizzard_slow_timer > 0.0:
+		mult *= 0.75
+	return mult
+
 func apply_blizzard_slow(duration: float = 3.0) -> void:
-	if GameManager and GameManager.has_equipped("van_hac_hai"):
+	if is_slow_immune():
 		FloatingText.spawn(global_position + Vector2(0, -28), "🥾 MIỄN NHIỄM HÀN BĂNG!", Color(0.4, 0.95, 0.6))
 		return
 	blizzard_slow_timer = duration
@@ -1258,14 +1540,16 @@ func apply_hermit_item(item_id: String) -> void:
 	SoundManager.play("elixir_drink", 0.1)
 	match item_id:
 		"cuu_chuyen_dan":
-			max_health *= 1.15
+			# +15% of the max it has *right now*, banked as a flat bonus so the next
+			# meta-shop refresh cannot shrink it back.
+			add_run_max_hp(max_health * 0.15)
 			current_health = max_health
 			qi_shield_current = qi_shield_max
 			_update_hp_displays()
 			emit_signal("qi_shield_changed", qi_shield_current, qi_shield_max)
 			FloatingText.spawn(global_position + Vector2(0, -35), "💊 CỬU CHUYỂN HOÀN HỒN: FULL HP & +15% MAX HP!", Color(0.2, 1.0, 0.4))
 		"tay_tuy_dan":
-			might_multiplier += 0.20
+			might_flat_bonus += 0.20
 			var main_wpn = get_node_or_null("Weapons/MainWeapon")
 			if main_wpn and "speed_multiplier" in main_wpn:
 				main_wpn.speed_multiplier += 0.15
@@ -1285,7 +1569,7 @@ func apply_hermit_item(item_id: String) -> void:
 			else:
 				FloatingText.spawn(global_position + Vector2(0, -35), "⚠️ HẠ HẠ QUẺ: YÊU MA XUẤT HIỆN!", Color(1.0, 0.2, 0.2))
 				SoundManager.play("thunder", 0.2)
-				var spawner = get_tree().get_first_node_in_group("spawner")
+				var spawner = get_tree().get_first_node_in_group("enemy_spawner")
 				if spawner and spawner.has_method("spawn_specific_enemy"):
 					for i in range(2):
 						var offset = Vector2.RIGHT.rotated(randf() * TAU) * randf_range(90, 150)

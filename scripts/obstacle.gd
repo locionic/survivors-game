@@ -45,8 +45,16 @@ func break_tomb() -> void:
 	if coin_scene:
 		var coin = coin_scene.instantiate()
 		coin.global_position = global_position
-		if coin.has_method("set"):
-			coin.set("coin_value", 3)
+		# "gold_value", not "coin_value". The enemy declares @export var coin_value
+		# and the coin it pays out declares @export var gold_value -- two classes,
+		# two names -- and this wrote the enemy's name onto the coin. Object.set()
+		# on a property that does not exist is a silent no-op: no error, no return
+		# value, the coin simply keeps its default of 1. Measured 2026-10-01, so
+		# every tomb paid 1 gold instead of 3 and scripts/ci.sh's `SCRIPT ERROR:`
+		# grep never saw it, because nothing was ever reported. The guard this
+		# replaced, `coin.has_method("set")`, was worse than nothing: every Object
+		# has set(), so it always passed and read like a check that had happened.
+		coin.set("gold_value", 3)
 		get_tree().current_scene.call_deferred("add_child", coin)
 	# Fade modulate slightly
 	modulate = Color(0.6, 0.6, 0.6, 0.8)

@@ -117,7 +117,13 @@ var quests: Array[Dictionary] = [
 		"target": 2500,
 		"type": "total_gold",
 		"reward_desc": "Kim Thiềm Thần Thú: Tăng vĩnh viễn +30% Giá trị tiền vàng rơi",
-		"reward_type": "gold_drop_buff",
+		# Spelled to match the arm in _apply_reward(). This was "gold_drop_buff", a name
+		# the match has never had -- so a player who banked 2,500 lifetime gold and
+		# claimed "+30% gold drop value" got nothing at all, silently. The field is
+		# bonus_gold_drop_mult everywhere else in this file, which is what makes the
+		# handler's spelling the intended one. The default arm below is what stops the
+		# next one of these from being quiet.
+		"reward_type": "gold_drop_mult",
 		"reward_val": 0.30,
 		"unlocked": false,
 		"claimed": false,
@@ -207,6 +213,14 @@ func _apply_reward(q: Dictionary) -> void:
 				unlocked_relic_keys.append(r_key)
 			# Register with GameManager RELICS catalog if special
 			_register_codex_relic(r_key)
+		_:
+			# Every quest's reward_type and every arm name above are typed by hand, and
+			# when the two disagree the match falls through in silence: the player claims
+			# a bonus the game has no code to grant. That is exactly what "gold_drop_buff"
+			# did. Naming the quest is the whole point -- otherwise the symptom is a
+			# permanently unnoticeable missing multiplier.
+			push_error("Codex reward type '%s' has no handler (quest '%s')"
+				% [r_type, q.get("id", "?")])
 
 func _register_codex_relic(r_key: String) -> void:
 	if not GameManager:

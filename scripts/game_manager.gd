@@ -90,6 +90,13 @@ func _seed_weapon_display_names() -> void:
 
 func _on_locale_changed(_new_locale: String) -> void:
 	_seed_weapon_display_names()
+	# The same re-seed, for the copy init_run_bounties() built once at run start.
+	# Without this a player who switches language mid-run gets a pause panel that
+	# has changed around four bounties which stayed in the language they began in.
+	if not active_bounties.is_empty():
+		for b in active_bounties:
+			_localise_bounty(b)
+		emit_signal("bounty_updated", active_bounties)
 	emit_signal("weapon_names_updated")
 
 ## The canonical, localised display name for a weapon id.
@@ -732,8 +739,6 @@ func init_run_bounties() -> void:
 	active_bounties = [
 		{
 			"id": "slay_bats",
-			"title": "Bat Hunter",
-			"desc": "Slay 25 Bats",
 			"target_type": "kill_bat",
 			"current": 0,
 			"target": 25,
@@ -742,8 +747,6 @@ func init_run_bounties() -> void:
 		},
 		{
 			"id": "survive_time",
-			"title": "Iron Resolve",
-			"desc": "Survive 2 Minutes",
 			"target_type": "time",
 			"current": 0,
 			"target": 120,
@@ -752,8 +755,6 @@ func init_run_bounties() -> void:
 		},
 		{
 			"id": "defeat_champion",
-			"title": "Champion Slayer",
-			"desc": "Slay an Elite Champion",
 			"target_type": "kill_champion",
 			"current": 0,
 			"target": 1,
@@ -762,8 +763,6 @@ func init_run_bounties() -> void:
 		},
 		{
 			"id": "defeat_goblin",
-			"title": "Greed Hunter",
-			"desc": "Slay a Treasure Goblin",
 			"target_type": "kill_goblin",
 			"current": 0,
 			"target": 1,
@@ -771,7 +770,19 @@ func init_run_bounties() -> void:
 			"completed": false
 		}
 	]
+	for b in active_bounties:
+		_localise_bounty(b)
 	emit_signal("bounty_updated", active_bounties)
+
+## The four title/desc pairs used to be English literals in the dict above, and
+## were the standing exemption in test_untranslated_copy.gd. They are filled from
+## Loc at build time rather than read through Loc at every print site, so the
+## string still lives in exactly one place and the existing `b["title"]` readers
+## in hud.gd and Expansion 29.0's suite keep working unchanged.
+func _localise_bounty(b: Dictionary) -> void:
+	var id: String = b["id"]
+	b["title"] = Loc.t("bounty.%s.title" % id, id)
+	b["desc"] = Loc.t("bounty.%s.desc" % id, "")
 
 func record_bounty_event(event_type: String, amount: int = 1) -> void:
 	var any_completed = false
@@ -797,7 +808,7 @@ func discover_landmark(id: String, name: String) -> void:
 		discovered_landmarks[id] = true
 		emit_signal("landmark_discovered", id, name)
 
-## is_elite_champ credits the "Champion Slayer" bounty, which advertises an Elite
+## is_elite_champ credits the bounty.defeat_champion row, which advertises an Elite
 ## Champion. It was named is_champ and fed is_champion, and those are siblings rather
 ## than a nesting: make_champion() sets is_champion, make_elite_champion() sets
 ## is_elite_champion and never touches the other. So the flag credited ordinary affix

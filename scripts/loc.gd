@@ -92,7 +92,11 @@ const STRINGS: Dictionary = {
 	"hud.restart": {"en": "Restart Run", "vi": "Chơi lại"},
 	"hud.gold": {"en": "Gold", "vi": "Vàng"},
 	"hud.level": {"en": "Level", "vi": "Cấp"},
-	"hud.kills": {"en": "Kills", "vi": "Kills"},
+	"hud.kills": {"en": "Kills", "vi": "Tiêu diệt"},
+	"hud.kills_count": {"en": "%d KILLS", "vi": "%d TIÊU DIỆT"},
+	"hud.level_up": {"en": "LEVEL UP! CHOOSE AN UPGRADE", "vi": "THĂNG CẤP! CHỌN VÕ HỌC / BÍ KÍP"},
+	"hud.reroll": {"en": "🎲 Reroll [%d/%d] (R)", "vi": "🎲 TẨY TỦY [%d/%d] (R)"},
+	"hud.reroll_spent": {"en": "🎲 Reroll (spent)", "vi": "🎲 TẨY TỦY (HẾT LƯỢT)"},
 	"hud.dps": {"en": "Damage Dealt", "vi": "Sát thương gây ra"},
 	"hud.rank": {"en": "Combat Rank", "vi": "Trận cấp"},
 
@@ -105,6 +109,32 @@ const STRINGS: Dictionary = {
 	"danger.4.name": {"en": "Grandmaster", "vi": "Tuyệt Thế"},
 	"danger.5.name": {"en": "Immortal", "vi": "Thiên Hạ Vô Song"},
 	"danger.desc": {"en": "Enemy HP %d%% · Speed %d%% · Score x%.1f", "vi": "Máu quái %d%% · Tốc độ %d%% · Điểm x%.1f"},
+
+	# --- Run bounties (Chiến Tích Lệnh) --------------------------------------
+	# These were English literals inside init_run_bounties() and are the reason
+	# test_untranslated_copy.gd exempted four rows from its card-copy rule. The
+	# ids are the contract; this table is the copy.
+	"bounty.slay_bats.title": {"en": "Bat Hunter", "vi": "Thợ Săn Dơi Ma"},
+	"bounty.slay_bats.desc": {"en": "Slay 25 Bats", "vi": "Tiêu diệt 25 Dơi Ma"},
+	"bounty.survive_time.title": {"en": "Iron Resolve", "vi": "Ý Chí Sắt Đá"},
+	"bounty.survive_time.desc": {"en": "Survive 2 Minutes", "vi": "Sinh tồn 2 Phút"},
+	"bounty.defeat_champion.title": {"en": "Champion Slayer", "vi": "Trảm Tướng Tinh Anh"},
+	"bounty.defeat_champion.desc": {"en": "Slay an Elite Champion", "vi": "Hạ gục 1 Quái Tinh Anh"},
+	"bounty.defeat_goblin.title": {"en": "Greed Hunter", "vi": "Săn Yêu Quái Kho Báu"},
+	"bounty.defeat_goblin.desc": {"en": "Slay a Treasure Goblin", "vi": "Tiêu diệt 1 Yêu Quái Kho Báu"},
+
+	# --- World landmarks -----------------------------------------------------
+	# main.tscn's four Landmark instances keep their English strings as the
+	# @export default, which is what landmark.gd hands Loc.t() as the fallback --
+	# so an unknown landmark_id still shows the arena's own copy, not a key.
+	"landmark.fountain.name": {"en": "Sanctuary of Vitality", "vi": "Suối Sinh Mệnh"},
+	"landmark.fountain.desc": {"en": "Sacred restorative waters", "vi": "Hồi phục sinh lực cho lữ khách"},
+	"landmark.might.name": {"en": "Altar of Might", "vi": "Đài Uy Lực"},
+	"landmark.might.desc": {"en": "Empowers weapons with crushing damage", "vi": "Cường hóa vũ khí, tăng mạnh sát thương"},
+	"landmark.speed.name": {"en": "Shrine of Swiftness", "vi": "Miếu Thần Tốc"},
+	"landmark.speed.desc": {"en": "Bestows blazing swiftness", "vi": "Gia tăng tốc độ di chuyển thần tốc"},
+	"landmark.vault.name": {"en": "Vault of the Ancients", "vi": "Cổ Mộ Kho Báu"},
+	"landmark.vault.desc": {"en": "Treasures of an ancient empire", "vi": "Khai mở bí tàng cổ xưa"},
 
 	# --- Shared chrome -------------------------------------------------------
 	"ui.locale_en": {"en": "EN", "vi": "EN"},
@@ -119,7 +149,19 @@ var current_locale: String = DEFAULT_LOCALE
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_setup_symbol_fallback()
 	load_locale()
+
+func _setup_symbol_fallback() -> void:
+	var base_font = load("res://assets/fonts/BeVietnamPro-Regular.ttf") as FontFile
+	var bold_font = load("res://assets/fonts/BeVietnamPro-Bold.ttf") as FontFile
+	if ResourceLoader.exists("res://assets/fonts/Symbola.ttf"):
+		var sym = load("res://assets/fonts/Symbola.ttf") as FontFile
+		if sym:
+			if base_font:
+				base_font.fallbacks = [sym]
+			if bold_font:
+				bold_font.fallbacks = [sym]
 
 ## Look up a key. `default_text` is what the call site already had hardcoded --
 ## it keeps a missing key from blanking a button, so new UI can ship before its

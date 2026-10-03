@@ -15,15 +15,14 @@ extends "res://tests/suite_base.gd"
 ## icon, English `desc`. A player reads "+2 Armor & Reflect 40% of damage taken"
 ## while every other word on the card is Vietnamese.
 ##
-## So what this suite guards is not "the game is in Vietnamese" -- it is not, and
-## the run bounties below are the honest counterexample -- it is that a card row
-## is not allowed to be half-translated while its neighbours are not. The
-## discriminator is structural rather than a list of strings: a dict literal that
-## carries an `"icon"` key is a card the player reads, and every card `desc` must
-## contain a Vietnamese letter. That is the exact shape relics, companions,
-## meridians and Shenron wishes all have, and it is why the four run bounties are
-## exempt without being named: they carry `title` but no `icon`, because they are
-## announced as a line of HUD text rather than drawn as a card.
+## So what this suite guards is not "the game is in Vietnamese" -- it is not -- it
+## is that a card row is not allowed to be half-translated while its neighbours are
+## not. The discriminator is structural rather than a list of strings: a dict
+## literal that carries an `"icon"` key is a card the player reads, and every card
+## `desc` must contain a Vietnamese letter. That is the exact shape relics,
+## companions, meridians and Shenron wishes all have, and it is why the run
+## bounties are exempt without being named: they carry `title` but no `icon`,
+## because they are announced as a line of HUD text rather than drawn as a card.
 ##
 ## The exemption test is what keeps that from becoming a loophole. "No icon" is a
 ## reason, not permission -- dropping an `"icon"` off a relic to slip past this
@@ -38,14 +37,18 @@ const CARD_SOURCES: Array[String] = [
 	"res://scripts/hud.gd",
 ]
 
-## The rows the structural rule does not reach, and why there are six of them
-## rather than four. Two are the world-map biome descriptions (game_manager.gd:119
-## and :127), which are keyed by `texture_path` rather than `icon` and are already
-## Vietnamese. Four are `init_run_bounties()`, which announce themselves as a line
-## of HUD text and are still English as of this commit -- translating those is a
-## product call, not a defect with one right answer. Pinned as a count so that an
-## icon dropped off a real card to dodge the rule below fails here instead.
-const NON_CARD_DESCS: int = 6
+## The rows the structural rule does not reach: two world-map biome descriptions
+## (game_manager.gd:119 and :127), keyed by `texture_path` rather than `icon` and
+## already Vietnamese.
+##
+## This was six. The other four were `init_run_bounties()`, and they left because
+## Expansion 61.0 translated them -- which is the outcome the canary at the bottom
+## of this file was written to produce. Their `desc` is no longer a literal in
+## game_manager.gd at all: `_localise_bounty()` fills it from
+## `Loc.t("bounty.%s.desc")`, so no English string is left on disk for this rule
+## to reach and none to exempt. Pinned as a count so that an icon dropped off a
+## real card to dodge the rule still fails here instead.
+const NON_CARD_DESCS: int = 2
 
 ## No escape handling on purpose: `[^"]*` is enough because no card desc in
 ## either file contains a backslash or an embedded quote (checked, not assumed --
@@ -125,8 +128,10 @@ func _test_card_descs_are_vietnamese() -> void:
 				check(_is_vietnamese(d["text"]),
 					"%s:%d card desc is not Vietnamese: \"%s\"" % [path, d["i"] + 1, d["text"]])
 	# A number near zero means the regex stopped matching -- a green run that
-	# checks nothing, which is the failure mode this repo keeps having.
-	check(found >= 30, "expected 30+ desc literals across the card sources, found %d" % found)
+	# checks nothing, which is the failure mode this repo keeps having. The floor was
+		# 33; the four run-bounty descs left when Expansion 61.0 moved their copy into
+		# Loc took it to 29.
+	check(found >= 29, "expected 29+ desc literals across the card sources, found %d" % found)
 
 func _test_exemption_stays_exactly_six_rows() -> void:
 	# "No icon" exempts a desc, and that is a reason rather than permission: an
@@ -162,18 +167,6 @@ func _test_meta_shop_section_is_translated() -> void:
 	check(src.contains("(Cấp %d/%d)"), "hud.gd: meta rank label should read Cấp, not Rank")
 	check(src.contains('"ĐẠI THÀNH"'), "hud.gd: meta max button should match the meridian one")
 
-func _test_bounty_copy_is_still_the_known_exception() -> void:
-	# Not a translation check -- a canary. If someone does translate the bounties
-	# this fails, and then the sentence in this function's name and the exemption
-	# above both get deleted rather than the row quietly passing through the
-	# structural exemption with nothing to say about it.
-	var src := "\n".join(_read("res://scripts/game_manager.gd"))
-	if not check(src != "", "could not read res://scripts/game_manager.gd"):
-		return
-	check(src.contains('"Slay 25 Bats"'),
-		"the run bounties appear to have been translated -- update NON_CARD_DESCS' "
-		+ "comment, delete this canary, and this test")
-
 func _ready() -> void:
 	print("=== RUNNING EXPANSION 55.0: UNTRANSLATED CARD COPY TEST SUITE ===")
 	GameManager.is_run_active = false
@@ -181,7 +174,11 @@ func _ready() -> void:
 	_test_card_descs_are_vietnamese()
 	_test_exemption_stays_exactly_six_rows()
 	_test_meta_shop_section_is_translated()
-	_test_bounty_copy_is_still_the_known_exception()
+	# The bounty canary this used to call is gone: Expansion 61.0 translated the
+	# four run bounties, which is the one outcome its own comment said to expect
+	# and to respond to by deleting the function rather than by editing the
+	# assertion. NON_CARD_DESCS dropped 6 -> 2 with them, and the translated copy
+	# is now covered by tests/test_expansion_61.gd.
 
 	if _failures.is_empty():
 		print("=== ALL EXPANSION 55.0 TESTS PASSED 100% CLEANLY! ===")

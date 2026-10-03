@@ -895,7 +895,7 @@ theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="UpgradeManager/UpgradePanel/VBox"]
 layout_mode = 2
-text = "LEVEL UP! CHOOSE AN UPGRADE"
+text = ""
 horizontal_alignment = 1
 
 [node name="OptionsContainer" type="HBoxContainer" parent="UpgradeManager/UpgradePanel/VBox"]
@@ -912,7 +912,7 @@ alignment = 1
 [node name="RerollButton" type="Button" parent="UpgradeManager/UpgradePanel/VBox/ActionBar"]
 custom_minimum_size = Vector2(250, 42)
 layout_mode = 2
-text = "🎲 TẨY TỦY (REROLL) [2/2] (R)"
+text = ""
 
 [node name="SkipButton" type="Button" parent="UpgradeManager/UpgradePanel/VBox/ActionBar"]
 custom_minimum_size = Vector2(250, 42)

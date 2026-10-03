@@ -911,7 +911,7 @@ func _on_player_xp_changed(current: float, required: float, level: int) -> void:
 	_update_passives_display()
 
 func _on_score_updated(kills: int, time: float) -> void:
-	kills_label.text = "%d KILLS" % kills
+	kills_label.text = Loc.tf("hud.kills_count", [kills])
 	var mins = int(time / 60.0)
 	var secs = int(time) % 60
 	timer_label.text = "%02d:%02d" % [mins, secs]

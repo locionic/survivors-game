@@ -4,11 +4,24 @@ extends Node2D
 ## Landmark / World Shrine: Discoverable points of interest that grant buffs, rewards, or healing.
 
 @export var landmark_id: String = "fountain" # "fountain", "might", "speed", "vault"
+## The English fallbacks. main.tscn overrides these per instance, and both are
+## what Loc.t() is handed as its default, so a landmark whose id has no row in
+## the string table still shows the copy the arena ships rather than a raw key.
 @export var landmark_name: String = "Sanctuary of Vitality"
 @export var landmark_desc: String = "Restores vitality to weary adventurers"
 @export var activation_radius: float = 72.0
 @export var discovery_radius: float = 210.0
 @export var cooldown_max: float = 30.0
+
+## The localised name. Every read of `landmark_name` goes through here --
+## discover(), the DISCOVERED banner and the floating label -- because the
+## @export is still English, and reading it directly is what put an English
+## shrine name inside a Vietnamese HUD banner.
+func get_display_name() -> String:
+	return Loc.t("landmark.%s.name" % landmark_id, landmark_name)
+
+func get_display_desc() -> String:
+	return Loc.t("landmark.%s.desc" % landmark_id, landmark_desc)
 
 @export var chest_scene: PackedScene
 @export var coin_scene: PackedScene
@@ -82,7 +95,7 @@ func _process(delta: float) -> void:
 
 func discover(player: Node2D) -> void:
 	is_discovered = true
-	GameManager.discover_landmark(landmark_id, landmark_name)
+	GameManager.discover_landmark(landmark_id, get_display_name())
 	SoundManager.play("shrine_activate")
 	
 	# Reward on first discovery
@@ -96,7 +109,7 @@ func discover(player: Node2D) -> void:
 		player.add_xp(xp_reward)
 	GameManager.add_gold(gold_reward)
 	
-	FloatingText.spawn(global_position + Vector2(0, -40), "🗺️ DISCOVERED: %s!\n+%d XP  +%d GOLD" % [landmark_name.to_upper(), int(xp_reward), gold_reward], Color(1.0, 0.85, 0.2))
+	FloatingText.spawn(global_position + Vector2(0, -40), "🗺️ DISCOVERED: %s!\n+%d XP  +%d GOLD" % [get_display_name().to_upper(), int(xp_reward), gold_reward], Color(1.0, 0.85, 0.2))
 	
 	# If Vault, pop extra chests and gold coins onto the ground!
 	if landmark_id == "vault":
@@ -105,7 +118,7 @@ func discover(player: Node2D) -> void:
 	# Announce discovery on HUD banner
 	var hud = get_tree().get_first_node_in_group("hud")
 	if hud and hud.has_method("_on_wave_event_announced"):
-		hud._on_wave_event_announced("🗺️ DISCOVERED: %s!" % landmark_name.to_upper(), false)
+		hud._on_wave_event_announced("🗺️ DISCOVERED: %s!" % get_display_name().to_upper(), false)
 
 func _spawn_vault_treasures() -> void:
 	# Spawn 2 chests and a scattering of gold coins
@@ -194,7 +207,7 @@ func _update_label() -> void:
 			status_text = "👑 VAULT OF THE ANCIENTS [OPENED]"
 			label.modulate = Color(1.0, 0.85, 0.2)
 			
-	label.text = "%s\n%s" % [landmark_name, status_text]
+	label.text = "%s\n%s" % [get_display_name(), status_text]
 
 func _draw() -> void:
 	if not is_discovered:

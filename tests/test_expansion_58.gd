@@ -13,6 +13,12 @@ extends "res://tests/suite_base.gd"
 ## the whole arsenal by 0.85 (wave_shop_ui.gd:188). So whether the relic survived
 ## depended on nothing but the number it happened to meet.
 ##
+## The second writer above was then removed rather than guarded. Section 3 used to
+## assert that the sweep and the floor could share one float, which they could only
+## do by cancelling: two crit upgrades on a floored Knight read 1.25 -- a 25% faster
+## attack bought for 2x gold. The penalty is now the player's own multiplier
+## (player.run_attack_speed_penalty), which the floor never touches.
+##
 ## Measured 2026-10-01, before the fix:
 ##
 ##   pickup on the Knight (1.00 -> 1.25), switch to the Ranger -> 1.60, back -> 1.25
@@ -58,6 +64,15 @@ func _hero(hero_id: String) -> Player:
 
 func _speed(p: Player) -> float:
 	return float(p.get_node("Weapons/MainWeapon").get("speed_multiplier"))
+
+## What the player actually gets, not either term alone: every weapon divides its
+## cooldown by `speed_multiplier * _get_player_attack_speed()` (weapon.gd:41,
+## slash_weapon.gd:82, and the same line in the other three). The relic floors the
+## first factor and the shop penalty rides the second, so the shipped attack rate is
+## their product. Asserting the two halves separately reads as a contradiction; this
+## is the number a fire-rate card is really being compared against.
+func _fire_rate(p: Player) -> float:
+	return _speed(p) * p.get_attack_speed_multiplier()
 
 func _equip_relic(p: Player) -> void:
 	# The way the floor pickup does it. add_relic() does not save, so unlike
@@ -106,13 +121,20 @@ func _test_both_pickup_orders_converge_on_the_same_value() -> void:
 		"pickup above the floor must land on the same value; got %f then %f"
 		% [below_first, above_first])
 
-# --- 3. the floor holds against the other writer -----------------------------
+# --- 3. the floor and the price are two numbers -------------------------------
 
-func _test_the_shop_penalty_cannot_push_the_field_under_the_floor() -> void:
-	# The crit item is "+crit, attacks 15%% slower" -- speed_multiplier *= 0.85.
-	# Leaving the floor out of that path only moves the erasure from "the hero switch
-	# eats the relic" to "the hero switch eats the penalty"; the promise has to hold
-	# at every writer or it holds at none.
+func _test_the_floor_survives_the_crit_penalty_and_the_penalty_still_costs() -> void:
+	# The crit item is "+crit, attacks 15%% slower". For a while both the penalty and
+	# the Chrono Hourglass floor were the same float -- the shop swept
+	# `speed_multiplier *= 0.85` over the arsenal and then re-asserted the floor, so
+	# the relic owner got the discount for free and the two promises cancelled. The
+	# penalty is a price and the floor is a guarantee; only one of them can be a
+	# clamp, so the price moved to the player's own multiplier.
+	#
+	# Both halves matter and they fail in opposite directions. Assert only the field
+	# and the test passes the moment the shop stops writing to it at all -- the relic
+	# still reads 1.25 while the player attacks at full speed, which is a strictly
+	# worse bug than the one this replaced.
 	var p = _hero("knight")
 	if not check(p != null, "player instantiates"):
 		return
@@ -130,10 +152,43 @@ func _test_the_shop_penalty_cannot_push_the_field_under_the_floor() -> void:
 	shop._set_weapon_speed(0.85)
 	check(is_equal_approx(_speed(p), 1.25),
 		"one crit upgrade leaves the Knight floored, got %f" % _speed(p))
+	check(is_equal_approx(_fire_rate(p), 1.25 * 0.85),
+		"the crit upgrade is still a real 15%% cost on top of the relic, got %f"
+		% _fire_rate(p))
 	shop._set_weapon_speed(0.85)
 	check(is_equal_approx(_speed(p), 1.25),
 		"stacking crit upgrades cannot ratchet the field down, got %f" % _speed(p))
+	check(is_equal_approx(_fire_rate(p), 1.25 * 0.85 * 0.85),
+		"stacked crit upgrades compound rather than cancelling, got %f"
+		% _fire_rate(p))
 	shop.free()
+
+func _test_the_penalty_is_not_a_relic_bonus() -> void:
+	# The regression the split was meant to prevent, stated as a player-visible
+	# number: two crit upgrades and the relic together must leave the Knight slower
+	# than a Knight who bought neither, not faster. Before the fix this read 1.25
+	# against a baseline 1.00 -- paying 2x gold for a 25% attack-speed discount.
+	# The relic has to go BEFORE the player exists. _hero() adds the scene, whose
+	# _ready() calls apply_relic_effects() -- leaving RELIC in collected_relics until
+	# after that floors the weapon, and apply_relic_effects() cannot undo a floor it
+	# no longer considers justified. Read 0.903125 instead of 0.7225 when the two
+	# lines are the other way round: the relic leaking in from the previous test.
+	GameManager.collected_relics.erase(RELIC)
+	var p = _hero("knight")
+	p.apply_relic_effects()
+	var shop = SHOP_SCRIPT.new()
+	add_child(shop)
+	p.add_to_group("player")
+	shop._set_weapon_speed(0.85)
+	shop._set_weapon_speed(0.85)
+	var no_relic := _fire_rate(p)
+	_equip_relic(p)
+	var with_relic := _fire_rate(p)
+	shop.free()
+	check(is_equal_approx(no_relic, 0.85 * 0.85),
+		"a relicless Knight pays the full crit penalty, got %f" % no_relic)
+	check(is_equal_approx(with_relic, 1.25 * 0.85 * 0.85),
+		"the relic and the penalty must both be visible in the multiplier, got %f" % with_relic)
 
 # --- 4. and none of it without the relic -------------------------------------
 
@@ -164,7 +219,8 @@ func _ready() -> void:
 
 	_test_the_relic_survives_a_hero_switch_from_above_the_floor()
 	_test_both_pickup_orders_converge_on_the_same_value()
-	_test_the_shop_penalty_cannot_push_the_field_under_the_floor()
+	_test_the_floor_survives_the_crit_penalty_and_the_penalty_still_costs()
+	_test_the_penalty_is_not_a_relic_bonus()
 	_test_a_player_without_the_relic_gains_nothing()
 
 	if is_instance_valid(_live):

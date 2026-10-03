@@ -159,6 +159,19 @@ var run_speed_mult: float = 1.0
 var run_magnet_mult: float = 1.0
 var run_crit_bonus: float = 0.0
 
+## Trade-off penalties, as their own multiplicative term -- deliberately NOT written
+## into any weapon's speed_multiplier. The wave shop's crit item is "+crit, attacks
+## 15% slower" and used to sweep `speed_multiplier *= 0.85` across the arsenal,
+## which is the same field the Chrono Hourglass floors. The two are different kinds
+## of number: the relic is a *guarantee* ("your cooldowns are at least 20% shorter"),
+## the shop item is a *price*. Clamping the field for one silently erased the other,
+## so the relic owner paid 15% fire rate for a discount they could not use. Split, the
+## floor is a floor and the penalty is still a penalty: a Knight with the relic and
+## one crit reads 1.25 * 0.85 = 1.0625, which is slower than the relic promises and
+## slower than no crit at all. Composed into get_attack_speed_multiplier(), which
+## all five weapons already read, so one term covers the whole arsenal.
+var run_attack_speed_penalty: float = 1.0
+
 ## Tà Ma Lệnh Bài's three numbers, kept together so the codex description and the
 ## implementation cannot drift apart.
 const RELIC_RAGE_HP_RATIO: float = 0.50
@@ -1004,7 +1017,13 @@ func get_attack_speed_multiplier() -> float:
 		mult *= RELIC_RAGE_ATTACK_SPEED
 	if drunken_buff_timer > 0.0:
 		mult *= 1.50
+	mult *= run_attack_speed_penalty
 	return mult
+
+## The wave shop's trade-off items. Separate from the weapon field on purpose -- see
+## run_attack_speed_penalty for why a penalty and a floor cannot share one float.
+func multiply_run_attack_speed(mult: float) -> void:
+	run_attack_speed_penalty *= mult
 
 ## Lôi Hỏa Liên Hoàn: every crit detonates. enemy.take_damage() holds the only crit
 ## roll in the game, so that one call site is the entire hook -- no weapon has to

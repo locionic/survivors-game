@@ -192,29 +192,19 @@ func _apply_scroll(entry: Dictionary) -> void:
 			p.multiply_run_speed(0.90)
 	p.current_health = minf(p.current_health, p.max_health)
 
-## Attack-speed trade-off: every weapon already exposes speed_multiplier, so the
-## penalty is applied across the whole arsenal in one sweep.
-##
-## The Chrono Hourglass floor is re-asserted afterwards, which caps this penalty: a
-## player holding the relic never drops below 1.25x no matter how many crit upgrades
-## they buy, so on a Knight with the relic this specific trade-off is worth nothing.
-## That is the rule stated plainly rather than an accident of ordering -- leaving the
-## floor out of this path only moves the erasure from "the hero switch eats the relic"
-## to "the hero switch eats the penalty", which is the same defect pointed the other
-## way. If the crit item should stay a real cost for relic owners, the floor belongs
-## in _apply_cooldown_floor()'s callers instead of here.
+## Attack-speed trade-off. This is a price, not a guarantee, so it lands on the
+## player's own multiplier instead of any weapon's speed_multiplier -- the field the
+## Chrono Hourglass floors. The sweep used to live here, which meant the floor and
+## the penalty were the same float: whoever clamped last won, and a relic owner got
+## the crit item's discount for free while a player without the relic paid full price
+## for the same upgrade. One player-level term also needs no container walk and no
+## re-assertion -- all five weapons read get_attack_speed_multiplier() already.
 func _set_weapon_speed(mult: float) -> void:
 	var p := _get_player()
 	if not is_instance_valid(p):
 		return
-	var container := p.get_node_or_null("Weapons")
-	if not container:
-		return
-	for node in container.get_children():
-		if "speed_multiplier" in node:
-			node.set("speed_multiplier", float(node.get("speed_multiplier")) * mult)
-	if p.has_method("_apply_cooldown_floor"):
-		p.call("_apply_cooldown_floor")
+	if p.has_method("multiply_run_attack_speed"):
+		p.call("multiply_run_attack_speed", mult)
 
 func _get_player() -> Node2D:
 	return get_tree().get_first_node_in_group("player") if get_tree() else null

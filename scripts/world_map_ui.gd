@@ -84,12 +84,18 @@ func _refresh_landmarks_list() -> void:
 	for child in landmarks_container.get_children():
 		child.queue_free()
 		
+# Names are resolved from Loc just below, keyed by the same ids main.tscn's four
+	# Landmark instances use. This list used to carry its own English copies of
+	# all four, which is how the map and the arena could name the same shrine two
+	# different ways -- and it left nothing here to translate.
 	var landmarks = [
-		{"id": "fountain", "name": "Sanctuary of Vitality", "region": "North-West", "icon": "💚", "bonus": "+8 HP/sec Sacred Pool"},
-		{"id": "might", "name": "Altar of Might", "region": "North-East", "icon": "⚔️", "bonus": "+40% Damage Surge"},
-		{"id": "speed", "name": "Shrine of Swiftness", "region": "South-West", "icon": "💨", "bonus": "+50% Movement Speed"},
-		{"id": "vault", "name": "Vault of the Ancients", "region": "South-East", "icon": "👑", "bonus": "+60 Gold & 2 Treasure Chests"}
+		{"id": "fountain", "region": "North-West", "icon": "💚", "bonus": "+8 HP/sec Sacred Pool"},
+		{"id": "might", "region": "North-East", "icon": "⚔️", "bonus": "+40% Damage Surge"},
+		{"id": "speed", "region": "South-West", "icon": "💨", "bonus": "+50% Movement Speed"},
+		{"id": "vault", "region": "South-East", "icon": "👑", "bonus": "+60 Gold & 2 Treasure Chests"}
 	]
+	for lm in landmarks:
+		lm["name"] = Loc.t("landmark.%s.name" % lm["id"], lm["id"])
 	
 	var discovered_count = 0
 	for lm in landmarks:
@@ -194,7 +200,11 @@ func _on_map_canvas_draw() -> void:
 		if is_disc:
 			map_canvas.draw_circle(canvas_pos, 8.0, pin_color)
 			map_canvas.draw_arc(canvas_pos, 10.0, 0, TAU, 16, Color.WHITE, 1.5)
-			map_canvas.draw_string(ThemeDB.fallback_font, canvas_pos + Vector2(-28, 20), lm.get("landmark_name") if "landmark_name" in lm else "", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, pin_color)
+			# The scene node's own @export is still English; the display getter is
+			# the localised one, and the second half is the older path kept for a
+			# node that is not a Landmark.
+			var pin_name = lm.get_display_name() if lm.has_method("get_display_name") else lm.get("landmark_name")
+			map_canvas.draw_string(ThemeDB.fallback_font, canvas_pos + Vector2(-28, 20), pin_name if "landmark_name" in lm else "", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, pin_color)
 		else:
 			map_canvas.draw_circle(canvas_pos, 6.0, Color(0.4, 0.4, 0.5, 0.6))
 			map_canvas.draw_string(ThemeDB.fallback_font, canvas_pos + Vector2(-6, 4), "?", HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 1.0, 1.0, 0.75))

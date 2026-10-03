@@ -75,6 +75,12 @@ func _ready() -> void:
 	if panel:
 		panel.visible = false
 		options_container = panel.get_node_or_null("VBox/OptionsContainer")
+		# The title was a baked-in Label text in main.tscn and nothing in code ever
+		# touched it, so it had no route to Loc and read English in every locale.
+		# main.tscn leaves it empty now; the string is written here instead.
+		var title_label := panel.get_node_or_null("VBox/Title") as Label
+		if title_label:
+			title_label.text = Loc.t("hud.level_up")
 	
 	# Configure initial weapon levels based on selected character
 	if GameManager:
@@ -444,13 +450,13 @@ func _update_action_bar_ui() -> void:
 		reroll_button.add_theme_font_override("font", UITheme.get_body_bold_font())
 		reroll_button.add_theme_font_size_override("font_size", 14)
 		if rerolls_remaining > 0:
-			reroll_button.text = "TẨY TỦY (REROLL) [%d/%d] (R)" % [rerolls_remaining, max_rerolls]
+			reroll_button.text = Loc.tf("hud.reroll", [rerolls_remaining, max_rerolls])
 			reroll_button.disabled = false
 			reroll_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.BORDER, 8))
 			reroll_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
 			reroll_button.add_theme_color_override("font_color", UITheme.GOLD)
 		else:
-			reroll_button.text = "TẨY TỦY (HẾT LƯỢT)"
+			reroll_button.text = Loc.t("hud.reroll_spent")
 			reroll_button.disabled = true
 			reroll_button.add_theme_stylebox_override("disabled", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
 			reroll_button.add_theme_color_override("font_disabled_color", UITheme.MUTED)

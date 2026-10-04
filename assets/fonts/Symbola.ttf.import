@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://08cavf0rjtqp"
-path="res://.godot/imported/BeVietnamPro-Bold.ttf-72bed21476fded23b0c94890b2d1a0b2.fontdata"
+uid="uid://diawlmyut7vr7"
+path="res://.godot/imported/Symbola.ttf-d7cddd05e0a88212d2a285feea979e91.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/BeVietnamPro-Bold.ttf"
-dest_files=["res://.godot/imported/BeVietnamPro-Bold.ttf-72bed21476fded23b0c94890b2d1a0b2.fontdata"]
+source_file="res://assets/fonts/Symbola.ttf"
+dest_files=["res://.godot/imported/Symbola.ttf-d7cddd05e0a88212d2a285feea979e91.fontdata"]
 
 [params]
 
@@ -25,7 +25,7 @@ hinting=1
 subpixel_positioning=1
 oversampling=0.0
 Fallbacks=null
-fallbacks=["res://assets/fonts/Symbola.ttf"]
+fallbacks=[]
 Compress=null
 compress=true
 preload=[]

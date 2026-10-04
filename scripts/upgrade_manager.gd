@@ -156,6 +156,62 @@ const WEAPON_INFO: Dictionary = {
 func get_weapon_name(weapon_id: String) -> String:
 	return Loc.t("weapon.%s.name" % weapon_id, WEAPON_INFO.get(weapon_id, {}).get("name", weapon_id))
 
+# --- Phase 1: card rarity & iconography --------------------------------------
+
+## Four tiers, weakest first. A card's own flags decide its tier, so no catalog
+## entry carries rarity data and the next card written is classified for free. The
+## ordering is the size of the thing, not a display preference: an unlock opens a
+## whole võ học, a synergy fuses two at Lv.5, an evolution replaces one.
+func card_rarity(upgrade: Dictionary) -> int:
+	if upgrade.get("is_evolution", false):
+		return UITheme.RARITY_LEGENDARY
+	if upgrade.get("is_synergy", false):
+		return UITheme.RARITY_EPIC
+	if String(upgrade.get("id", "")).begins_with("unlock_"):
+		return UITheme.RARITY_RARE
+	return UITheme.RARITY_COMMON
+
+## The card's võ học badge, keyed by id rather than listed per card: every id is
+## already "<weapon>_<action>" (or unlock_/evolve_<weapon>), so the next card a
+## weapon gains is illustrated the moment it is written. The table doubles as the
+## exception list -- orbit_shield and orbit_speed upgrade the shield but are named
+## for the orbit, and damage / attack_speed / projectile_count upgrade the dagger
+## but predate its id.
+const CARD_ICONS: Dictionary = {
+	"dagger": "🗡️",  # Phi Đao
+	"shield": "🛡️",  # Kim Cang Hộ Thể
+	"lightning": "⚡", # Lôi Đình Kiếm
+	"fireball": "🔥",  # Liệt Hỏa Chưởng
+	"axe": "🪓",
+	"slash": "⚔️",
+	"orbit": "🛡️",
+	"damage": "🗡️",
+	"attack_speed": "🗡️",
+	"projectile_count": "🗡️",
+	"move_speed": "👢",
+	"magnet": "🌀",   # Hấp Tinh Đại Pháp
+	"max_hp": "💪",
+	"might_surge": "🌋",
+	"synergy": "⚡",
+}
+
+## Falls back to a neutral mark rather than no badge: a card whose icon lookup
+## missed is a bug worth seeing on screen, not a gap worth hiding.
+##
+## Whole id first, then its first token. The single-token rule on its own is the
+## obvious version and it is wrong for half the table -- attack_speed, move_speed,
+## max_hp and might_surge are each two tokens, so "attack" and "move" found
+## nothing and five of the game's own cards shipped with a placeholder. Universal
+## cards carry the whole id in the table; weapon cards carry only the weapon, and
+## take the token.
+func card_icon(upgrade_id: String) -> String:
+	var key := upgrade_id
+	if key.begins_with("evolve_") or key.begins_with("unlock_"):
+		key = key.substr(key.find("_") + 1)
+	if CARD_ICONS.has(key):
+		return CARD_ICONS[key]
+	return CARD_ICONS.get(key.split("_")[0], "✦")
+
 func get_arsenal_count() -> int:
 	return arsenal.size()
 
@@ -481,14 +537,16 @@ func _populate_cards() -> void:
 	_ensure_ui_nodes()
 	if not options_container:
 		return
-		
-	# Clear old buttons
+
+	# Clear old buttons. No explicit tween cleanup: every tween below is created on
+	# the card it animates (btn.create_tween()), so queue_free() takes the hover lift
+	# and the epic pulse down with it.
 	for child in options_container.get_children():
 		child.queue_free()
-		
+
 	current_offered_upgrades.clear()
 	var catalog = get_upgrade_catalog()
-	
+
 	# Prioritize evolutions and synergy fusions if available
 	var evolutions = catalog.filter(func(item): return item.get("is_evolution", false) or item.get("is_synergy", false))
 	var non_evolutions = catalog.filter(func(item): return not item.get("is_evolution", false) and not item.get("is_synergy", false))
@@ -498,40 +556,162 @@ func _populate_cards() -> void:
 		current_offered_upgrades.append(ev)
 		if current_offered_upgrades.size() >= 3:
 			break
-			
+
 	for item in non_evolutions:
 		if current_offered_upgrades.size() >= 3:
 			break
 		current_offered_upgrades.append(item)
-	
+
 	for idx in range(current_offered_upgrades.size()):
-		var upgrade = current_offered_upgrades[idx]
-		var btn = Button.new()
-		btn.custom_minimum_size = Vector2(240, 170)
-		btn.text = "[%d] %s\n\n%s" % [idx + 1, upgrade["title"], upgrade["desc"]]
-		
-		# Style evolution cards with glowing golden border and background
-		if upgrade.get("is_evolution", false) or upgrade.get("is_synergy", false):
-			var sb = StyleBoxFlat.new()
-			sb.bg_color = Color(0.24, 0.16, 0.04, 0.95)
-			sb.border_color = Color(1.0, 0.85, 0.25, 1.0) if not upgrade.get("is_synergy", false) else Color(0.45, 1.0, 0.85, 1.0)
-			sb.set_border_width_all(3)
-			sb.set_corner_radius_all(6)
-			sb.set_content_margin_all(8)
-			btn.add_theme_stylebox_override("normal", sb)
-			btn.add_theme_color_override("font_color", Color(1.0, 0.95, 0.5) if not upgrade.get("is_synergy", false) else Color(0.6, 1.0, 0.9))
-		else:
-			var sb = StyleBoxFlat.new()
-			sb.bg_color = Color(0.08, 0.12, 0.18, 0.92)
-			sb.border_color = Color(0.25, 0.45, 0.65, 0.85)
-			sb.set_border_width_all(2)
-			sb.set_corner_radius_all(6)
-			sb.set_content_margin_all(8)
-			btn.add_theme_stylebox_override("normal", sb)
-			
-		var captured_upgrade = upgrade
-		btn.pressed.connect(func(): select_upgrade(captured_upgrade))
-		options_container.add_child(btn)
+		options_container.add_child(_build_card(current_offered_upgrades[idx], idx))
+
+## One card. The Button keeps the click target and the focus ring; everything it
+## draws is a child Label, because a Button centres a single text blob vertically
+## and there is no room in that for a badge above a title above a description.
+func _build_card(upgrade: Dictionary, idx: int) -> Button:
+	var rarity := card_rarity(upgrade)
+	var accent: Color = UITheme.RARITY_BORDER[rarity]
+	var btn := Button.new()
+	# 232x190 rather than the old 240x170: three cards plus two 16px separations is
+	# 728px, and UpgradePanel is 760 wide with 14px of content margin each side.
+	# At 240 it overflowed and the third card's border was clipped by the panel.
+	btn.custom_minimum_size = Vector2(232, 190)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.process_mode = Node.PROCESS_MODE_ALWAYS
+	btn.pivot_offset = Vector2(116, 95)
+	# One stylebox for all three states: a themed Button recolours on hover by
+	# itself, which would drop the aura the instant the mouse arrived.
+	var sb := UITheme.rarity_style(rarity)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		btn.add_theme_stylebox_override(state, sb)
+
+	var id := String(upgrade.get("id", ""))
+	var icon_text := card_icon(id)
+	_card_label(btn, icon_text, UITheme.get_body_bold_font(), 34,
+			UITheme.RARITY_BORDER[rarity], Rect2(0, 12, 232, 44), false, HORIZONTAL_ALIGNMENT_CENTER)
+	_card_label(btn, "%d. %s" % [idx + 1, upgrade.get("title", id)], UITheme.get_body_bold_font(),
+			14, UITheme.rarity_text(rarity), Rect2(12, 60, 208, 44), true)
+	_card_label(btn, String(upgrade.get("desc", "")), UITheme.get_body_font(),
+			11, UITheme.MUTED, Rect2(12, 106, 208, 76), true)
+	_card_label(btn, UITheme.RARITY_NAMES[rarity], UITheme.get_body_bold_font(),
+			9, accent.darkened(0.15), Rect2(12, 4, 208, 14), false, HORIZONTAL_ALIGNMENT_RIGHT)
+
+	if rarity >= UITheme.RARITY_EPIC:
+		_pulse_aura(btn, sb, rarity)
+	if rarity == UITheme.RARITY_LEGENDARY:
+		btn.add_child(_ember_motes(accent))
+
+	# The HBoxContainer owns position and rewrites it on every re-sort, so the lift
+	# is measured from the laid-out value rather than from wherever the last tween
+	# left the card. `resized` is the moment the container has actually done that --
+	# and the pivot has to move with the real height, which the container stretches.
+	# Stored as meta because a GDScript lambda captures locals by value, so a plain
+	# `var base_y` assigned inside one of these callbacks would stay 0.0 forever and
+	# lift the card to an absolute y of -12.
+	btn.resized.connect(func():
+		btn.set_meta("base_y", btn.position.y)
+		btn.pivot_offset = btn.size * 0.5)
+	btn.mouse_entered.connect(func():
+		SoundManager.play("ui_hover", 0.2)
+		_card_lift(btn, true))
+	btn.mouse_exited.connect(func(): _card_lift(btn, false))
+
+	var captured := upgrade
+	btn.pressed.connect(func():
+		_qi_burst(btn.global_position + btn.size * 0.5, accent)
+		select_upgrade(captured))
+	return btn
+
+## A text line inside a card. IGNORE on the mouse filter because the Button is the
+## thing being clicked and a Label on top of it would eat the press.
+func _card_label(parent: Control, text: String, font: Font, font_size: int, color: Color,
+		rect: Rect2, wrap: bool, align: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", font)
+	l.add_theme_font_size_override("font_size", font_size)
+	l.add_theme_color_override("font_color", color)
+	l.position = rect.position
+	l.size = rect.size
+	l.horizontal_alignment = align
+	l.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if wrap else TextServer.AUTOWRAP_OFF
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.clip_text = true
+	parent.add_child(l)
+	return l
+
+## Lift 12px and grow 5% under the cursor, back down on leave. Off the base the
+## container laid out rather than the current value, so a hover interrupted by a
+## reroll cannot leave a card stranded half-raised.
+func _card_lift(btn: Button, entered: bool) -> void:
+	var base_y := float(btn.get_meta("base_y", btn.position.y))
+	var tw := btn.create_tween().set_parallel(true)
+	tw.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(btn, "position:y", base_y + (-12.0 if entered else 0.0), 0.12)
+	tw.tween_property(btn, "scale", Vector2.ONE * (1.05 if entered else 1.0), 0.12)
+
+## Tuyệt Kỹ's pulsing aura, on the stylebox's own shadow rather than a node
+## behind the card, so the pulse and the glow cannot drift apart.
+func _pulse_aura(btn: Button, sb: StyleBoxFlat, rarity: int) -> void:
+	var peak := UITheme.RARITY_GLOW[rarity].a
+	var rest := peak * 0.35
+	var tw := btn.create_tween().set_loops()
+	tw.tween_method(func(a: float): sb.shadow_color.a = a, rest, peak, 0.7)
+	tw.tween_method(func(a: float): sb.shadow_color.a = a, peak, rest, 0.7)
+
+## Thần Công's ember rays. CPUParticles2D draws nothing at all without a texture,
+## so the mote is a 5x5 white dot generated once and shared by every card.
+static var _mote: Texture2D = null
+
+static func mote_texture() -> Texture2D:
+	if _mote == null:
+		var img := Image.create(5, 5, false, Image.FORMAT_RGBA8)
+		img.fill(Color(1, 1, 1, 1))
+		_mote = ImageTexture.create_from_image(img)
+	return _mote
+
+func _ember_motes(color: Color) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.texture = mote_texture()
+	p.amount = 16
+	p.lifetime = 1.4
+	p.local_coords = false
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(110, 90)
+	p.direction = Vector2.UP
+	p.spread = 55.0
+	p.gravity = Vector2(0, -34)
+	p.initial_velocity_min = 8.0
+	p.initial_velocity_max = 26.0
+	p.scale_amount_min = 0.6
+	p.scale_amount_max = 1.8
+	p.color = color
+	return p
+
+## The confirmation burst, at the card the player actually clicked rather than at
+## the panel centre. Freed on a timer: the tree unpauses on the next line, so this
+## one gets to tick.
+func _qi_burst(global_pos: Vector2, color: Color) -> void:
+	var p := CPUParticles2D.new()
+	p.texture = mote_texture()
+	p.position = global_pos
+	p.emitting = true
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = 30
+	p.lifetime = 0.75
+	p.spread = 180.0
+	p.gravity = Vector2(0, 260)
+	p.initial_velocity_min = 130.0
+	p.initial_velocity_max = 400.0
+	p.scale_amount_min = 1.2
+	p.scale_amount_max = 3.4
+	p.damping_min = 40.0
+	p.damping_max = 90.0
+	p.color = color
+	add_child(p)
+	get_tree().create_timer(1.3).timeout.connect(p.queue_free)
 
 func _select_card_index(index: int) -> void:
 	if index >= 0 and index < current_offered_upgrades.size():

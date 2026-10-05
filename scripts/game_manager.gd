@@ -466,6 +466,27 @@ var has_doubled_gold_this_run: bool = false
 
 const SAVE_PATH: String = "user://save_data.cfg"
 
+## Task 4 (Emscripten web save-sync guard): true from the moment FS.syncfs() is
+## issued until its JS callback reports completion. save_game_data() is reached
+## from a dozen writers inside one run -- every add_gold(), every purchase, every
+## stage pick -- and FS.syncfs is asynchronous, so two overlapping calls make
+## Emscripten print "warning: 2 FS.syncfs operations in flight at once". Nothing
+## waited on the previous call because the callback form was fire-and-forget:
+## nobody held the handle, so nobody knew a sync was outstanding.
+var is_syncing_filesystem: bool = false
+## A save was written while that sync was still running. The follower is ONE sync,
+## not one per save: it flushes the state as of the last write, so a burst of ten
+## saves costs two syncs and still lands the final state in IndexedDB.
+var _pending_filesystem_sync: bool = false
+## How many syncs this autoload has actually issued. Nothing in production reads
+## it; tests/test_expansion_63.gd reads it, because "at most one in flight" is
+## otherwise only observable from inside a browser.
+var filesystem_syncs_issued: int = 0
+## The JS handle to _on_filesystem_sync_done. Kept for the same reason ad_manager.gd
+## keeps its SDK handles: a callback JavaScript is meant to call has to stay
+## referenced from GDScript, or it is collected and the completion never arrives.
+var _filesystem_sync_done_cb: JavaScriptObject = null
+
 func get_selected_character_data() -> Dictionary:
 	return CHARACTERS.get(selected_character, CHARACTERS["knight"])
 
@@ -1072,7 +1093,66 @@ func save_game_data() -> void:
 		var json_str = JSON.stringify(save_dict)
 		var escaped = json_str.c_escape()
 		JavaScriptBridge.eval("try { localStorage.setItem('survivorquest_save_v1', '%s'); } catch(e) { console.error('Save failed:', e); }" % escaped)
-		JavaScriptBridge.eval("try { if (typeof FS !== 'undefined' && FS.syncfs) { FS.syncfs(false, function(err){}); } } catch(e) {}")
+		# The async IDB flush, not the localStorage write above, is what overlaps.
+		# Every one of the twelve writers in this file lands here, so the guard
+		# lives at the call site rather than in each writer.
+		_request_web_filesystem_sync()
+
+## Task 4: the one and only FS.syncfs() call site, so no new save writer can
+## bypass the guard by issuing its own sync.
+func _request_web_filesystem_sync() -> void:
+	if not _claim_filesystem_sync_slot():
+		return  # a sync is already running; _pending_filesystem_sync now records it
+	if _filesystem_sync_done_cb == null:
+		_filesystem_sync_done_cb = JavaScriptBridge.create_callback(_on_filesystem_sync_done)
+	var window = JavaScriptBridge.get_interface("window")
+	window.SurvivorQuest_syncfs_done = _filesystem_sync_done_cb
+	# The trailing call is not a native fallback -- this function is only reached
+	# behind OS.has_feature("web"). It is what keeps the guard convergent: when FS
+	# is missing the try/catch swallows that, no callback would ever fire, and a
+	# slot held forever would silently disable every later flush.
+	JavaScriptBridge.eval("""
+		(function () {
+			try {
+				if (typeof FS !== 'undefined' && FS.syncfs) { FS.syncfs(false, window.SurvivorQuest_syncfs_done); return; }
+			} catch (e) {}
+			window.SurvivorQuest_syncfs_done();
+		})();
+	""")
+
+## FS.syncfs() completion. Exactly one Array parameter, because a
+## JavaScriptBridge callback is always invoked with its JS arguments collected into
+## a single Array -- a callable of any other shape is never called at all, which
+## would leave the slot held and stall every save that follows.
+func _on_filesystem_sync_done(_args: Array) -> void:
+	if _release_filesystem_sync_slot():
+		_request_web_filesystem_sync()
+
+## Claim the sync slot. True means the caller owns it and must issue the sync;
+## false means one is already in flight and the request has been recorded pending.
+func _claim_filesystem_sync_slot() -> bool:
+	if is_syncing_filesystem:
+		_pending_filesystem_sync = true
+		return false
+	is_syncing_filesystem = true
+	filesystem_syncs_issued += 1
+	return true
+
+## Release the slot after a sync reports completion, and report whether the caller
+## still owes one follower. Returns true only when a save arrived mid-sync, so a
+## game that stops saving stops syncing instead of looping forever.
+##
+## The slot is released, not re-taken: _on_filesystem_sync_done() spends the answer
+## by calling _request_web_filesystem_sync(), which claims the slot for itself.
+## Re-taking it here would leave the follower's own claim refused, the pending flag
+## set again, and every completion after the first one spinning without ever issuing
+## the sync it owes.
+func _release_filesystem_sync_slot() -> bool:
+	is_syncing_filesystem = false
+	if not _pending_filesystem_sync:
+		return false
+	_pending_filesystem_sync = false
+	return true
 
 func mark_first_run_completed() -> void:
 	if is_first_run:

@@ -17,8 +17,14 @@ if ! command -v godot &> /dev/null; then
     echo "Godot 4.3 installed to $GODOT_DIR/godot"
 fi
 
+# Same derivation as scripts/ci.sh:19 -- these two lines used to echo the previous
+# machine's home directory, so the instructions they printed were wrong everywhere
+# except on the machine that wrote them.
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GODOT_BIN="$(command -v godot || echo "$GODOT_DIR/godot")"
+
 echo "To launch the game editor, run:"
-echo "  ~/.local/bin/godot --editor --path /home/renovibe79/survivors-game"
+echo "  $GODOT_BIN --editor --path $PROJECT_DIR"
 echo ""
 echo "To run the game directly:"
-echo "  ~/.local/bin/godot --path /home/renovibe79/survivors-game"
+echo "  $GODOT_BIN --path $PROJECT_DIR"

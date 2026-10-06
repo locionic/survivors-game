@@ -13,6 +13,7 @@ signal stage_selected(stage_id: String)
 @onready var backdrop: Control = find_child("Backdrop", true, false)
 @onready var title_label: Label = find_child("TitleLabel", true, false)
 @onready var dialog_panel: PanelContainer = find_child("DialogPanel", true, false)
+@onready var layout_box: VBoxContainer = find_child("VBox", true, false)
 
 var stage_plains_btn: Button = null
 var stage_hua_btn: Button = null
@@ -71,6 +72,8 @@ func _resolve_nodes() -> void:
 		title_label = find_child("TitleLabel", true, false)
 	if not dialog_panel:
 		dialog_panel = find_child("DialogPanel", true, false)
+	if not layout_box:
+		layout_box = find_child("VBox", true, false)
 		
 	stage_plains_btn = find_child("StagePlainsBtn", true, false)
 	stage_hua_btn = find_child("StageHuaBtn", true, false)
@@ -95,17 +98,31 @@ func open_ui() -> void:
 
 # --- Milestone 3a: danger level + language -------------------------------------
 
-## The danger row sits under the header so the tier is chosen in the same breath
-## as the hero -- both decide how the run feels, and both are locked in before
-## the first wave opens.
+## The danger row sits under the gear bar so the tier is chosen in the same
+## breath as the hero -- both decide how the run feels, and both are locked in
+## before the first wave opens.
+##
+## It is parented to the dialog's VBox, NOT to DialogPanel. A PanelContainer lays
+## out exactly one child; a second child keeps its own anchors/offsets and draws
+## over the first, which is how this row ended up on top of the hero card
+## headers. Inside the VBox it is an ordinary row and flows in order.
 func _install_danger_row() -> void:
 	if _danger_row or not dialog_panel:
 		return
+	# The VBox is the only child the panel actually lays out. Fall back to the
+	# panel so a malformed scene degrades to the old behaviour rather than
+	# crashing the modal on open.
+	var row_parent: Node = layout_box if layout_box else dialog_panel
 	_danger_row = HBoxContainer.new()
 	_danger_row.name = "DangerRow"
 	_danger_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_danger_row.add_theme_constant_override("separation", 10)
-	dialog_panel.add_child(_danger_row)
+	row_parent.add_child(_danger_row)
+	# Land it above the cards instead of below the close button.
+	var cards_scroll := dialog_panel.find_child("CardsScroll", true, false)
+	if cards_scroll and cards_scroll.get_parent() == row_parent:
+		row_parent.move_child(_danger_row, row_parent.get_children().find(cards_scroll))
+	_danger_row.add_theme_stylebox_override("panel", UITheme.make_card_panel(UITheme.LACQUER, UITheme.GOLD_DIM))
 
 	_danger_row.add_child(_mini_button("[", "danger_down"))
 	_danger_label = Label.new()

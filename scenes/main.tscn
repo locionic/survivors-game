@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/enemy_spawner.gd" id="2_spawner"]
@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://scripts/upgrade_manager.gd" id="6_upgrade"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="7_hud"]
 [ext_resource type="Script" path="res://scripts/camera.gd" id="8_cam"]
-[ext_resource type="Texture2D" path="res://assets/textures/dungeon_floor.png" id="9_floor"]
+[ext_resource type="Texture2D" path="res://assets/textures/arena_courtyard.png" id="9_floor"]
 [ext_resource type="PackedScene" path="res://scenes/necromancer.tscn" id="10_necro"]
 [ext_resource type="PackedScene" path="res://scenes/behemoth.tscn" id="11_behemoth"]
 [ext_resource type="PackedScene" path="res://scenes/powerup.tscn" id="12_pup"]
@@ -25,6 +25,7 @@
 [ext_resource type="PackedScene" path="res://scenes/hermit_shop_ui.tscn" id="23_hermit_ui"]
 [ext_resource type="PackedScene" path="res://scenes/title_screen.tscn" id="24_title"]
 [ext_resource type="Script" path="res://scripts/wave_director.gd" id="25_wave_director"]
+[ext_resource type="PackedScene" path="res://scenes/arena.tscn" id="26_arena"]
 
 
 
@@ -124,6 +125,8 @@ texture = ExtResource("9_floor")
 stretch_mode = 1
 
 [node name="Biomes" type="Node2D" parent="."]
+
+[node name="ArenaDecor" parent="." instance=ExtResource("26_arena")]
 
 [node name="Landmarks" type="Node2D" parent="."]
 

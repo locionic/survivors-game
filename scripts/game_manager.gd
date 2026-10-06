@@ -124,7 +124,7 @@ const STAGES: Dictionary = {
 		"id": "plains",
 		"name": "Ba Lăng Huyện",
 		"desc": "Đồng cỏ thanh bình, nơi khởi đầu của vạn dặm hành hiệp trượng nghĩa.",
-		"texture_path": "res://assets/textures/dungeon_floor.png",
+		"texture_path": "res://assets/textures/arena_courtyard.png",
 		"hazard": "none",
 		"color": Color(0.35, 0.85, 0.45)
 	},

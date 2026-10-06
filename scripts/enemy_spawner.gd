@@ -432,6 +432,22 @@ func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> v
 				enemy.make_champion()
 			get_tree().current_scene.call_deferred("add_child", enemy)
 
+## Everything a freshly spawned boss owes the player: its health bar and the
+## entrance alert. All four boss spawners ended in the same eight lines, so the
+## banner would have had to be re-added by hand at each one; here it cannot be
+## forgotten, and the four call sites stop drifting apart.
+##
+## Deliberately fire-and-forget -- the alert is a HUD tween and the fight is
+## already underway by the time this returns, which is the point.
+func _on_boss_spawned(boss: Node) -> void:
+	var hud = get_tree().get_first_node_in_group("hud")
+	if not hud:
+		return
+	if hud.has_method("attach_boss_bar"):
+		hud.attach_boss_bar(boss)
+	if hud.has_method("announce_boss_entrance"):
+		hud.announce_boss_entrance(boss)
+
 func spawn_boss_1() -> void:
 	emit_signal("wave_event_announced", "☠️ DREADLORD MALAKOR EMERGES! ☠️", true)
 	SoundManager.play("boss_alarm", 0.05)
@@ -449,9 +465,7 @@ func spawn_boss_1() -> void:
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
 			
-			var hud = get_tree().get_first_node_in_group("hud")
-			if hud and hud.has_method("attach_boss_bar"):
-				hud.attach_boss_bar(boss)
+			_on_boss_spawned(boss)
 
 func spawn_boss_2() -> void:
 	emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
@@ -471,9 +485,7 @@ func spawn_boss_2() -> void:
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
 
-			var hud = get_tree().get_first_node_in_group("hud")
-			if hud and hud.has_method("attach_boss_bar"):
-				hud.attach_boss_bar(boss)
+			_on_boss_spawned(boss)
 
 func spawn_boss_3() -> void:
 	emit_signal("wave_event_announced", "👑 SONG THỦ MA TƯỚNG GIÁNG LÂM! 👑", true)
@@ -501,9 +513,7 @@ func spawn_boss_3() -> void:
 				boss.set("max_health", cur_hp * 1.8)
 			get_tree().current_scene.add_child(boss)
 			
-			var hud = get_tree().get_first_node_in_group("hud")
-			if hud and hud.has_method("attach_boss_bar"):
-				hud.attach_boss_bar(boss)
+			_on_boss_spawned(boss)
 
 func spawn_demon_emperor() -> void:
 	emit_signal("wave_event_announced", "🔥 TRÙM CUỐI: HẮC HUYẾT MA HOÀNG ĐÃ THỨC TỈNH! 🔥", true)
@@ -526,9 +536,7 @@ func spawn_demon_emperor() -> void:
 			boss.global_position = spawn_pos
 			get_tree().current_scene.add_child(boss)
 			
-			var hud = get_tree().get_first_node_in_group("hud")
-			if hud and hud.has_method("attach_boss_bar"):
-				hud.attach_boss_bar(boss)
+			_on_boss_spawned(boss)
 				
 			if boss.has_signal("boss_defeated"):
 				boss.boss_defeated.connect(func():

@@ -39,6 +39,7 @@ var codex_opened_from: String = ""
 var current_active_altar: Node2D = null
 var current_active_hermit: Node2D = null
 var codex_toast_banner: PanelContainer = null
+var boss_entrance_banner: PanelContainer = null
 var last_streak_announced: int = 0
 var skill_widget: Control = null
 var skill_button: Button = null
@@ -594,6 +595,95 @@ func announce_codex_unlock(title: String, reward_desc: String) -> void:
 		if is_instance_valid(codex_toast_banner):
 			codex_toast_banner.queue_free()
 	)
+
+
+## The boss entrance alert: the crimson banner that names whatever just walked
+## onto the floor. Fired once per boss from the spawner's boss path.
+##
+## Non-blocking by construction, not by convention -- the whole alert is a tween
+## on this node, which is PROCESS_MODE_ALWAYS so it survives the shop's pause,
+## and nothing here reads or writes get_tree().paused. The WaveDirector is not
+## PROCESS_MODE_ALWAYS, so anything that did pause the tree would freeze the
+## countdown behind this banner; nothing does, and the wave keeps counting.
+##
+## The name is read off the spawned node rather than passed in by the caller, so
+## the banner cannot end up announcing a different boss than the boss bar below
+## it is tracking.
+func announce_boss_entrance(boss_node: Node) -> void:
+	if not is_inside_tree():
+		return
+
+	# One gong, flat. The wave-start cue is pitched up because it is an
+	# announcement; this is a door being kicked open.
+	SoundManager.play("buddha_gong", 0.0)
+
+	if boss_entrance_banner and is_instance_valid(boss_entrance_banner):
+		boss_entrance_banner.queue_free()
+
+	var boss_name := ""
+	if is_instance_valid(boss_node):
+		boss_name = str(boss_node.get("boss_name")).strip_edges()
+	if boss_name == "":
+		boss_name = Loc.t("hud.boss_entrance_unknown")
+
+	boss_entrance_banner = PanelContainer.new()
+	boss_entrance_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var sb = StyleBoxFlat.new()
+	# Deep crimson wash rather than a flat fill: the page underneath keeps
+	# reading as a fight happening, not as a dialog that took the screen.
+	sb.bg_color = Color(0.29, 0.03, 0.06, 0.93)
+	sb.border_color = UITheme.VERMILION
+	sb.border_width_top = 4
+	sb.border_width_bottom = 4
+	sb.content_margin_top = 16.0
+	sb.content_margin_bottom = 12.0
+	boss_entrance_banner.add_theme_stylebox_override("panel", sb)
+
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 6)
+
+	var head = Label.new()
+	head.text = Loc.tf("hud.boss_entrance", [boss_name])
+	head.add_theme_font_override("font", UITheme.get_body_bold_font())
+	head.add_theme_font_size_override("font_size", 34)
+	head.add_theme_color_override("font_color", Color(1.0, 0.93, 0.92))
+	head.add_theme_color_override("font_shadow_color", UITheme.VERMILION)
+	head.add_theme_constant_override("shadow_offset_x", 0)
+	head.add_theme_constant_override("shadow_offset_y", 3)
+	head.add_theme_constant_override("shadow_outline_size", 6)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(head)
+
+	var rule = ColorRect.new()
+	rule.color = UITheme.VERMILION
+	rule.custom_minimum_size = Vector2(0, 3)
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(rule)
+
+	boss_entrance_banner.add_child(vbox)
+	boss_entrance_banner.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	boss_entrance_banner.offset_top = 104.0
+	boss_entrance_banner.offset_bottom = 210.0
+	add_child(boss_entrance_banner)
+
+	# Pivot at the banner's own centre so the punch scales outward from the middle
+	# of the screen rather than from its left edge. HUD is a CanvasLayer, so the
+	# viewport rect comes off the Viewport node, not off get_viewport_rect().
+	boss_entrance_banner.pivot_offset = Vector2(get_viewport().get_visible_rect().size.x * 0.5, 53.0)
+	boss_entrance_banner.modulate.a = 0.0
+	var tw = create_tween()
+	tw.tween_property(boss_entrance_banner, "modulate:a", 1.0, 0.12)
+	tw.parallel().tween_property(boss_entrance_banner, "scale", Vector2(1.06, 1.12), 0.18).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(boss_entrance_banner, "scale", Vector2(1.0, 1.0), 0.12)
+	tw.tween_interval(2.2)
+	tw.tween_property(boss_entrance_banner, "modulate:a", 0.0, 0.5)
+	tw.tween_callback(func():
+		if is_instance_valid(boss_entrance_banner):
+			boss_entrance_banner.queue_free()
+	)
+
 
 func open_world_map(source: String = "topbar") -> void:
 	world_map_opened_from = source

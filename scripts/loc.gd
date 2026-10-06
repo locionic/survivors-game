@@ -85,6 +85,14 @@ const STRINGS: Dictionary = {
 	"hud.streak_500": {"en": "👑 500 KILLS: UNSHAKEABLE LEGION! (+25% BLOOD RAGE)", "vi": "👑 VẠN QUÂN BẤT ĐỊCH! (+25% CUỒNG BẠO)"},
 	"hud.streak_1000": {"en": "🌌 1000 KILLS: LONE WALKER OF HEAVEN! (+25% BLOOD RAGE)", "vi": "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"},
 	"hud.boss_alarm": {"en": "ELITE CHAMPION DESCENDS!", "vi": "TINH ANH LỆNH GIÁ THỔNG GIANG!"},
+	# The boss entrance alert. %s is the boss's own name, read off the spawned
+	# node rather than restated here -- so the banner can never announce a boss
+	# under a name the fight itself never uses.
+	"hud.boss_entrance": {"en": "DREAD DEMON APPROACHES! %s", "vi": "MA GIÁO XUẤT HIỆN! %s"},
+	# All four boss scenes carry a boss_name, so this row should never be read.
+	# It exists so a boss that somehow arrives without one announces itself as
+	# something rather than leaving the banner trailing a blank.
+	"hud.boss_entrance_unknown": {"en": "Nameless Horror", "vi": "Ma Vô Danh"},
 	"hud.victory": {"en": "VICTORY", "vi": "TOÀN THẮNG"},
 	"hud.defeat": {"en": "DEFEAT", "vi": "THẤT BẠI"},
 	"hud.paused": {"en": "PAUSED", "vi": "TẠM DỪNG"},

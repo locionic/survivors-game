@@ -226,16 +226,19 @@ func _test_dan_dien_aoe_is_real() -> void:
 
 # --- helpers ----------------------------------------------------------------
 
-## A victim that takes damage from its own DoT and nothing else.
+## A victim isolated from autonomous targeting while its own DoT is measured.
 ##
 ## `player = null` and a long way out, deliberately. With a player attached the
 ## enemy chases, walks into the knight's shield_charge (45 x might, one hit for
-## 58) and its HP delta stops being a measurement of burn at all. Detached, the
-## only thing that can move that number is the status effect under test.
+## 58) and its HP delta stops being a measurement of burn at all. It is also
+## removed from the enemies group: a projectile already in flight can outlive
+## its disabled weapon and refresh this victim's burn during the expiry wait.
+## The direct status-effect calls below do not require group membership.
 func _spawn_victim(hp: float) -> Node2D:
 	GameManager.collected_relics.erase("storm_amulet")
 	var e := ENEMY_SCENE.instantiate() as Node2D
 	add_child(e)
+	e.remove_from_group("enemies")
 	e.player = null
 	e.global_position = Vector2(2000, 0)
 	e.max_health = hp

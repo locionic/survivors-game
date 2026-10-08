@@ -283,6 +283,26 @@ func _spawn_slash_visual(facing: Vector2, step: int = 0) -> void:
 		scene = get_parent()
 	if scene:
 		scene.add_child(slash_sprite)
+		# Calligraphy ink splatter burst along slash arc
+		var ink_p = CPUParticles2D.new()
+		ink_p.top_level = true
+		ink_p.global_position = slash_sprite.global_position
+		ink_p.emitting = true
+		ink_p.one_shot = true
+		ink_p.explosiveness = 0.92
+		ink_p.amount = 14 if step < 2 else 24
+		ink_p.lifetime = 0.45
+		ink_p.direction = visual_dir.orthogonal()
+		ink_p.spread = 45.0
+		ink_p.gravity = Vector2.ZERO
+		ink_p.initial_velocity_min = 60.0
+		ink_p.initial_velocity_max = 160.0
+		ink_p.scale_amount_min = 1.5
+		ink_p.scale_amount_max = 3.5
+		ink_p.color = Color(0.12, 0.15, 0.22, 0.85) if not is_evolved else Color(1.0, 0.88, 0.25, 0.9)
+		scene.add_child(ink_p)
+		get_tree().create_timer(0.6).timeout.connect(ink_p.queue_free)
+
 		var tw = slash_sprite.create_tween()
 		if tw:
 			tw.set_parallel(true)

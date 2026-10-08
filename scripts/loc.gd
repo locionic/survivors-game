@@ -85,6 +85,7 @@ const STRINGS: Dictionary = {
 	"hud.streak_500": {"en": "👑 500 KILLS: UNSHAKEABLE LEGION! (+25% BLOOD RAGE)", "vi": "👑 VẠN QUÂN BẤT ĐỊCH! (+25% CUỒNG BẠO)"},
 	"hud.streak_1000": {"en": "🌌 1000 KILLS: LONE WALKER OF HEAVEN! (+25% BLOOD RAGE)", "vi": "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"},
 	"hud.boss_alarm": {"en": "ELITE CHAMPION DESCENDS!", "vi": "TINH ANH LỆNH GIÁ THỔNG GIANG!"},
+	"hud.boss_warning": {"en": "A DEMONIC PRESENCE EMERGES: %s", "vi": "MA GIÁO XUẤT HIỆN: %s"},
 	"hud.victory": {"en": "VICTORY", "vi": "TOÀN THẮNG"},
 	"hud.defeat": {"en": "DEFEAT", "vi": "THẤT BẠI"},
 	"hud.paused": {"en": "PAUSED", "vi": "TẠM DỪNG"},

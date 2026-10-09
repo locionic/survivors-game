@@ -580,7 +580,7 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 		player.heal(final_amount * lifesteal)
 	
 	if is_crit:
-		FloatingText.spawn(global_position, "CRIT " + str(int(final_amount)) + "!", Color(1.0, 0.25, 0.1))
+		FloatingText.spawn(global_position, "CRIT " + str(int(final_amount)) + "!", Color(1.0, 0.88, 0.20))
 		var cam = get_tree().get_first_node_in_group("camera")
 		if cam and cam.has_method("shake"):
 			cam.shake(5.0)
@@ -589,7 +589,7 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 		if is_instance_valid(player) and player.has_method("trigger_thunderfire_burst"):
 			player.trigger_thunderfire_burst(global_position)
 	else:
-		FloatingText.spawn(global_position, str(int(final_amount)), Color(1.0, 0.5, 0.2) if is_boss else Color(1.0, 0.9, 0.2))
+		FloatingText.spawn(global_position, str(int(final_amount)), Color(1.0, 0.55, 0.20) if is_boss else Color(0.95, 0.95, 1.0))
 		
 	SoundManager.play("hit", 0.25 if is_crit else 0.1)
 	

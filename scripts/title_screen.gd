@@ -215,10 +215,9 @@ func _refresh_stage() -> void:
 	if stage_desc_label:
 		stage_desc_label.text = stage_data.get("desc", "")
 	if stage_icon:
-		# Text-presentation glyphs (no U+FE0F) so the glyph comes from a font
-		# instead of the platform's colour-emoji set, which varies per machine.
-		stage_icon.text = "❄" if s_id == "mount_hua" else "▲"
-		stage_icon.add_theme_color_override("font_color", UITheme.GOLD)
+		# Thematic icons matching stage environment
+		stage_icon.text = "❄" if s_id == "mount_hua" else "⛩"
+		stage_icon.add_theme_color_override("font_color", stage_data.get("color", UITheme.GOLD))
 
 func _refresh_gold() -> void:
 	if gold_label and GameManager:

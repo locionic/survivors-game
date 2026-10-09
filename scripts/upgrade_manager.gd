@@ -178,21 +178,26 @@ func card_rarity(upgrade: Dictionary) -> int:
 ## for the orbit, and damage / attack_speed / projectile_count upgrade the dagger
 ## but predate its id.
 const CARD_ICONS: Dictionary = {
-	"dagger": "🗡️",  # Phi Đao
-	"shield": "🛡️",  # Kim Cang Hộ Thể
-	"lightning": "⚡", # Lôi Đình Kiếm
-	"fireball": "🔥",  # Liệt Hỏa Chưởng
+	"dagger": "⚔",
+	"shield": "◈",
+	"lightning": "⚡",
+	"fireball": "🔥",
 	"axe": "🪓",
-	"slash": "⚔️",
-	"orbit": "🛡️",
-	"damage": "🗡️",
-	"attack_speed": "🗡️",
-	"projectile_count": "🗡️",
+	"slash": "⚔",
+	"orbit": "◈",
+	"damage": "💥",
+	"attack_speed": "💨",
+	"projectile_count": "✦",
 	"move_speed": "👢",
-	"magnet": "🌀",   # Hấp Tinh Đại Pháp
+	"magnet": "🌀",
 	"max_hp": "💪",
 	"might_surge": "🌋",
 	"synergy": "⚡",
+	"area": "💫",
+	"duration": "⏱",
+	"cooldown": "⚡",
+	"armor": "◈",
+	"luck": "🍀",
 }
 
 ## Falls back to a neutral mark rather than no badge: a card whose icon lookup

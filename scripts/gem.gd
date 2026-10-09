@@ -32,19 +32,23 @@ func _ready() -> void:
 	var speed = randf_range(60.0, 130.0)
 	toss_vel = Vector2(cos(angle), sin(angle)) * speed
 
-	# Squash-and-stretch pop tween on spawn
-	scale = Vector2(0.4, 0.4)
+	# Squash-and-stretch pop tween on spawn (proportional 16px gem)
+	scale = Vector2(0.2, 0.2)
 	var tw = create_tween()
-	tw.tween_property(self, "scale", Vector2(1.25, 1.25), 0.12).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(self, "scale", Vector2(1.0, 1.0), 0.10)
+	tw.tween_property(self, "scale", Vector2(0.65, 0.65), 0.12).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(self, "scale", Vector2(0.5, 0.5), 0.10)
 
 func _process(delta: float) -> void:
 	bob_time += delta * 4.0
 	
 	if is_instance_valid(target):
-		current_speed += 850.0 * delta
+		current_speed += 950.0 * delta
+		var dist = global_position.distance_to(target.global_position)
 		global_position = global_position.move_toward(target.global_position, current_speed * delta)
-		if global_position.distance_to(target.global_position) < 18.0:
+		# Smooth magnetic suction squash
+		var suction = clampf(dist / 40.0, 0.35, 1.0)
+		scale = Vector2(0.5, 0.5) * suction
+		if dist < 18.0:
 			collect()
 	elif toss_timer > 0.0:
 		toss_timer -= delta

@@ -953,28 +953,44 @@ func _on_arsenal_updated(levels: Dictionary) -> void:
 	# Milestone 3a: the base names come from Loc (the canonical table) and the
 	# evolved names from their own rows, so the badges cannot drift away from the
 	# dps report or the shop cards. Icon, evolved flag and level suffix per badge.
-	_badge(dagger_badge, "dagger", "DAG", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(shield_badge, "shield", "SHD", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(thunder_badge, "lightning", "THN", levels, ev, Color(0.4, 0.9, 1.0))
-	_badge(fireball_badge, "fireball", "FIR", levels, ev, Color(1.0, 0.5, 0.2))
-	_badge(axe_badge, "axe", "AXE", levels, ev, Color(1.0, 0.3, 0.4))
+	_badge(dagger_badge, "dagger", "⚔", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(shield_badge, "shield", "◈", levels, ev, Color(1.0, 0.85, 0.2))
+	_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
+	_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
+	_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
 
 	_update_passives_display()
 
 ## One badge, three states: evolved (EVO + gold), owned (name + level), locked.
-func _badge(badge: Label, weapon_id: String, prefix: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
+func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
 	if not badge:
 		return
 	var level: int = int(levels.get(weapon_id, 0))
+	var wname := Loc.weapon_name(weapon_id)
 	if ev.get(weapon_id, false):
-		badge.text = "[EVO] %s" % Loc.t("evo.%s.name" % weapon_id, weapon_id)
+		badge.text = "%s %s MAX" % [icon, Loc.t("evo.%s.name" % weapon_id, weapon_id)]
 		badge.add_theme_color_override("font_color", evo_color)
+		_style_badge_box(badge, evo_color, Color(0.20, 0.16, 0.05, 0.90))
 	elif level > 0:
-		badge.text = "[%s] %s Lv.%d" % [prefix, Loc.weapon_name(weapon_id), level]
+		var pips := ""
+		for p in 5:
+			pips += "●" if p < level else "○"
+		badge.text = "%s %s %s" % [icon, wname, pips]
 		badge.add_theme_color_override("font_color", Color.WHITE)
+		_style_badge_box(badge, Color(0.35, 0.60, 0.85, 0.85), Color(0.08, 0.12, 0.18, 0.85))
 	else:
-		badge.text = "[%s] %s" % [prefix, Loc.t("ui.locked", "(Locked)")]
-		badge.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65, 0.6))
+		badge.text = "%s %s 🔒" % [icon, wname]
+		badge.add_theme_color_override("font_color", Color(0.55, 0.60, 0.70, 0.65))
+		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75))
+
+func _style_badge_box(badge: Label, border_color: Color, bg_color: Color) -> void:
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = bg_color
+	sb.border_color = border_color
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(5)
+	badge.add_theme_stylebox_override("normal", sb)
 
 func _update_passives_display() -> void:
 	if not passives_label:
@@ -1020,7 +1036,9 @@ func _update_passives_display() -> void:
 	
 	if skill_button and GameManager:
 		var cdata = GameManager.get_selected_character_data()
-		var icon = cdata.get("skill_icon", "🛡️")
+		var icon = cdata.get("skill_icon", "◈")
+		if icon == "🛡️":
+			icon = "◈"
 		skill_button.text = "%s\nSPACE" % icon
 
 func attach_boss_bar(boss_node: Node2D) -> void:
@@ -1398,7 +1416,9 @@ func _setup_hero_skill_widget() -> void:
 	skill_button.name = "SkillButton"
 	skill_button.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var char_data = GameManager.get_selected_character_data() if GameManager else {}
-	var icon = char_data.get("skill_icon", "🛡️")
+	var icon = char_data.get("skill_icon", "◈")
+	if icon == "🛡️":
+		icon = "◈"
 	skill_button.text = "%s\nSPACE" % icon
 	skill_button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	

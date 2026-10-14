@@ -236,7 +236,7 @@ func _test_hover_lifts_the_card_and_puts_it_back() -> void:
 	check(absf(btn.position.y - base_y) < 0.5,
 		"leaving puts the card back on the row, got %f want %f" % [btn.position.y, base_y])
 	check(btn.scale.distance_to(base_scale) < 0.01,
-		"leaving restores the scale, got %f want %f" % [btn.scale, base_scale])
+		"leaving restores the scale, got %s want %s" % [btn.scale, base_scale])
 	_teardown()
 
 func _test_choosing_a_card_bursts_and_closes_the_panel() -> void:

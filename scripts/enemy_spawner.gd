@@ -433,7 +433,7 @@ func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> v
 			get_tree().current_scene.call_deferred("add_child", enemy)
 
 func spawn_boss_1() -> void:
-	emit_signal("wave_event_announced", "☠️ DREADLORD MALAKOR EMERGES! ☠️", true)
+	emit_signal("wave_event_announced", Loc.tf("hud.boss_reveal", [Loc.t("boss.dreadlord", "DREADLORD MALAKOR")]), true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -454,7 +454,7 @@ func spawn_boss_1() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_boss_2() -> void:
-	emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
+	emit_signal("wave_event_announced", Loc.tf("hud.boss_reveal", [Loc.t("boss.behemoth", "INFERNAL BEHEMOTH")]), true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -476,7 +476,8 @@ func spawn_boss_2() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_boss_3() -> void:
-	emit_signal("wave_event_announced", "👑 SONG THỦ MA TƯỚNG GIÁNG LÂM! 👑", true)
+	var boss_display_name = Loc.t("boss.song_thu", "SONG THỦ MA TƯỚNG")
+	emit_signal("wave_event_announced", Loc.tf("hud.boss_reveal", [boss_display_name]), true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -506,8 +507,8 @@ func spawn_boss_3() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_demon_emperor() -> void:
-	emit_signal("wave_event_announced", "🔥 TRÙM CUỐI: HẮC HUYẾT MA HOÀNG ĐÃ THỨC TỈNH! 🔥", true)
-	SoundManager.play("boss_alarm", 0.03)
+	emit_signal("wave_event_announced", Loc.tf("hud.boss_reveal", [Loc.t("boss.demon_emperor", "HẮC HUYỆT MA HOÀNG")]), true)
+	SoundManager.play("buddha_gong", 0.03)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
 	if cam and cam.has_method("shake"):

@@ -178,8 +178,8 @@ func card_rarity(upgrade: Dictionary) -> int:
 ## for the orbit, and damage / attack_speed / projectile_count upgrade the dagger
 ## but predate its id.
 const CARD_ICONS: Dictionary = {
-	"dagger": "⚔",
-	"shield": "◈",
+	"dagger": "🗡️",
+	"shield": "🛡️",
 	"lightning": "⚡",
 	"fireball": "🔥",
 	"axe": "🪓",
@@ -187,7 +187,7 @@ const CARD_ICONS: Dictionary = {
 	"orbit": "◈",
 	"damage": "💥",
 	"attack_speed": "💨",
-	"projectile_count": "✦",
+	"projectile_count": "🗡️",
 	"move_speed": "👢",
 	"magnet": "🌀",
 	"max_hp": "💪",

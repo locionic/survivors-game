@@ -640,7 +640,18 @@ func _on_audio_toggle() -> void:
 func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 	if not warning_banner:
 		return
-	warning_banner.text = message
+	
+	if is_boss:
+		# Boss entrance: localized dramatic banner + heavy gong
+		var boss_name = message.replace("🏯 ", "").replace(" - ARENA OPEN!", "").replace("HIỆP ", "").replace("WAVE ", "")
+		var warning_text = Loc.tf("hud.boss_warning", [boss_name])
+		warning_banner.text = "⚠️ %s ⚠️" % warning_text
+		
+		# Play buddha gong for boss entrance
+		SoundManager.play("buddha_gong", 0.15)
+	else:
+		warning_banner.text = message
+	
 	warning_banner.visible = true
 	warning_banner.modulate = Color(1.0, 0.25, 0.2) if is_boss else Color(1.0, 0.85, 0.2)
 	warning_banner.scale = Vector2(0.8, 0.8)
@@ -2227,6 +2238,24 @@ func _setup_title_screen() -> void:
 			title_screen.leaderboard_pressed.connect(func(): open_leaderboard("title"))
 		if not title_screen.codex_pressed.is_connected(func(): open_codex("title")):
 			title_screen.codex_pressed.connect(func(): open_codex("title"))
+		if not title_screen.zombie_mode_pressed.is_connected(open_zombie_dossier):
+			title_screen.zombie_mode_pressed.connect(open_zombie_dossier)
+
+var zombie_dossier_modal: Control = null
+
+func open_zombie_dossier() -> void:
+	if not zombie_dossier_modal:
+		var scene = load("res://scenes/zombie_dossier_ui.tscn")
+		if scene:
+			zombie_dossier_modal = scene.instantiate()
+			zombie_dossier_modal.name = "ZombieDossierModal"
+			add_child(zombie_dossier_modal)
+			zombie_dossier_modal.closed.connect(func():
+				if title_screen:
+					title_screen.refresh_all()
+			)
+	if zombie_dossier_modal:
+		zombie_dossier_modal.open_ui()
 
 func _on_title_start_run() -> void:
 	GameManager.start_new_run()

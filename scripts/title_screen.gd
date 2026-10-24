@@ -233,13 +233,34 @@ func _refresh_stage() -> void:
 			bg_tex.texture = load("res://assets/textures/title_bg.png")
 
 	var main_title := find_child("MainTitle", true, false) as Label
-	if main_title:
-		if s_id == "zombie_city":
+	var header_badge := find_child("HeaderBadge", true, false) as Label
+	var sub_title := find_child("SubTitle", true, false) as Label
+	if s_id == "zombie_city":
+		if main_title:
 			main_title.text = "Z-SURVIVOR: OUTBREAK"
 			main_title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
-		else:
+		if header_badge:
+			header_badge.text = "PROJECT Z-SURVIVOR • BIO-HAZARD ROGUELIKE"
+			header_badge.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+		if sub_title:
+			sub_title.text = "☣️ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
+			sub_title.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
+		if nav_zombie_btn:
+			nav_zombie_btn.text = "☣️ Hồ Sơ Zombie [Z]"
+			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+	else:
+		if main_title:
 			main_title.text = "HIỆP KHÁCH SINH TỒN"
 			main_title.add_theme_color_override("font_color", UITheme.GOLD)
+		if header_badge:
+			header_badge.text = "VÕ LÂM HUYỀN THOẠI • SURVIVOR ROGUELIKE"
+			header_badge.add_theme_color_override("font_color", Color(1, 0.82, 0.28, 1))
+		if sub_title:
+			sub_title.text = "ĐẠI HỘI VÕ LÂM • TRĂM NĂM TRANH ĐOẠT"
+			sub_title.add_theme_color_override("font_color", Color(0.35, 0.88, 1, 1))
+		if nav_zombie_btn:
+			nav_zombie_btn.text = "☣️ Chế Độ Zombie [Z]"
+			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))
 
 func _refresh_gold() -> void:
 	if gold_label and GameManager:
@@ -276,6 +297,15 @@ func _on_codex_clicked() -> void:
 
 func _on_zombie_clicked() -> void:
 	SoundManager.play_ui_click()
+	if GameManager:
+		if GameManager.selected_stage != "zombie_city":
+			GameManager.select_stage("zombie_city")
+			if not GameManager.ZOMBIE_CHARACTERS.has(GameManager.selected_character):
+				GameManager.select_character("swat")
+			GameManager.save_game()
+			SoundManager.play("powerup", 0.15)
+			refresh_all()
+			return
 	emit_signal("zombie_mode_pressed")
 
 func open_screen() -> void:

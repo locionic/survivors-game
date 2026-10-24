@@ -54,8 +54,8 @@ var kills: int = 0
 var run_gold: int = 0
 var total_gold: int = 0
 var discovered_landmarks: Dictionary = {}
-var selected_character: String = "knight"
-var selected_stage: String = "plains"
+var selected_character: String = "swat"
+var selected_stage: String = "zombie_city"
 var equipment_slots: Dictionary = {"weapon": "", "armor": "", "boots": ""}
 var collected_relics: Array[String] = []
 var active_bounties: Array[Dictionary] = []
@@ -1318,9 +1318,9 @@ func load_save_data() -> void:
 	var err = config.load(SAVE_PATH)
 	if err == OK:
 		total_gold = config.get_value("player", "total_gold", total_gold)
-		selected_character = config.get_value("player", "selected_character", "knight")
+		selected_character = config.get_value("player", "selected_character", "swat")
 		selected_companion = config.get_value("player", "selected_companion", "dragon_whelp")
-		selected_stage = config.get_value("player", "selected_stage", "plains")
+		selected_stage = config.get_value("player", "selected_stage", "zombie_city")
 		is_first_run = config.get_value("player", "is_first_run", true)
 		danger_level = clampi(int(config.get_value("player", "danger_level", danger_level)), 0, MAX_DANGER_LEVEL)
 		for slot in equipment_slots.keys():

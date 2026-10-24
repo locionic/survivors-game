@@ -9,6 +9,7 @@ signal world_map_pressed
 signal shop_pressed
 signal leaderboard_pressed
 signal codex_pressed
+signal zombie_mode_pressed
 
 @onready var start_button: Button = find_child("StartButton", true, false)
 @onready var start_hint: Label = find_child("StartHintLabel", true, false)
@@ -25,6 +26,7 @@ signal codex_pressed
 @onready var nav_shop_btn: Button = find_child("NavShopBtn", true, false)
 @onready var nav_rank_btn: Button = find_child("NavRankBtn", true, false)
 @onready var nav_codex_btn: Button = find_child("NavCodexBtn", true, false)
+@onready var nav_zombie_btn: Button = find_child("NavZombieBtn", true, false)
 @onready var change_hero_btn: Button = find_child("ChangeHeroBtn", true, false)
 @onready var change_stage_btn: Button = find_child("ChangeStageBtn", true, false)
 
@@ -136,6 +138,8 @@ func _resolve_nodes() -> void:
 		nav_rank_btn = find_child("NavRankBtn", true, false)
 	if not nav_codex_btn:
 		nav_codex_btn = find_child("NavCodexBtn", true, false)
+	if not nav_zombie_btn:
+		nav_zombie_btn = find_child("NavZombieBtn", true, false)
 	if not change_hero_btn:
 		change_hero_btn = find_child("ChangeHeroBtn", true, false)
 	if not change_stage_btn:
@@ -161,6 +165,8 @@ func _connect_signals() -> void:
 		nav_rank_btn.pressed.connect(_on_rank_clicked)
 	if nav_codex_btn and not nav_codex_btn.pressed.is_connected(_on_codex_clicked):
 		nav_codex_btn.pressed.connect(_on_codex_clicked)
+	if nav_zombie_btn and not nav_zombie_btn.pressed.is_connected(_on_zombie_clicked):
+		nav_zombie_btn.pressed.connect(_on_zombie_clicked)
 		
 	if GameManager:
 		if not GameManager.character_selected.is_connected(_on_character_changed):
@@ -216,8 +222,24 @@ func _refresh_stage() -> void:
 		stage_desc_label.text = stage_data.get("desc", "")
 	if stage_icon:
 		# Thematic icons matching stage environment
-		stage_icon.text = "❄" if s_id == "mount_hua" else "⛩"
+		stage_icon.text = "☣" if s_id == "zombie_city" else ("❄" if s_id == "mount_hua" else "⛩")
 		stage_icon.add_theme_color_override("font_color", stage_data.get("color", UITheme.GOLD))
+
+	var bg_tex = find_child("BackgroundTexture", true, false) as TextureRect
+	if bg_tex:
+		if s_id == "zombie_city" and ResourceLoader.exists("res://assets/textures/zombie_title_bg.png"):
+			bg_tex.texture = load("res://assets/textures/zombie_title_bg.png")
+		elif ResourceLoader.exists("res://assets/textures/title_bg.png"):
+			bg_tex.texture = load("res://assets/textures/title_bg.png")
+
+	var main_title := find_child("MainTitle", true, false) as Label
+	if main_title:
+		if s_id == "zombie_city":
+			main_title.text = "Z-SURVIVOR: OUTBREAK"
+			main_title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+		else:
+			main_title.text = "HIỆP KHÁCH SINH TỒN"
+			main_title.add_theme_color_override("font_color", UITheme.GOLD)
 
 func _refresh_gold() -> void:
 	if gold_label and GameManager:
@@ -252,6 +274,10 @@ func _on_codex_clicked() -> void:
 	SoundManager.play_ui_click()
 	emit_signal("codex_pressed")
 
+func _on_zombie_clicked() -> void:
+	SoundManager.play_ui_click()
+	emit_signal("zombie_mode_pressed")
+
 func open_screen() -> void:
 	is_starting = false
 	visible = true
@@ -272,6 +298,8 @@ func start_run() -> void:
 	tw.tween_callback(func():
 		visible = false
 		emit_signal("start_run_pressed")
+		if get_tree().current_scene == self:
+			get_tree().change_scene_to_file("res://scenes/main.tscn")
 	)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -290,7 +318,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		   (rank_modal and rank_modal.visible) or (codex_modal and codex_modal.visible) or \
 		   (shop_panel and shop_panel.visible):
 			return
-			
+				
 	if event.is_action_pressed("ui_accept") or (event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER)):
 		get_viewport().set_input_as_handled()
 		start_run()
@@ -308,3 +336,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_Q:
 				get_viewport().set_input_as_handled()
 				_on_codex_clicked()
+			KEY_Z:
+				get_viewport().set_input_as_handled()
+				_on_zombie_clicked()

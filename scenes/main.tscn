@@ -53,24 +53,24 @@ func _ready() -> void:
 
 func _setup_arena_boundaries() -> void:
 	var bounds = StaticBody2D.new()
-	bounds.name = "ArenaBoundaries"
+	bounds.name = \"ArenaBoundaries\"
 	bounds.collision_layer = 4
 	bounds.collision_mask = 3
 	var half_w = 1200.0
 	var half_h = 900.0
 	var thick = 120.0
 	var walls = [
-		{"pos": Vector2(0, -half_h - thick * 0.5), "size": Vector2(half_w * 2.2, thick)},
-		{"pos": Vector2(0, half_h + thick * 0.5), "size": Vector2(half_w * 2.2, thick)},
-		{"pos": Vector2(-half_w - thick * 0.5, 0), "size": Vector2(thick, half_h * 2.2)},
-		{"pos": Vector2(half_w + thick * 0.5, 0), "size": Vector2(thick, half_h * 2.2)}
+		{\"pos\": Vector2(0, -half_h - thick * 0.5), \"size\": Vector2(half_w * 2.2, thick)},
+		{\"pos\": Vector2(0, half_h + thick * 0.5), \"size\": Vector2(half_w * 2.2, thick)},
+		{\"pos\": Vector2(-half_w - thick * 0.5, 0), \"size\": Vector2(thick, half_h * 2.2)},
+		{\"pos\": Vector2(half_w + thick * 0.5, 0), \"size\": Vector2(thick, half_h * 2.2)}
 	]
 	for w in walls:
 		var col = CollisionShape2D.new()
 		var rect = RectangleShape2D.new()
-		rect.size = w["size"]
+		rect.size = w[\"size\"]
 		col.shape = rect
-		col.position = w["pos"]
+		col.position = w[\"pos\"]
 		bounds.add_child(col)
 	# Võ Đài perimeter: a bright gate-line plus a dim wide glow, so the walled
 	# arena reads as a duel ring instead of an invisible wall.
@@ -85,7 +85,7 @@ func _setup_arena_boundaries() -> void:
 
 	# Corner Braziers with martial flame embers
 	var corner_pts = [Vector2(-half_w, -half_h), Vector2(half_w, -half_h), Vector2(half_w, half_h), Vector2(-half_w, half_h)]
-	var brazier_tex = load("res://assets/textures/brazier.png") if ResourceLoader.exists("res://assets/textures/brazier.png") else null
+	var brazier_tex = load(\"res://assets/textures/brazier.png\") if ResourceLoader.exists(\"res://assets/textures/brazier.png\") else null
 	for pt in corner_pts:
 		if brazier_tex:
 			var sp = Sprite2D.new()
@@ -108,293 +108,8 @@ func _setup_arena_boundaries() -> void:
 		fire.color = Color(1.0, 0.65, 0.2, 0.85)
 		fire.z_index = 951
 		bounds.add_child(fire)
-
-	# --- P2 Wuxia Arena Theming ---
-	# 1. Bamboo reeds along perimeter (procedural vertical stripes)
-	for side in range(4):
-		var is_horizontal = side < 2
-		var count = 12 if is_horizontal else 8
-		var start = -half_w if is_horizontal else -half_h
-		var end = half_w if is_horizontal else half_h
-		var fixed_coord = -half_h if side == 0 else (half_h if side == 1 else (-half_w if side == 2 else half_w))
-		var offset = 180.0
-		for i in range(count):
-			var t = float(i + 1) / float(count + 1)
-			var varying = lerp(start + offset, end - offset, t)
-			var pos = Vector2(varying, fixed_coord) if is_horizontal else Vector2(fixed_coord, varying)
-			# Slight randomness for organic feel
-			pos += Vector2(randf_range(-12.0, 12.0), randf_range(-12.0, 12.0))
-			var bamboo = _make_bamboo_reed(pos)
-			bamboo.z_index = 850
-			bounds.add_child(bamboo)
-
-	# 2. Moss patches scattered on ground (procedural green flecks)
-	for _ in range(35):
-		var mx = randf_range(-half_w + 100.0, half_w - 100.0)
-		var my = randf_range(-half_h + 100.0, half_h - 100.0)
-		var moss = _make_moss_patch(Vector2(mx, my))
-		moss.z_index = 100
-		bounds.add_child(moss)
-
-	# 3. Guardian lion statues at four cardinal gates (replaces simple braziers at mid-walls)
-	var gate_pts = [
-		Vector2(0, -half_h - 60.0),  # North gate
-		Vector2(0, half_h + 60.0),   # South gate
-		Vector2(-half_w - 60.0, 0),  # West gate
-		Vector2(half_w + 60.0, 0)    # East gate
-	]
-	for i, pt in enumerate(gate_pts):
-		var lion = _make_guardian_lion(pt, i)
-		lion.z_index = 960
-		bounds.add_child(lion)
-
-	# 4. Red lantern posts with glow at corners and mid-perimeter
-	var lantern_pts = []
-	for pt in corner_pts:
-		lantern_pts.append(pt + Vector2(0, -70.0))
-	for pt in gate_pts:
-		lantern_pts.append(pt + Vector2(0, -50.0))
-	for pt in lantern_pts:
-		var lantern = _make_lantern_post(pt)
-		lantern.z_index = 970
-		bounds.add_child(lantern)
-
-	# 5. Floating golden autumn leaves (CPUParticles2D, arena-wide)
-	var leaves = CPUParticles2D.new()
-	leaves.name = "AutumnLeaves"
-	leaves.emitting = true
-	leaves.amount = 60
-	leaves.lifetime = 12.0
-	leaves.explosiveness = 0.15
-	leaves.speed_scale = 0.35
-	leaves.direction = Vector2(0, 1)
-	leaves.gravity = Vector2(0, 8.0)
-	leaves.spread = 180.0
-	leaves.initial_velocity_min = 5.0
-	leaves.initial_velocity_max = 18.0
-	leaves.angular_velocity_min = -30.0
-	leaves.angular_velocity_max = 30.0
-	leaves.scale_amount_min = 0.6
-	leaves.scale_amount_max = 1.2
-	leaves.color = Color(1.0, 0.78, 0.22, 0.75)
-	leaves.color_ramp = Gradient.new()
-	var cr = Gradient.new()
-	cr.set_offsets(PackedFloat32Array([0.0, 0.4, 1.0]))
-	cr.set_colors(PackedColorArray([
-		Color(1.0, 0.85, 0.25, 0.6),
-		Color(1.0, 0.72, 0.18, 0.85),
-		Color(0.95, 0.55, 0.12, 0.0)
-	]))
-	leaves.color_ramp = cr
-	leaves.z_index = 2000
-	leaves.position = Vector2(0, -half_h - 200.0)
-	var rect_emitter = RectangleShape2D.new()
-	rect_emitter.size = Vector2(half_w * 2.0, 50.0)
-	leaves.emission_shape = rect_emitter
-	bounds.add_child(leaves)
-
 	add_child(bounds)
-
-## Procedural helpers for P2 theming (no external assets needed)
-
-func _make_bamboo_reed(pos: Vector2) -> Node2D:
-	var root = Node2D.new()
-	root.name = "Bamboo"
-	root.position = pos
-	# Main stalk: 3-5 segments
-	var segments = randi_range(3, 5)
-	var seg_h = 40.0
-	var base_w = 14.0
-	var current_y = 0.0
-	var color_base = Color(0.28, 0.55, 0.22, 0.9)
-	for s in range(segments):
-		var seg = Sprite2D.new()
-		seg.texture = _make_bamboo_segment_texture(seg_h, base_w * (1.0 - float(s) * 0.12), color_base)
-		seg.position = Vector2(0, current_y + seg_h * 0.5)
-		seg.scale = Vector2(randf_range(0.9, 1.1), 1.0)
-		root.add_child(seg)
-		current_y -= seg_h
-		# Occasional leaf tuft
-		if randf() < 0.35:
-			var leaf = Sprite2D.new()
-			leaf.texture = _make_bamboo_leaf_texture()
-			leaf.position = Vector2(randf_range(-28.0, 28.0), current_y + randf_range(-8.0, 8.0))
-			leaf.rotation = randf_range(-0.6, 0.6)
-			leaf.modulate = color_base * Color(1, 1, 1, 0.7)
-			root.add_child(leaf)
-	return root
-
-func _make_bamboo_segment_texture(h: float, w: float, color: Color) -> ImageTexture:
-	var img = Image.create(int(w), int(h), false, Image.FORMAT_RGBA8)
-	img.lock()
-	for y in range(int(h)):
-		for x in range(int(w)):
-			var cx = float(x) - w * 0.5
-			var dist = abs(cx) / (w * 0.5)
-			# Bamboo joint rings every ~1/3 height
-			var ring_alpha = 1.0 - smoothstep(0.3, 0.35, abs(fmod(float(y) / h, 0.33) - 0.165) * 6.0)
-			var col = color.lerp(Color(0.18, 0.42, 0.14, 0.95), ring_alpha * 0.4)
-			col.a *= smoothstep(1.0, 0.0, dist)
-			img.set_pixel(x, y, col)
-	img.unlock()
-	var tex = ImageTexture.create_from_image(img)
-	tex.filter = false
-	return tex
-
-func _make_bamboo_leaf_texture() -> ImageTexture:
-	var img = Image.create(28, 10, false, Image.FORMAT_RGBA8)
-	img.lock()
-	for y in range(10):
-		for x in range(28):
-			var cx = float(x) - 14.0
-			var cy = float(y) - 5.0
-			var d = sqrt(cx * cx / 196.0 + cy * cy / 25.0)
-			if d < 1.0:
-				img.set_pixel(x, y, Color(0.32, 0.62, 0.25, 1.0 - d))
-	img.unlock()
-	var tex = ImageTexture.create_from_image(img)
-	tex.filter = false
-	return tex
-
-func _make_moss_patch(pos: Vector2) -> Sprite2D:
-	var sp = Sprite2D.new()
-	sp.position = pos
-	var w = randi_range(18, 36)
-	var h = randi_range(12, 24)
-	var img = Image.create(w, h, false, Image.FORMAT_RGBA8)
-	img.lock()
-	for y in range(h):
-		for x in range(w):
-			var cx = float(x) - w * 0.5
-			var cy = float(y) - h * 0.5
-			var d = sqrt(cx * cx / (float(w) * 0.5 * float(w) * 0.5) + cy * cy / (float(h) * 0.5 * float(h) * 0.5))
-			if d < 1.0 and randf() < 0.65:
-				var g = randf_range(0.28, 0.48)
-				img.set_pixel(x, y, Color(g * 0.6, g, g * 0.55, randf_range(0.35, 0.65)))
-	img.unlock()
-	var tex = ImageTexture.create_from_image(img)
-	tex.filter = false
-	sp.texture = tex
-	return sp
-
-func _make_guardian_lion(pos: Vector2, gate_index: int) -> Node2D:
-	var root = Node2D.new()
-	root.name = "GuardianLion"
-	root.position = pos
-	# Base pedestal
-	var base = Sprite2D.new()
-	var base_img = Image.create(48, 24, false, Image.FORMAT_RGBA8)
-	base_img.lock()
-	for y in range(24):
-		for x in range(48):
-			var cx = abs(float(x) - 24.0) / 24.0
-			var cy = float(y) / 24.0
-			if cx * 0.7 + cy < 1.0:
-				base_img.set_pixel(x, y, Color(0.38, 0.35, 0.30, 0.9))
-	base_img.unlock()
-	base.texture = ImageTexture.create_from_image(base_img)
-	base.filter = false
-	base.position = Vector2(0, 12.0)
-	root.add_child(base)
-	# Lion body (stylized block form)
-	var body = Sprite2D.new()
-	var body_img = Image.create(40, 48, false, Image.FORMAT_RGBA8)
-	body_img.lock()
-	for y in range(48):
-		for x in range(40):
-			var cx = abs(float(x) - 20.0) / 20.0
-			var cy = float(y) / 48.0
-			# Mane (top portion)
-			if cy < 0.45:
-				var mane_factor = 1.0 - cy / 0.45
-				if cx < 0.5 + mane_factor * 0.6:
-					body_img.set_pixel(x, y, Color(0.72, 0.58, 0.35, 0.95))
-			# Body
-			if cx < 0.35 + (1.0 - cy) * 0.15:
-				body_img.set_pixel(x, y, Color(0.58, 0.48, 0.32, 0.95))
-	body_img.unlock()
-	body.texture = ImageTexture.create_from_image(body_img)
-	body.filter = false
-	body.position = Vector2(0, -12.0)
-	root.add_child(body)
-	# Eyes (vermilion glow)
-	for eye_x in [-8.0, 8.0]:
-		var eye = Sprite2D.new()
-		var eye_img = Image.create(6, 6, false, Image.FORMAT_RGBA8)
-		eye_img.lock()
-		for y in range(6):
-			for x in range(6):
-				var cx = float(x) - 3.0
-				var cy = float(y) - 3.0
-				if cx * cx + cy * cy < 9.0:
-					eye_img.set_pixel(x, y, Color(0.85, 0.18, 0.12, 1.0))
-		eye_img.unlock()
-		eye.texture = ImageTexture.create_from_image(eye_img)
-		eye.filter = false
-		eye.position = Vector2(eye_x, -26.0)
-		root.add_child(eye)
-	# Subtle idle sway animation (handled via script if needed, static for now)
-	# Mirror on east gate
-	if gate_index == 3: # East gate - flip horizontally
-		root.scale = Vector2(-1.0, 1.0)
-	return root
-
-func _make_lantern_post(pos: Vector2) -> Node2D:
-	var root = Node2D.new()
-	root.name = "LanternPost"
-	root.position = pos
-	# Post
-	var post = Sprite2D.new()
-	var post_img = Image.create(8, 72, false, Image.FORMAT_RGBA8)
-	post_img.lock()
-	for y in range(72):
-		for x in range(8):
-			post_img.set_pixel(x, y, Color(0.22, 0.18, 0.14, 0.95))
-	post_img.unlock()
-	post.texture = ImageTexture.create_from_image(post_img)
-	post.filter = false
-	post.position = Vector2(0, -36.0)
-	root.add_child(post)
-	# Lantern body
-	var lantern = Sprite2D.new()
-	var lantern_img = Image.create(36, 44, false, Image.FORMAT_RGBA8)
-	lantern_img.lock()
-	for y in range(44):
-		for x in range(36):
-			var cx = float(x) - 18.0
-			var cy = float(y) - 22.0
-			var rx = 18.0 * (1.0 - 0.3 * abs(cy) / 22.0)
-			if cx * cx / (rx * rx) + cy * cy / (22.0 * 22.0) < 1.0:
-				var intensity = 1.0 - abs(cy) / 22.0 * 0.3
-				lantern_img.set_pixel(x, y, Color(0.85, 0.22, 0.12, intensity * 0.95))
-	lantern_img.unlock()
-	lantern.texture = ImageTexture.create_from_image(lantern_img)
-	lantern.filter = false
-	lantern.position = Vector2(0, -60.0)
-	root.add_child(lantern)
-	# Lantern glow (additive Light2D-style via CPUParticles2D)
-	var glow = CPUParticles2D.new()
-	glow.emitting = true
-	glow.amount = 12
-	glow.lifetime = 1.5
-	glow.explosiveness = 0.0
-	glow.speed_scale = 0.0
-	glow.gravity = Vector2(0, 0)
-	glow.spread = 360.0
-	glow.initial_velocity_min = 0.0
-	glow.initial_velocity_max = 0.0
-	glow.scale_amount_min = 1.8
-	glow.scale_amount_max = 2.5
-	glow.color = Color(1.0, 0.55, 0.15, 0.4)
-	var cr2 = Gradient.new()
-	cr2.set_offsets(PackedFloat32Array([0.0, 1.0]))
-	cr2.set_colors(PackedColorArray([Color(1.0, 0.62, 0.18, 0.5), Color(1.0, 0.42, 0.08, 0.0)]))
-	glow.color_ramp = cr2
-	glow.z_index = 971
-	glow.position = Vector2(0, -60.0)
-	root.add_child(glow)
-	# Subtle sway via Tween on root (optional, static for now)
-	return root
+"
 
 
 [node name="Main" type="Node2D"]

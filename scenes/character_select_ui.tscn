@@ -99,6 +99,12 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "❄️ Đỉnh Hoa Sơn (Bão Tuyết)"
 
+[node name="StageZombieBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/StageBar"]
+custom_minimum_size = Vector2(220, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "☣️ Thành Phố Zombie (Quarantine)"
+
 [node name="GearBar" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 10

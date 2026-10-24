@@ -16,6 +16,7 @@ signal stage_selected(stage_id: String)
 
 var stage_plains_btn: Button = null
 var stage_hua_btn: Button = null
+var stage_zombie_btn: Button = null
 var gear_weapon_btn: Button = null
 var gear_armor_btn: Button = null
 var gear_boots_btn: Button = null
@@ -50,6 +51,8 @@ func _ready() -> void:
 		stage_plains_btn.pressed.connect(func(): _on_stage_selected("plains"))
 	if stage_hua_btn:
 		stage_hua_btn.pressed.connect(func(): _on_stage_selected("mount_hua"))
+	if stage_zombie_btn:
+		stage_zombie_btn.pressed.connect(func(): _on_stage_selected("zombie_city"))
 		
 	if gear_weapon_btn:
 		gear_weapon_btn.pressed.connect(func(): _on_gear_toggled("weapon", "y_thien_kiem"))
@@ -74,6 +77,7 @@ func _resolve_nodes() -> void:
 		
 	stage_plains_btn = find_child("StagePlainsBtn", true, false)
 	stage_hua_btn = find_child("StageHuaBtn", true, false)
+	stage_zombie_btn = find_child("StageZombieBtn", true, false)
 	gear_weapon_btn = find_child("GearWeaponBtn", true, false)
 	gear_armor_btn = find_child("GearArmorBtn", true, false)
 	gear_boots_btn = find_child("GearBootsBtn", true, false)
@@ -179,6 +183,9 @@ func _update_stage_and_gear_ui() -> void:
 	if stage_hua_btn:
 		stage_hua_btn.text = ("✓ " if st == "mount_hua" else "") + "❄️ Đỉnh Hoa Sơn (Bão Tuyết)"
 		stage_hua_btn.modulate = Color(0.4, 0.9, 1.0) if st == "mount_hua" else Color(0.8, 0.8, 0.8)
+	if stage_zombie_btn:
+		stage_zombie_btn.text = ("✓ " if st == "zombie_city" else "") + "☣️ Thành Phố Zombie"
+		stage_zombie_btn.modulate = Color(0.3, 1.0, 0.4) if st == "zombie_city" else Color(0.8, 0.8, 0.8)
 		
 	if gear_weapon_btn:
 		var has_wpn = GameManager.has_equipped("y_thien_kiem")
@@ -200,6 +207,17 @@ func _on_stage_selected(stage_id: String) -> void:
 		return
 	GameManager.select_stage(stage_id)
 	SoundManager.play("button_click")
+
+	if stage_id == "zombie_city":
+		if not GameManager.ZOMBIE_CHARACTERS.has(GameManager.selected_character):
+			GameManager.select_character("swat")
+	else:
+		if GameManager.ZOMBIE_CHARACTERS.has(GameManager.selected_character):
+			GameManager.select_character("knight")
+
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.has_method("apply_character_data"):
+		player.apply_character_data()
 	
 	var bg = get_tree().current_scene.get_node_or_null("Background")
 	if bg:
@@ -210,6 +228,7 @@ func _on_stage_selected(stage_id: String) -> void:
 			
 	emit_signal("stage_selected", stage_id)
 	_update_stage_and_gear_ui()
+	render_cards()
 
 func _on_gear_toggled(slot: String, gear_id: String) -> void:
 	if not GameManager:
@@ -230,8 +249,14 @@ func render_cards() -> void:
 	for child in cards_container.get_children():
 		child.queue_free()
 		
+	var is_zombie_mode = (GameManager and GameManager.selected_stage == "zombie_city")
 	var active_id = GameManager.selected_character if GameManager else "knight"
-	var characters = GameManager.CHARACTERS.values() if GameManager else []
+	var characters = []
+	if GameManager:
+		if is_zombie_mode and GameManager.has_method("get_selected_character_data") and "ZOMBIE_CHARACTERS" in GameManager:
+			characters = GameManager.ZOMBIE_CHARACTERS.values()
+		else:
+			characters = GameManager.CHARACTERS.values()
 	
 	for char_data in characters:
 		var char_id: String = char_data["id"]

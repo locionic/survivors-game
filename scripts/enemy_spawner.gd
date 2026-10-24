@@ -453,7 +453,10 @@ func trigger_swarm(msg: String, enemy_scene: PackedScene, swarm_count: int) -> v
 			get_tree().current_scene.call_deferred("add_child", enemy)
 
 func spawn_boss_1() -> void:
-	emit_signal("wave_event_announced", "☠️ DREADLORD MALAKOR EMERGES! ☠️", true)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		emit_signal("wave_event_announced", "☣️ ĐỘT BIẾN: QUÁI VẬT TOXIC SPITTER XUẤT HIỆN! ☣️", true)
+	else:
+		emit_signal("wave_event_announced", "☠️ DREADLORD MALAKOR EMERGES! ☠️", true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -526,7 +529,10 @@ func spawn_boss_3() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_demon_emperor() -> void:
-	emit_signal("wave_event_announced", "🔥 TRÙM CUỐI: HẮC HUYẾT MA HOÀNG ĐÃ THỨC TỈNH! 🔥", true)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		emit_signal("wave_event_announced", "☣️ TRÙM CUỐI: BIO-TITAN APEX ABOMINATION ĐÃ GIÁNG LÂM! ☣️", true)
+	else:
+		emit_signal("wave_event_announced", "🔥 TRÙM CUỐI: HẮC HUYẾT MA HOÀNG ĐÃ THỨC TỈNH! 🔥", true)
 	SoundManager.play("boss_alarm", 0.03)
 	
 	var cam = get_tree().get_first_node_in_group("camera")

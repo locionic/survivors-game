@@ -94,21 +94,21 @@ func _on_run_started() -> void:
 var _intro_ring_spawned: bool = false
 
 func spawn_intro_ambush() -> void:
-	if _intro_ring_spawned or not is_instance_valid(player) or not bat_scene:
+	if _intro_ring_spawned or not is_instance_valid(player):
+		return
+	var intro_scene = zombie_runner_scene if (GameManager and GameManager.selected_stage == "zombie_city") else bat_scene
+	if not intro_scene:
 		return
 	_intro_ring_spawned = true
-	# Milestone 3b: 9 bats in a full 360 ring, 300px out, on frame one. Wave 1
-	# used to dribble in one bat every 0.7s, so the first seconds of a run had
-	# nothing in reach and the 3-hit combo had no time to be discovered. A closed
-	# ring also lets you swing INTO the swarm instead of chasing it.
+	# Milestone 3b: 9 bats in a full 360 ring, 300px out, on frame one.
 	for i in range(9):
 		var angle = TAU * (float(i) / 9.0)
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 300.0
-		var bat = bat_scene.instantiate()
-		if bat:
-			_scale_for_wave(bat)
-			bat.global_position = spawn_pos
-			get_tree().current_scene.call_deferred("add_child", bat)
+		var enemy = intro_scene.instantiate()
+		if enemy:
+			_scale_for_wave(enemy)
+			enemy.global_position = spawn_pos
+			get_tree().current_scene.call_deferred("add_child", enemy)
 
 func _process(delta: float) -> void:
 	if not GameManager.is_run_active or not is_instance_valid(player):
@@ -326,18 +326,34 @@ func spawn_enemy_wave() -> void:
 		# Dynamic enemy composition by time (0 to 480s):
 		var chosen_scene: PackedScene = bat_scene
 		
-		if r_time > 180.0:
-			var roll = randf()
-			if roll < 0.35 and necromancer_scene:
-				chosen_scene = necromancer_scene
-			elif roll < 0.75 and skeleton_scene:
-				chosen_scene = skeleton_scene
+		if GameManager and GameManager.selected_stage == "zombie_city":
+			if r_time > 180.0:
+				var roll = randf()
+				if roll < 0.35 and zombie_bloater_scene:
+					chosen_scene = zombie_bloater_scene
+				elif roll < 0.75 and zombie_runner_scene:
+					chosen_scene = zombie_runner_scene
+				else:
+					chosen_scene = zombie_walker_scene
+			elif r_time > 35.0 and zombie_bloater_scene and randf() < 0.22:
+				chosen_scene = zombie_bloater_scene
+			elif r_time > 20.0 and zombie_runner_scene and randf() < 0.45:
+				chosen_scene = zombie_runner_scene
 			else:
-				chosen_scene = bat_scene
-		elif r_time > 35.0 and necromancer_scene and randf() < 0.22:
-			chosen_scene = necromancer_scene
-		elif r_time > 25.0 and skeleton_scene and randf() < 0.45:
-			chosen_scene = skeleton_scene
+				chosen_scene = zombie_walker_scene
+		else:
+			if r_time > 180.0:
+				var roll = randf()
+				if roll < 0.35 and necromancer_scene:
+					chosen_scene = necromancer_scene
+				elif roll < 0.75 and skeleton_scene:
+					chosen_scene = skeleton_scene
+				else:
+					chosen_scene = bat_scene
+			elif r_time > 35.0 and necromancer_scene and randf() < 0.22:
+				chosen_scene = necromancer_scene
+			elif r_time > 25.0 and skeleton_scene and randf() < 0.45:
+				chosen_scene = skeleton_scene
 				
 		if not chosen_scene:
 			chosen_scene = bat_scene

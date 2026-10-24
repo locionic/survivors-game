@@ -38,28 +38,35 @@
      - ⚡ **Lôi Đình Kiếm**: Arc of lightning crackling over a jade sword.
      - 🌀 **Hấp Tinh Đại Pháp**: Swirling dark purple qi vortex.
      - 🛡️ **Kim Cang Hộ Thể**: Golden bell / radiant barrier.
-2. **Hover & Selection Juice**:
+2. **Hover & Selection Juice** — **DONE**:
    - Smooth card lift on hover (`position.y -= 12px`, scale 1.05) with gold chime audio.
    - Confetti/qi burst explosion when confirming an upgrade card.
+   - Implemented: `_card_lift()` (+12px, 1.05 scale), `_pulse_aura()` for epic cards, `_ember_motes()` for legendary, `_qi_burst()` on selection, `ui_hover` sound at -12dB.
 
 ### Phase 2: Atmospheric Wuxia Arena Overhaul
-*Target: `scenes/arena.tscn`, `scripts/arena.gd`, `scripts/world_map_ui.gd`*
+*Target: `scenes/main.tscn` (arena theming), `scripts/hud.gd` (boss banner), `scripts/gem.gd` & `scripts/coin.gd` (magnet arcs), `scripts/sound_manager.gd` (gong)*
 
-1. **Themed Floor & Props**:
+1. **Themed Floor & Props** — **PARTIALLY DONE** in `main.tscn`:
    - **Ba Lăng Huyện**: Ancient paving stones interwoven with patches of green moss, bamboo reeds, weathered stone guardian lions, and floating golden autumn leaves (`CPUParticles2D`).
    - **Borders & Walls**: Carved wooden fences and traditional red lantern posts that glow in the darkness.
-2. **Vibrant Martial Combat VFX**:
-   - **Hit Impact Juice**: Comic-style impact flashes when critical strikes hit.
-   - **XP Gem & Gold Sparkle**: Glowing jade fragments and golden sycees (kim nguyên bảo) that pull toward the player with smooth magnetic trailing arcs.
-   - **Boss Entrance Alert**: Dramatic crimson banner: `⚠️ MA GIÁO XUẤT HIỆN: HẮC Y TỔNG QUẢN ⚠️` with heavy gong sound effect.
+   - Procedural helpers exist: `_make_bamboo_reed`, `_make_moss_patch`, `_make_guardian_lion`, `_make_lantern_post` in `main.tscn` script.
+2. **Boss Entrance Alert** — **NOT DONE**:
+   - Dramatic crimson banner: `⚠️ MA GIÁO XUẤT HIỆN: HẮC Y TỔNG QUẢN ⚠️` with heavy gong sound effect.
+   - `buddha_gong` sound exists in `sound_manager.gd:195-197`, localization key `"hud.boss_warning": "MA GIÁO XUẤT HIỆN: %s"` in `loc.gd`.
+   - `WarningBanner` node exists in HUD (`main.tscn:475-493`) but shows generic "⚠️ WARNING!".
+   - Boss warning signals already emitted: `enemy_spawner.gd` & `wave_director.gd` emit `wave_event_announced`.
+3. **XP Gem & Gold Magnet Arcs** — **NOT DONE**:
+   - Glowing jade fragments and golden sycees (kim nguyên bảo) that pull toward the player with smooth magnetic trailing arcs.
+   - `gem.gd:49-57` and `coin.gd:33-38` have magnet pull logic with squash effect but no visual arc trails.
 
 ### Phase 3: Clean, Elegant Oriental HUD
 *Target: `scripts/hud.gd`*
 
-1. **Visual Weapon & Relic Slots**:
+1. **Visual Weapon & Relic Slots** — **NOT DONE**:
    - Replace bracketed text tags with 6 circular lacquer weapon slots and 6 square relic slots.
    - Small level pips under each icon (e.g. 5 tiny golden stars for Level 5 maxed skill).
-2. **Streamlined Health & EXP Gauges**:
+   - Text `equipment_slots` iteration exists at `hud.gd:1007` but no visual slots rendered.
+2. **Streamlined Health & EXP Gauges** — **NOT DONE**:
    - HP bar styled as a red Dragon Qi gauge with an ornate gold dragon-head frame.
    - EXP bar running across the top with radiant jade green glow.
 
@@ -67,5 +74,11 @@
 
 ## 3. Verification & Safety
 
-- Must maintain the 62/62 clean test gate (`./scripts/ci.sh`).
+- Must maintain the 63/63 clean test gate (`./scripts/ci.sh`).
 - Zero FPS drops on WebGL canvas in browser.
+
+---
+
+## 4. Sequencing Constraint
+
+**Phase 2 is one atomic task.** Arena props, boss banner, and magnet arcs all touch the main arena scene and related scripts together; splitting them puts multiple agents in the same code paths across branches — only one merge survives. Update `main.tscn`, `scripts/hud.gd`, `scripts/gem.gd`, `scripts/coin.gd`, and `scripts/sound_manager.gd` in a single cohesive change.

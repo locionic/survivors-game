@@ -29,11 +29,41 @@ func _ready() -> void:
 	var hover = create_tween().set_loops()
 	hover.tween_property(self, "scale", Vector2(1.15, 1.15), 0.35)
 	hover.tween_property(self, "scale", Vector2(1.0, 1.0), 0.35)
+	
+	# Magnet arc trail: golden sycee fragments trailing behind during magnetic pull
+	var trail = CPUParticles2D.new()
+	trail.name = "MagnetTrail"
+	trail.amount = 8
+	trail.lifetime = 0.3
+	trail.pre_process_time = 0.0
+	trail.explosiveness = 0.8
+	trail.speed_scale = 0.5
+	trail.direction = Vector2.ZERO
+	trail.gravity = Vector2.ZERO
+	trail.spread = 0.0
+	trail.initial_velocity_min = 0.0
+	trail.initial_velocity_max = 30.0
+	trail.scale_amount_min = 0.3
+	trail.scale_amount_max = 0.6
+	trail.color = Color(1.0, 0.85, 0.2, 0.9)
+	trail.color_ramp = Gradient.new()
+	trail.color_ramp.set_offsets(PackedFloat32Array([0.0, 1.0]))
+	trail.color_ramp.set_colors(PackedColorArray([Color(1.0, 0.95, 0.3, 0.95), Color(0.9, 0.7, 0.1, 0.0)]))
+	trail.emitting = false
+	trail.z_index = 10
+	add_child(trail)
 
 func _process(delta: float) -> void:
 	if is_instance_valid(target):
 		current_speed += 750.0 * delta
 		global_position = global_position.move_toward(target.global_position, current_speed * delta)
+		
+		# Emit magnet arc trail particles during pull
+		var trail = get_node_or_null("MagnetTrail")
+		if trail:
+			trail.emitting = true
+			trail.global_position = global_position
+		
 		if global_position.distance_to(target.global_position) < 18.0:
 			collect()
 	elif toss_timer > 0.0:

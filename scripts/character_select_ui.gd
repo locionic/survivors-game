@@ -17,6 +17,8 @@ signal stage_selected(stage_id: String)
 var stage_plains_btn: Button = null
 var stage_hua_btn: Button = null
 var stage_zombie_btn: Button = null
+var intel_button: Button = null
+var dossier_ui: Control = null
 var gear_weapon_btn: Button = null
 var gear_armor_btn: Button = null
 var gear_boots_btn: Button = null
@@ -60,6 +62,23 @@ func _ready() -> void:
 		gear_armor_btn.pressed.connect(func(): _on_gear_toggled("armor", "nhuyen_vi_giap"))
 	if gear_boots_btn:
 		gear_boots_btn.pressed.connect(func(): _on_gear_toggled("boots", "van_hac_hai"))
+
+	intel_button = find_child("IntelButton", true, false)
+	if intel_button:
+		intel_button.pressed.connect(_open_intel_dossier)
+
+func _open_intel_dossier() -> void:
+	if not dossier_ui:
+		var scene = load("res://scenes/zombie_dossier_ui.tscn")
+		if scene:
+			dossier_ui = scene.instantiate()
+			add_child(dossier_ui)
+			dossier_ui.closed.connect(func():
+				_update_stage_and_gear_ui()
+				render_cards()
+			)
+	if dossier_ui:
+		dossier_ui.open_ui()
 
 func _resolve_nodes() -> void:
 	if not cards_container:

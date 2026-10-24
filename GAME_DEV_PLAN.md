@@ -43,19 +43,19 @@ it. Audited by grep against the source:
 
 DONE
 - [x] P1 four-tier rarity borders (`TIER_COLORS`, `upgrade_manager.gd`)
+- [x] P1 card hover/selection juice — lift (+12px, 1.05 scale), epic pulse aura, legendary ember motes, qi burst on select, ui_hover sound
 
 NOT DONE
-- [ ] P1 card hover/selection juice — lift, scale, gold chime, qi burst
 - [ ] P2 arena theming: bamboo, moss, guardian lions, red lanterns,
-      floating leaf `CPUParticles2D` (zero hits for all five)
-- [ ] P2 boss entrance banner `⚠️ MA GIÁO XUẤT HIỆN` + gong (zero hits)
-- [ ] P2 XP gem / coin magnet arcs
+      floating leaf `CPUParticles2D` (partially in `main.tscn`)
+- [ ] P2 boss entrance banner `⚠️ MA GIÁO XUẤT HIỆN` + gong
+- [ ] P2 XP gem / coin magnet arcs (visual trails during magnetic pull)
 - [ ] P3 HUD lacquer weapon + relic slots (only text `equipment_slots`
       iteration exists at `hud.gd:1007`)
 
 **Sequencing constraint.** P2 is one task, not five. Arena props touch
 `arena.tscn` and `arena.gd` together; splitting them puts five agents in the
-same scene file across five branches, and only one merge survives.
+same branch across five branches, and only one merge survives.
 
 **Hard constraint on all five:** 63/63 `./scripts/ci.sh` green, and the
 browser build must not regress. A visual task that drops a frame budget or

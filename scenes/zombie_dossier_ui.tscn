@@ -1,0 +1,100 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/zombie_dossier_ui.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dossier"]
+bg_color = Color(0.05, 0.07, 0.09, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.8, 0.45, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 20.0
+content_margin_top = 16.0
+content_margin_right = 20.0
+content_margin_bottom = 16.0
+
+[node name="ZombieDossierUI" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DialogPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(920, 560)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dossier")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/DialogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderBar" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.25, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "☣️ HỒ SƠ SINH TỒN ĐẠI DỊCH (ZOMBIE OUTBREAK INTEL)"
+
+[node name="CloseButton" type="Button" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "✖ ĐÓNG (ESC)"
+
+[node name="TabsBar" type="HBoxContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TabSurvivorsBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TabsBar"]
+custom_minimum_size = Vector2(210, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "🛡️ 5 ĐẶC NHIỆM SINH TỒN"
+
+[node name="TabMonstersBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TabsBar"]
+custom_minimum_size = Vector2(210, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "☣️ QUÁI VẬT & TRÙM BIẾN DỊ"
+
+[node name="TabAirdropBtn" type="Button" parent="CenterContainer/DialogPanel/VBox/TabsBar"]
+custom_minimum_size = Vector2(210, 36)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "📦 HÒM TIẾP TẾ DÃ CHIẾN"
+
+[node name="ContentContainer" type="MarginContainer" parent="CenterContainer/DialogPanel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 8

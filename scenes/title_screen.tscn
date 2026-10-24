@@ -289,6 +289,12 @@ custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
 text = "Phong Thần [Q]"
 
+[node name="NavZombieBtn" type="Button" parent="MarginContainer/MainVBox/NavHBox"]
+custom_minimum_size = Vector2(130, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+text = "☣️ Sinh Tồn [Z]"
+
 [node name="FooterHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
 layout_mode = 2
 theme_override_constants/separation = 24

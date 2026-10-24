@@ -68,6 +68,14 @@ theme_override_font_sizes/font_size = 18
 text = "🧙 CHOOSE YOUR HERO & ASCEND 🧙"
 horizontal_alignment = 1
 
+[node name="IntelButton" type="Button" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.25, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "☣️ HỒ SƠ SINH TỒN"
+
 [node name="HeaderCloseButton" type="Button" parent="CenterContainer/DialogPanel/VBox/HeaderBar"]
 custom_minimum_size = Vector2(110, 32)
 layout_mode = 2

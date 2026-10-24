@@ -32,6 +32,29 @@ func _ready() -> void:
 		if spr and ResourceLoader.exists("res://assets/textures/bio_vial.png"):
 			spr.texture = load("res://assets/textures/bio_vial.png")
 
+	# Magnet arc trail: glowing jade fragments trailing behind during magnetic pull
+	var trail = CPUParticles2D.new()
+	trail.name = "MagnetTrail"
+	trail.amount = 8
+	trail.lifetime = 0.3
+	trail.pre_process_time = 0.0
+	trail.explosiveness = 0.8
+	trail.speed_scale = 0.5
+	trail.direction = Vector2.ZERO
+	trail.gravity = Vector2.ZERO
+	trail.spread = 0.0
+	trail.initial_velocity_min = 0.0
+	trail.initial_velocity_max = 30.0
+	trail.scale_amount_min = 0.3
+	trail.scale_amount_max = 0.6
+	trail.color = Color(0.4, 1.0, 0.6, 0.8)
+	trail.color_ramp = Gradient.new()
+	trail.color_ramp.set_offsets(PackedFloat32Array([0.0, 1.0]))
+	trail.color_ramp.set_colors(PackedColorArray([Color(0.5, 1.0, 0.7, 0.9), Color(0.3, 0.8, 0.4, 0.0)]))
+	trail.emitting = false
+	trail.z_index = 10
+	add_child(trail)
+
 	# Kinetic pop impulse in random outward direction
 	var angle = randf() * TAU
 	var speed = randf_range(60.0, 130.0)
@@ -53,6 +76,12 @@ func _process(delta: float) -> void:
 		# Smooth magnetic suction squash
 		var suction = clampf(dist / 40.0, 0.35, 1.0)
 		scale = Vector2(0.5, 0.5) * suction
+		
+		# Emit magnet arc trail particles during pull
+		var trail = get_node_or_null("MagnetTrail")
+		if trail:
+			trail.emitting = true
+			trail.global_position = global_position
 		if dist < 18.0:
 			collect()
 	elif toss_timer > 0.0:

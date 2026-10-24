@@ -17,6 +17,10 @@ const BOSS_BGM_OGG: String = "res://assets/audio/boss_bgm.ogg"
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_sound("shoot", "res://assets/audio/shoot.wav")
+	_load_sound("gunshot", "res://assets/audio/gunshot.wav")
+	_load_sound("shotgun", "res://assets/audio/shotgun.wav")
+	_load_sound("zombie_groan", "res://assets/audio/zombie_groan.wav")
+	_load_sound("zombie_hit", "res://assets/audio/zombie_hit.wav")
 	_load_sound("hit", "res://assets/audio/hit.wav")
 	_load_sound("gem", "res://assets/audio/gem.wav")
 	_load_sound("level_up", "res://assets/audio/level_up.wav")

@@ -135,6 +135,15 @@ const STAGES: Dictionary = {
 		"texture_path": "res://assets/textures/snow_floor.png",
 		"hazard": "blizzard",
 		"color": Color(0.4, 0.85, 1.0)
+	},
+	"zombie_city": {
+		"id": "zombie_city",
+		"name": "Khu Cách Ly - Đô Thị Hoang Tàn",
+		"icon": "☣️",
+		"desc": "Thành phố đổ nát tràn ngập thây ma biến dị. Thu gom ống nghiệm sinh học để sinh tồn!",
+		"texture_path": "res://assets/textures/asphalt_floor.png",
+		"hazard": "toxic_outbreak",
+		"color": Color(0.2, 0.9, 0.4)
 	}
 }
 
@@ -382,6 +391,109 @@ const CHARACTERS: Dictionary = {
 	}
 }
 
+const ZOMBIE_CHARACTERS: Dictionary = {
+	"swat": {
+		"id": "swat",
+		"name": "Corporal Miller (SWAT)",
+		"title": "Chỉ Huy Biệt Đội Tác Chiến",
+		"texture_path": "res://assets/textures/hero_survivor.png",
+		"portrait_path": "res://assets/promo/swat_survivor_art.png",
+		"starter_weapons": ["dagger", "slash"],
+		"base_hp_bonus": 30.0,
+		"armor_bonus": 3,
+		"speed_bonus": 0.0,
+		"magnet_bonus": 0.0,
+		"might_bonus": 0.15,
+		"speed_mult": 1.05,
+		"xp_mult": 1.0,
+		"skill_id": "tactical_roll",
+		"skill_name": "Lăn Tác Chiến Flashbang",
+		"skill_icon": "🛡️",
+		"skill_desc": "Lướt né 0.8s bất tử và ném lựu đạn choáng làm bất động zombie xung quanh",
+		"description": "Đặc nhiệm SWAT sống sót sau đợt bùng phát đại dịch.\n🔫 Vũ khí: Súng lục tác chiến & Dao găm dã chiến\n🛡️ Kỹ năng: Lăn Tác Chiến Flashbang (SPACE)\n🦺 Thiên phú: +30 HP, +3 Giáp chống cắn xé"
+	},
+	"medic": {
+		"id": "medic",
+		"name": "Dr. Evelyn Hayes",
+		"title": "Bác Sĩ Quân Y Dã Chiến",
+		"texture_path": "res://assets/textures/hero_survivor.png",
+		"portrait_path": "res://assets/promo/medic_art.png",
+		"starter_weapons": ["orbit", "dagger"],
+		"base_hp_bonus": 15.0,
+		"armor_bonus": 1,
+		"speed_bonus": 10.0,
+		"magnet_bonus": 40.0,
+		"might_bonus": 0.0,
+		"speed_mult": 1.10,
+		"xp_mult": 1.25,
+		"skill_id": "bio_pulse",
+		"skill_name": "Sóng Khử Khuẩn Sinh Học",
+		"skill_icon": "💉",
+		"skill_desc": "Phát xung sóng sinh học hồi 35 HP và làm chậm toàn bộ zombie 60%",
+		"description": "Bác sĩ nghiên cứu huyết thanh kháng virus.\n🧬 Vũ khí: Vòng Khử Trùng Kháng Khuẩn & Súng lục\n💉 Kỹ năng: Sóng Khử Khuẩn Sinh Học (SPACE)\n🧪 Thiên phú: +25% Thu hoạch ống nghiệm XP, +40 Tầm hút"
+	},
+	"pyro_z": {
+		"id": "pyro_z",
+		"name": "Blaze (Demolitionist)",
+		"title": "Chuyên Gia Hỏa Lực Hạng Nặng",
+		"texture_path": "res://assets/textures/hero_pyro.png",
+		"portrait_path": "res://assets/promo/pyro_art.png",
+		"starter_weapons": ["fireball", "axe"],
+		"base_hp_bonus": 10.0,
+		"armor_bonus": 0,
+		"speed_bonus": 0.0,
+		"magnet_bonus": 0.0,
+		"might_bonus": 0.55,
+		"speed_mult": 1.0,
+		"xp_mult": 1.0,
+		"skill_id": "napalm_blast",
+		"skill_name": "Bộc Phá Napalm",
+		"skill_icon": "🔥",
+		"skill_desc": "Kích nổ bình xăng thiêu rụi toàn bộ thây ma trong diện rộng",
+		"description": "Thợ phá dỡ trang bị súng phun lửa và bom xăng Molotov.\n🔥 Vũ khí: Bom Xăng Napalm & Lựu Đạn Mảnh\n💥 Kỹ năng: Bộc Phá Napalm (SPACE)\n🧨 Thiên phú: +55% Sát thương hỏa lực diện rộng"
+	},
+	"scout": {
+		"id": "scout",
+		"name": "Ghost (Wasteland Scout)",
+		"title": "Trinh Sát Viên Vùng Đất Chết",
+		"texture_path": "res://assets/textures/hero_ranger.png",
+		"portrait_path": "res://assets/promo/scout_art.png",
+		"starter_weapons": ["dagger", "lightning"],
+		"base_hp_bonus": 0.0,
+		"armor_bonus": 0,
+		"speed_bonus": 45.0,
+		"magnet_bonus": 20.0,
+		"might_bonus": 0.10,
+		"speed_mult": 1.30,
+		"xp_mult": 1.10,
+		"skill_id": "adrenaline_rush",
+		"skill_name": "Tiêm Adrenaline Khẩn Cấp",
+		"skill_icon": "⚡",
+		"skill_desc": "Tăng tốc độ di chuyển +80% và tốc độ bắn gấp đôi trong 4s",
+		"description": "Thợ săn cơ động lướt qua bầy zombie như bóng ma.\n⚡ Vũ khí: Tiểu Liên Kép & Tia Xung Điện\n💨 Kỹ năng: Tiêm Adrenaline Khẩn Cấp (SPACE)\n🏃 Thiên phú: +30% Tốc độ di chuyển, +10% Sát thương chí mạng"
+	},
+	"biker": {
+		"id": "biker",
+		"name": "Axel (Outlaw Brawler)",
+		"title": "Quái Xế Cận Chiến",
+		"texture_path": "res://assets/textures/hero_beggar.png",
+		"portrait_path": "res://assets/promo/biker_art.png",
+		"starter_weapons": ["slash", "axe"],
+		"base_hp_bonus": 40.0,
+		"armor_bonus": 2,
+		"speed_bonus": -10.0,
+		"magnet_bonus": 0.0,
+		"might_bonus": 0.35,
+		"speed_mult": 1.0,
+		"xp_mult": 1.0,
+		"skill_id": "berserk_rampage",
+		"skill_name": "Cuồng Nộ Búa Tạ",
+		"skill_icon": "🪓",
+		"skill_desc": "Vung búa tạ 360 độ hất văng mọi zombie và hồi 20 Máu",
+		"description": "Tay đua mô tô trang bị búa tạ và xích sắt đập nát bầy thây ma.\n🪓 Vũ khí: Búa Tạ Cận Chiến & Lưỡi Rìu Hạng Nặng\n🩸 Kỹ năng: Cuồng Nộ Búa Tạ (SPACE)\n💪 Thiên phú: +40 HP, +35% Sát thương đập cận chiến"
+	}
+}
+
 var meta_upgrades: Dictionary = {
 	"might": 0,      # +10% Damage per level
 	"vitality": 0,   # +25 Max HP per level
@@ -488,10 +600,12 @@ var filesystem_syncs_issued: int = 0
 var _filesystem_sync_done_cb: JavaScriptObject = null
 
 func get_selected_character_data() -> Dictionary:
+	if ZOMBIE_CHARACTERS.has(selected_character):
+		return ZOMBIE_CHARACTERS[selected_character]
 	return CHARACTERS.get(selected_character, CHARACTERS["knight"])
 
 func select_character(char_id: String) -> void:
-	if CHARACTERS.has(char_id):
+	if CHARACTERS.has(char_id) or ZOMBIE_CHARACTERS.has(char_id):
 		selected_character = char_id
 		save_game_data()
 		emit_signal("character_selected", char_id)
@@ -1174,7 +1288,7 @@ func load_save_data() -> void:
 					danger_level = clampi(int(parsed["danger_level"]), 0, MAX_DANGER_LEVEL)
 				if parsed.has("selected_character"):
 					var c_id = str(parsed["selected_character"])
-					if CHARACTERS.has(c_id):
+					if CHARACTERS.has(c_id) or ZOMBIE_CHARACTERS.has(c_id):
 						selected_character = c_id
 				if parsed.has("selected_companion"):
 					var p_id = str(parsed["selected_companion"])

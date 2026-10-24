@@ -58,7 +58,10 @@ func fire_at(target_pos: Vector2) -> void:
 	if not projectile_scene:
 		return
 		
-	SoundManager.play("shoot", 0.18 if is_evolved else 0.12)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		SoundManager.play("gunshot", 0.22 if is_evolved else 0.14)
+	else:
+		SoundManager.play("shoot", 0.18 if is_evolved else 0.12)
 	var base_direction = global_position.direction_to(target_pos)
 	
 	if is_evolved:

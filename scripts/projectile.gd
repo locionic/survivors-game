@@ -14,6 +14,10 @@ var weapon_id: String = "dagger"
 
 func _ready() -> void:
 	add_to_group("projectiles")
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		var spr = get_node_or_null("Sprite2D")
+		if spr and ResourceLoader.exists("res://assets/textures/bullet.png"):
+			spr.texture = load("res://assets/textures/bullet.png")
 	var timer = get_tree().create_timer(lifetime)
 	timer.timeout.connect(queue_free)
 

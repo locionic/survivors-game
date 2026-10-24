@@ -195,7 +195,7 @@ func _refresh_hero() -> void:
 	if hero_desc_label:
 		hero_desc_label.text = char_data.get("description", "").split("\n")[0]
 	if hero_sprite:
-		var tex_path = char_data.get("texture_path", "")
+		var tex_path = char_data.get("portrait_path", char_data.get("texture_path", ""))
 		if ResourceLoader.exists(tex_path):
 			hero_sprite.texture = load(tex_path)
 		hero_sprite.pivot_offset = Vector2(36, 36)

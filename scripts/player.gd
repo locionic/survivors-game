@@ -1240,6 +1240,79 @@ func activate_hero_skill() -> bool:
 					if "knockback" in e:
 						e.knockback = (e.global_position - global_position).normalized() * 450.0
 						
+		"tactical_roll":
+			is_dashing = true
+			dash_timer = 0.35
+			dash_velocity = dir * 600.0
+			invulnerability_timer = 0.90
+			FloatingText.spawn(global_position + Vector2(0, -32), "🛡️ TACTICAL COMBAT ROLL!", Color(0.2, 0.9, 1.0))
+			SoundManager.play("powerup", 0.15)
+			var cam = get_tree().get_first_node_in_group("camera")
+			if cam and cam.has_method("shake"):
+				cam.shake(8.0)
+			_spawn_skill_shockwave(Color(0.2, 0.85, 1.0, 0.85), 75.0)
+
+		"bio_pulse":
+			invulnerability_timer = 0.60
+			current_health = min(max_health, current_health + 35.0)
+			_update_hp_displays()
+			FloatingText.spawn(global_position + Vector2(0, -35), "💉 KHỬ KHUẨN SINH HỌC (+35 HP)!", Color(0.2, 1.0, 0.5))
+			SoundManager.play("powerup", 0.2)
+			var cam = get_tree().get_first_node_in_group("camera")
+			if cam and cam.has_method("shake"):
+				cam.shake(10.0)
+			_spawn_skill_shockwave(Color(0.2, 1.0, 0.4, 0.9), 240.0)
+			var enemies = get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if is_instance_valid(e) and not e.get("is_dead") and global_position.distance_to(e.global_position) <= 240.0:
+					if e.has_method("apply_freeze"):
+						e.apply_freeze(2.0)
+					if e.has_method("take_damage"):
+						e.take_damage(40.0 * get_might_multiplier(), global_position)
+
+		"napalm_blast":
+			invulnerability_timer = 0.50
+			FloatingText.spawn(global_position + Vector2(0, -35), "🔥 BỘC PHÁ NAPALM!", Color(1.0, 0.45, 0.1))
+			SoundManager.play("explosion", 0.25)
+			var cam = get_tree().get_first_node_in_group("camera")
+			if cam and cam.has_method("shake"):
+				cam.shake(14.0)
+			_spawn_skill_shockwave(Color(1.0, 0.4, 0.1, 0.9), 260.0)
+			var enemies = get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if is_instance_valid(e) and not e.get("is_dead") and global_position.distance_to(e.global_position) <= 260.0:
+					if e.has_method("apply_burn"):
+						e.apply_burn(5.0, 18.0)
+					if e.has_method("take_damage"):
+						e.take_damage(75.0 * get_might_multiplier(), global_position)
+
+		"adrenaline_rush":
+			invulnerability_timer = 0.80
+			run_speed_mult *= 1.5
+			var t_adr = get_tree().create_timer(4.5)
+			t_adr.timeout.connect(func(): run_speed_mult = max(1.0, run_speed_mult / 1.5))
+			FloatingText.spawn(global_position + Vector2(0, -35), "⚡ ADRENALINE KHẨN CẤP (+50% TỐC)!", Color(1.0, 0.9, 0.2))
+			SoundManager.play("powerup", 0.25)
+			_spawn_skill_shockwave(Color(1.0, 0.9, 0.2, 0.8), 90.0)
+
+		"berserk_rampage":
+			invulnerability_timer = 0.85
+			current_health = min(max_health, current_health + 20.0)
+			_update_hp_displays()
+			FloatingText.spawn(global_position + Vector2(0, -35), "🪓 CUỒNG NỘ BÚA TẠ (+20 HP)!", Color(1.0, 0.25, 0.25))
+			SoundManager.play("axe", 0.3)
+			var cam = get_tree().get_first_node_in_group("camera")
+			if cam and cam.has_method("shake"):
+				cam.shake(12.0)
+			_spawn_skill_shockwave(Color(1.0, 0.2, 0.2, 0.9), 190.0)
+			var enemies = get_tree().get_nodes_in_group("enemies")
+			for e in enemies:
+				if is_instance_valid(e) and not e.get("is_dead") and global_position.distance_to(e.global_position) <= 190.0:
+					if e.has_method("take_damage"):
+						e.take_damage(80.0 * get_might_multiplier(), global_position)
+					if "knockback" in e:
+						e.knockback = (e.global_position - global_position).normalized() * 550.0
+
 		_:
 			# Default dash
 			is_dashing = true

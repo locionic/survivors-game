@@ -591,7 +591,10 @@ func take_damage(amount: float, source_pos: Vector2 = Vector2.ZERO) -> void:
 	else:
 		FloatingText.spawn(global_position, str(int(final_amount)), Color(1.0, 0.55, 0.20) if is_boss else Color(0.95, 0.95, 1.0))
 		
-	SoundManager.play("hit", 0.25 if is_crit else 0.1)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		SoundManager.play("zombie_hit", 0.22 if is_crit else 0.12)
+	else:
+		SoundManager.play("hit", 0.25 if is_crit else 0.1)
 	
 	# Trigger Storm Amulet relic if player has it
 	if player and player.has_method("trigger_storm_amulet_proc"):
@@ -674,6 +677,9 @@ func apply_slow(duration: float, factor: float = 0.5) -> void:
 
 func die() -> void:
 	is_dead = true
+	
+	if GameManager and GameManager.selected_stage == "zombie_city" and randf() < 0.45:
+		SoundManager.play("zombie_groan", 0.16)
 	
 	# Micro-Hitstop on enemy kill for bone-crushing impact.
 	# Milestone 3b: trash mobs NEVER touch Engine.time_scale. A bat swarm is 10

@@ -15,6 +15,10 @@ signal wave_event_announced(message: String, is_boss: bool)
 
 @export var demon_emperor_scene: PackedScene = preload("res://scenes/demon_emperor.tscn")
 
+var zombie_walker_scene: PackedScene = preload("res://scenes/zombie_walker.tscn")
+var zombie_runner_scene: PackedScene = preload("res://scenes/zombie_runner.tscn")
+var zombie_bloater_scene: PackedScene = preload("res://scenes/zombie_bloater.tscn")
+
 @export var spawn_interval: float = 0.70
 @export var spawn_distance: float = 460.0
 

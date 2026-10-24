@@ -261,14 +261,18 @@ func render_cards() -> void:
 		
 		# Portrait container
 		var portrait_ctr = CenterContainer.new()
-		portrait_ctr.custom_minimum_size = Vector2(0, 68)
+		portrait_ctr.custom_minimum_size = Vector2(0, 72)
 		var tex_rect = TextureRect.new()
-		tex_rect.custom_minimum_size = Vector2(64, 64)
+		tex_rect.custom_minimum_size = Vector2(68, 68)
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		var tex_path = char_data.get("texture_path", "")
-		if ResourceLoader.exists(tex_path):
-			tex_rect.texture = load(tex_path)
+		var portrait_path = char_data.get("portrait_path", char_data.get("texture_path", ""))
+		if portrait_path.ends_with("_art.png"):
+			tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+			tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		else:
+			tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(portrait_path):
+			tex_rect.texture = load(portrait_path)
 		portrait_ctr.add_child(tex_rect)
 		vbox.add_child(portrait_ctr)
 		

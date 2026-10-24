@@ -27,6 +27,11 @@ func _ready() -> void:
 	if _absorb_into_neighbour():
 		return
 
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		var spr = get_node_or_null("Sprite2D")
+		if spr and ResourceLoader.exists("res://assets/textures/bio_vial.png"):
+			spr.texture = load("res://assets/textures/bio_vial.png")
+
 	# Kinetic pop impulse in random outward direction
 	var angle = randf() * TAU
 	var speed = randf_range(60.0, 130.0)

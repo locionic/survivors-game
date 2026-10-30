@@ -243,10 +243,10 @@ func _refresh_stage() -> void:
 			header_badge.text = "PROJECT Z-SURVIVOR • BIO-HAZARD ROGUELIKE"
 			header_badge.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 		if sub_title:
-			sub_title.text = "☣️ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
+			sub_title.text = "☣ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
 			sub_title.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
 		if nav_zombie_btn:
-			nav_zombie_btn.text = "☣️ Hồ Sơ Zombie [Z]"
+			nav_zombie_btn.text = "☣ Hồ Sơ Zombie [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 	else:
 		if main_title:
@@ -259,7 +259,7 @@ func _refresh_stage() -> void:
 			sub_title.text = "ĐẠI HỘI VÕ LÂM • TRĂM NĂM TRANH ĐOẠT"
 			sub_title.add_theme_color_override("font_color", Color(0.35, 0.88, 1, 1))
 		if nav_zombie_btn:
-			nav_zombie_btn.text = "☣️ Chế Độ Zombie [Z]"
+			nav_zombie_btn.text = "☣ Chế Độ Zombie [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))
 
 func _refresh_gold() -> void:

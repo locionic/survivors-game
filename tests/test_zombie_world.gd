@@ -17,6 +17,7 @@ func _ready() -> void:
 		print("=== ALL PROJECT Z-SURVIVOR TESTS PASSED 100% CLEANLY! ===")
 	else:
 		print("=== TEST FAILURES ENCOUNTERED: ", _failures.size(), " ===")
+	get_tree().quit(_exit_code())
 
 func _test_stage_registry() -> void:
 	check(GameManager.STAGES.has("zombie_city"), "STAGES must have zombie_city")

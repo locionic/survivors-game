@@ -649,6 +649,11 @@ func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 		
 		# Play buddha gong for boss entrance
 		SoundManager.play("buddha_gong", 0.15)
+		
+		# Dramatic martial camera shake
+		var cam = get_tree().root.find_child("Camera2D", true, false)
+		if cam and cam.has_method("shake"):
+			cam.shake(12.0)
 	else:
 		warning_banner.text = message
 	
@@ -783,20 +788,19 @@ func _setup_ui_styles() -> void:
 		lvl_sb.set_corner_radius_all(4)
 		level_badge.add_theme_stylebox_override("normal", lvl_sb)
 		
-	# HP Bar styling -- Vermilion per the Milestone 4 tokens. It used to be green,
-	# which read as "safe" on a bar whose whole job is to signal danger.
+	# HP Bar styling -- Vermilion per the Milestone 4 tokens.
 	if hp_bar:
 		hp_bar.add_theme_stylebox_override("background",
-			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.VERMILION.darkened(0.45), 4, 1))
+			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.VERMILION.darkened(0.45), 6, 1))
 		hp_bar.add_theme_stylebox_override("fill",
-			UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 4, 0))
+			UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 6, 0))
 
 	# XP Bar styling -- Jade.
 	if xp_bar:
 		xp_bar.add_theme_stylebox_override("background",
-			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.55), 4, 1))
+			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.55), 6, 1))
 		xp_bar.add_theme_stylebox_override("fill",
-			UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 4, 0))
+			UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 6, 0))
 
 	# Boss Bar styling
 	if boss_hp_bar:
@@ -981,26 +985,29 @@ func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, e
 	if ev.get(weapon_id, false):
 		badge.text = "%s %s MAX" % [icon, Loc.t("evo.%s.name" % weapon_id, weapon_id)]
 		badge.add_theme_color_override("font_color", evo_color)
-		_style_badge_box(badge, evo_color, Color(0.20, 0.16, 0.05, 0.90))
+		_style_badge_box(badge, evo_color, Color(0.22, 0.16, 0.05, 0.95), 10)
 	elif level > 0:
 		var pips := ""
 		for p in 5:
-			pips += "●" if p < level else "○"
+			pips += "★" if p < level else "☆"
 		badge.text = "%s %s %s" % [icon, wname, pips]
-		badge.add_theme_color_override("font_color", Color.WHITE)
-		_style_badge_box(badge, Color(0.35, 0.60, 0.85, 0.85), Color(0.08, 0.12, 0.18, 0.85))
+		badge.add_theme_color_override("font_color", Color(0.98, 0.96, 0.92))
+		_style_badge_box(badge, Color(0.85, 0.70, 0.35, 0.90), Color(0.12, 0.08, 0.06, 0.90), 10)
 	else:
 		badge.text = "%s %s 🔒" % [icon, wname]
 		badge.add_theme_color_override("font_color", Color(0.55, 0.60, 0.70, 0.65))
-		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75))
+		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75), 8)
 
-func _style_badge_box(badge: Label, border_color: Color, bg_color: Color) -> void:
+func _style_badge_box(badge: Label, border_color: Color, bg_color: Color, radius: int = 8) -> void:
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = bg_color
 	sb.border_color = border_color
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(4)
-	sb.set_content_margin_all(5)
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(radius)
+	sb.set_content_margin_all(6)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(0, 2)
 	badge.add_theme_stylebox_override("normal", sb)
 
 func _update_passives_display() -> void:

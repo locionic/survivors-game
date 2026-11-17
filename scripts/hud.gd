@@ -2209,6 +2209,18 @@ func _update_ambient_weather() -> void:
 		ambient_weather.scale_amount_min = 1.5
 		ambient_weather.scale_amount_max = 3.5
 		ambient_weather.color = Color(0.88, 0.95, 1.0, 0.70)
+	elif stage_id == "zombie_city":
+		# Quarantine Zone: Drifting biohazard spores & ash
+		ambient_weather.amount = 42
+		ambient_weather.lifetime = 5.0
+		ambient_weather.direction = Vector2(0.6, 0.4)
+		ambient_weather.spread = 35.0
+		ambient_weather.gravity = Vector2(10.0, 18.0)
+		ambient_weather.initial_velocity_min = 18.0
+		ambient_weather.initial_velocity_max = 45.0
+		ambient_weather.scale_amount_min = 2.0
+		ambient_weather.scale_amount_max = 4.0
+		ambient_weather.color = Color(0.35, 0.95, 0.45, 0.42)
 	else:
 		# Ba Lăng Huyện (Plains): Gentle drifting golden wind motes & leaves
 		ambient_weather.amount = 35

@@ -385,10 +385,22 @@ text = "🔥 Fire Lv.1"
 layout_mode = 2
 text = "🪓 Axe Lv.1"
 
+[node name="SlashBadge" type="Label" parent="HUD/GameUI/ArsenalBar"]
+layout_mode = 2
+text = "🗡️ Slash Lv.1"
+
 [node name="PassivesLabel" type="Label" parent="HUD/GameUI/ArsenalBar"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 0.8)
 text = "| ⚔️+0% 👢230 🧲140 🛡️0"
+
+[node name="RelicsBar" type="HBoxContainer" parent="HUD/GameUI"]
+layout_mode = 1
+offset_left = 16.0
+offset_top = 84.0
+offset_right = 320.0
+offset_bottom = 112.0
+theme_override_constants/separation = 6
 
 [node name="WarningBanner" type="Label" parent="HUD/GameUI"]
 visible = false

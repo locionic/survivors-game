@@ -36,22 +36,61 @@ cannot drift. Do not "localize" it.
 
 ---
 
-## OPEN — SurvivorQuest visual rebirth
+## Visual Rebirth Status — SurvivorQuest (Martial Arts Mode)
 
-`SURVIVORQUEST_VISUAL_REBIRTH_PLAN.md` is the one plan file with real work in
-it. Audited by grep against the source:
+`SURVIVORQUEST_VISUAL_REBIRTH_PLAN.md` audited and completed:
 
-DONE
+DONE (100% Complete)
 - [x] P1 four-tier rarity borders (`TIER_COLORS`, `upgrade_manager.gd`)
 - [x] P1 card hover/selection juice — lift (+12px, 1.05 scale), epic pulse aura, legendary ember motes, qi burst on select, ui_hover sound
+- [x] P2 arena theming: bamboo, moss, guardian lions, red lanterns, floating leaf `CPUParticles2D` (`main.tscn`, `scripts/main.gd`, assets generated & imported)
+- [x] P2 boss entrance banner `⚠️ MA GIÁO XUẤT HIỆN` + gong (dramatic crimson lacquer banner, gold border, gong SFX in `hud.gd`)
+- [x] P2 XP gem / coin magnet arcs (`MagnetTrail` in `gem.gd` and `coin.gd` with `local_coords = false`)
+- [x] P3 HUD lacquer weapon + relic slots (6 circular lacquer weapon medallions with pips, 6 square lacquer relic slots in `hud.gd` & `main.tscn`)
+- [x] P3 Streamlined Dragon Qi HP bar & glowing Jade XP bar in `hud.gd`
 
-NOT DONE
-- [ ] P2 arena theming: bamboo, moss, guardian lions, red lanterns,
-      floating leaf `CPUParticles2D` (partially in `main.tscn`)
-- [ ] P2 boss entrance banner `⚠️ MA GIÁO XUẤT HIỆN` + gong
-- [ ] P2 XP gem / coin magnet arcs (visual trails during magnetic pull)
-- [ ] P3 HUD lacquer weapon + relic slots (only text `equipment_slots`
-      iteration exists at `hud.gd:1007`)
+---
+
+## ACTIVE ARCHITECTURE & ROADMAP: Project Z-Survivor (Zombie Outbreak Mode)
+
+The project has transitioned to **Zombie Outbreak** as its primary default theme and game mode (`selected_stage = "zombie_city"`, default class = `"swat"`), while preserving full backwards compatibility with the Wuxia Martial Arts mode.
+
+### Dual-Theme Architecture
+1. **Primary Default (Zombie Outbreak)**:
+   - **Stage**: Zombie City Quarantine Zone (dark asphalt tiles, biohazard waste, barricades).
+   - **Survivors**: SWAT Operative, Field Medic, Hazard Scout, Pyro Specialist, Biker Rebel.
+   - **Enemies**: Walkers, Runners (ambush ring), Bloaters, Toxic Spitters, Mutant Juggernauts.
+   - **Pickups**: Bio-Vials (XP), Medical Packs (HP), Ammo Caches, Gold/Bounty credits.
+   - **HUD / UI**: Tactical dossier screen, biohazard alert banners (`☣️ BIO-THREAT APPROACHING: %s ☣️`).
+
+2. **Alternate Stage (Võ Lâm / Martial Arts)**:
+   - Preserved for legacy and alternate stage selection (ancient stone tiles, bamboo reeds, guardian lions, red lanterns, qi cultivation).
+
+### Completed Zombie Outbreak Milestones
+- [x] Zombie Outbreak PR #1 remediation & stabilization:
+  - Fixed GDScript parse syntax in `main.tscn` and extracted clean scene logic into `scripts/main.gd`.
+  - Corrected `CPUParticles2D` property compatibility (`preprocess` for Godot 4.3).
+  - Headless CI teardown fixed in `tests/test_zombie_world.gd`.
+  - Save data default isolation in `GameManager.load_save_data()`.
+  - 65/65 test suites green (`GATE PASSED`).
+- [x] Tactical Zombie Dossier UI (`scenes/zombie_dossier_ui.tscn`, `scripts/zombie_dossier_ui.gd`).
+- [x] Bio-vial XP pickups and zombie audio sfx (gunshots, groans, hits).
+
+### Open / Next Zombie Outbreak Features
+- [ ] **Tactical Weapon Reskin & Modern Arsenal Evolutions**:
+  - Contextual weapon display names and tactical sprites when playing in Zombie City:
+    - Dagger -> Tactical Combat Knife / Trench Blade
+    - Aegis Shield -> Riot Shield / Kinetic Barrier
+    - Lightning -> EMP Shock Grenade / Taser Discharge
+    - Fireball -> Thermite Flask / Molotov Cocktail
+    - Axe -> Heavy Breaching Axe / Sledgehammer
+    - Slash -> Combat Machete / Cryo Wave
+- [ ] **Quarantine Arena Props & Destructibles**:
+  - Concrete jersey barriers, sandbag nests, military hazard drums (explosive on hit), flickering sodium streetlights.
+- [ ] **Emergency Airdrop Event System**:
+  - Timed supply drops delivering high-grade military crates, weapon fuses, and temporary adrenaline boosts.
+- [ ] **Bio-Contamination & Infection Mechanic**:
+  - Hazardous toxic bile puddles left behind by Bloaters and Toxic Spitters requiring tactical movement.
 
 **Sequencing constraint.** P2 is one task, not five. Arena props touch
 `arena.tscn` and `arena.gd` together; splitting them puts five agents in the

@@ -33,18 +33,19 @@ func _ready() -> void:
 	# Magnet arc trail: golden sycee fragments trailing behind during magnetic pull
 	var trail = CPUParticles2D.new()
 	trail.name = "MagnetTrail"
-	trail.amount = 8
-	trail.lifetime = 0.3
+	trail.amount = 12
+	trail.local_coords = false
+	trail.lifetime = 0.35
 	trail.preprocess = 0.0
-	trail.explosiveness = 0.8
-	trail.speed_scale = 0.5
+	trail.explosiveness = 0.7
+	trail.speed_scale = 0.6
 	trail.direction = Vector2.ZERO
 	trail.gravity = Vector2.ZERO
-	trail.spread = 0.0
-	trail.initial_velocity_min = 0.0
-	trail.initial_velocity_max = 30.0
-	trail.scale_amount_min = 0.3
-	trail.scale_amount_max = 0.6
+	trail.spread = 20.0
+	trail.initial_velocity_min = 5.0
+	trail.initial_velocity_max = 25.0
+	trail.scale_amount_min = 0.4
+	trail.scale_amount_max = 0.8
 	trail.color = Color(1.0, 0.85, 0.2, 0.9)
 	trail.color_ramp = Gradient.new()
 	trail.color_ramp.set_offsets(PackedFloat32Array([0.0, 1.0]))
@@ -66,10 +67,14 @@ func _process(delta: float) -> void:
 		
 		if global_position.distance_to(target.global_position) < 18.0:
 			collect()
-	elif toss_timer > 0.0:
-		toss_timer -= delta
-		global_position += toss_vel * delta
-		toss_vel = toss_vel.move_toward(Vector2.ZERO, 380.0 * delta)
+	else:
+		var trail = get_node_or_null("MagnetTrail")
+		if trail and trail.emitting:
+			trail.emitting = false
+		if toss_timer > 0.0:
+			toss_timer -= delta
+			global_position += toss_vel * delta
+			toss_vel = toss_vel.move_toward(Vector2.ZERO, 380.0 * delta)
 
 func _draw() -> void:
 	# Subtle drop shadow beneath coin

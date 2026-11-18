@@ -74,7 +74,20 @@ var dps_labels: Dictionary = {}
 @onready var thunder_badge: Label = $GameUI/ArsenalBar/ThunderBadge
 @onready var fireball_badge: Label = $GameUI/ArsenalBar/FireballBadge
 @onready var axe_badge: Label = $GameUI/ArsenalBar/AxeBadge
+@onready var slash_badge: Label = get_node_or_null("GameUI/ArsenalBar/SlashBadge")
 @onready var passives_label: Label = $GameUI/ArsenalBar/PassivesLabel
+
+# Relic Slots Bar
+@onready var relics_bar: HBoxContainer = get_node_or_null("GameUI/RelicsBar")
+var relic_slot_labels: Dictionary = {}
+const RELIC_SLOT_DEFS: Array[Dictionary] = [
+	{"id": "vampire_fang", "icon": "🩸", "name": "Vampire Fang"},
+	{"id": "storm_amulet", "icon": "⚡", "name": "Storm Amulet"},
+	{"id": "phoenix_feather", "icon": "🪶", "name": "Phoenix Feather"},
+	{"id": "golden_horseshoe", "icon": "👑", "name": "Golden Horseshoe"},
+	{"id": "berserker_brand", "icon": "🔥", "name": "Berserker Brand"},
+	{"id": "chrono_hourglass", "icon": "⏳", "name": "Chrono Hourglass"},
+]
 
 # Event Banner & Controls
 @onready var warning_banner: Label = $GameUI/WarningBanner
@@ -155,8 +168,11 @@ func _ready() -> void:
 		GameManager.victory_achieved.connect(_on_victory_achieved)
 	if GameManager and not GameManager.kill_milestone_reached.is_connected(_on_kill_milestone_reached):
 		GameManager.kill_milestone_reached.connect(_on_kill_milestone_reached)
+	if GameManager and not GameManager.relic_collected.is_connected(_on_relic_collected):
+		GameManager.relic_collected.connect(_on_relic_collected)
 		
 	_setup_ui_styles()
+	_setup_relic_slots()
 	_setup_hero_skill_widget()
 	_setup_dragon_awakening_widget()
 	_setup_dragon_pearl_tray()
@@ -647,20 +663,40 @@ func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 		var warning_text = Loc.tf("hud.boss_warning", [boss_name])
 		warning_banner.text = "⚠️ %s ⚠️" % warning_text
 		
+		# Dramatic crimson lacquer banner styling with gold border
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color(0.28, 0.04, 0.06, 0.94)
+		sb.border_color = UITheme.GOLD
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(6)
+		sb.set_content_margin_all(10)
+		sb.shadow_color = Color(0.95, 0.15, 0.15, 0.45)
+		sb.shadow_size = 8
+		warning_banner.add_theme_stylebox_override("normal", sb)
+		warning_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+		
 		# Play buddha gong for boss entrance
 		SoundManager.play("buddha_gong", 0.15)
 	else:
 		warning_banner.text = message
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color(0.08, 0.12, 0.18, 0.85)
+		sb.border_color = Color(0.35, 0.60, 0.85, 0.85)
+		sb.set_border_width_all(1)
+		sb.set_corner_radius_all(4)
+		sb.set_content_margin_all(8)
+		warning_banner.add_theme_stylebox_override("normal", sb)
+		warning_banner.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	
 	warning_banner.visible = true
-	warning_banner.modulate = Color(1.0, 0.25, 0.2) if is_boss else Color(1.0, 0.85, 0.2)
+	warning_banner.modulate = Color.WHITE
 	warning_banner.scale = Vector2(0.8, 0.8)
 	warning_banner.pivot_offset = warning_banner.size / 2.0
 	
 	var tw = create_tween()
 	tw.tween_property(warning_banner, "scale", Vector2(1.2, 1.2), 0.2).set_trans(Tween.TRANS_BACK)
 	tw.tween_property(warning_banner, "scale", Vector2(1.0, 1.0), 0.15)
-	tw.tween_interval(2.0)
+	tw.tween_interval(2.5)
 	tw.tween_property(warning_banner, "modulate:a", 0.0, 0.4)
 	tw.tween_callback(func():
 		warning_banner.visible = false
@@ -783,18 +819,21 @@ func _setup_ui_styles() -> void:
 		lvl_sb.set_corner_radius_all(4)
 		level_badge.add_theme_stylebox_override("normal", lvl_sb)
 		
-	# HP Bar styling -- Vermilion per the Milestone 4 tokens. It used to be green,
-	# which read as "safe" on a bar whose whole job is to signal danger.
+	# HP Bar styling -- Vermilion per the Milestone 4 tokens with ornate golden lacquer accent
 	if hp_bar:
-		hp_bar.add_theme_stylebox_override("background",
-			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.VERMILION.darkened(0.45), 4, 1))
+		var hp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.GOLD.darkened(0.25), 4, 1)
+		hp_bg.shadow_color = Color(0.8, 0.2, 0.1, 0.25)
+		hp_bg.shadow_size = 3
+		hp_bar.add_theme_stylebox_override("background", hp_bg)
 		hp_bar.add_theme_stylebox_override("fill",
 			UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 4, 0))
 
-	# XP Bar styling -- Jade.
+	# XP Bar styling -- Jade with radiant celestial glow
 	if xp_bar:
-		xp_bar.add_theme_stylebox_override("background",
-			UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.55), 4, 1))
+		var xp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.40), 4, 1)
+		xp_bg.shadow_color = Color(0.2, 0.8, 0.4, 0.3)
+		xp_bg.shadow_size = 4
+		xp_bar.add_theme_stylebox_override("background", xp_bg)
 		xp_bar.add_theme_stylebox_override("fill",
 			UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 4, 0))
 
@@ -837,16 +876,16 @@ func _setup_ui_styles() -> void:
 		resume_button.add_theme_stylebox_override("pressed",
 			UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
 
-	# Arsenal badge styling
-	var badges = [dagger_badge, shield_badge, thunder_badge, fireball_badge, axe_badge]
+	# Arsenal badge styling - circular lacquer medallion aesthetics
+	var badges = [dagger_badge, shield_badge, thunder_badge, fireball_badge, axe_badge, slash_badge]
 	for badge in badges:
 		if badge:
 			var sb = StyleBoxFlat.new()
-			sb.bg_color = Color(0.08, 0.10, 0.15, 0.8)
-			sb.border_color = Color(0.24, 0.30, 0.42, 0.7)
+			sb.bg_color = Color(0.08, 0.10, 0.15, 0.88)
+			sb.border_color = Color(0.24, 0.30, 0.42, 0.70)
 			sb.set_border_width_all(1)
-			sb.set_corner_radius_all(3)
-			sb.set_content_margin_all(4)
+			sb.set_corner_radius_all(10)
+			sb.set_content_margin_all(5)
 			badge.add_theme_stylebox_override("normal", sb)
 
 	# Victory Panel styling
@@ -969,8 +1008,11 @@ func _on_arsenal_updated(levels: Dictionary) -> void:
 	_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
 	_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
 	_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
+	if slash_badge:
+		_badge(slash_badge, "slash", "🗡️", levels, ev, Color(0.4, 0.9, 1.0))
 
 	_update_passives_display()
+	_update_relic_slots()
 
 ## One badge, three states: evolved (EVO + gold), owned (name + level), locked.
 func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, ev: Dictionary, evo_color: Color) -> void:
@@ -981,27 +1023,97 @@ func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, e
 	if ev.get(weapon_id, false):
 		badge.text = "%s %s MAX" % [icon, Loc.t("evo.%s.name" % weapon_id, weapon_id)]
 		badge.add_theme_color_override("font_color", evo_color)
-		_style_badge_box(badge, evo_color, Color(0.20, 0.16, 0.05, 0.90))
+		_style_badge_box(badge, evo_color, Color(0.22, 0.17, 0.05, 0.94), true)
 	elif level > 0:
 		var pips := ""
 		for p in 5:
 			pips += "●" if p < level else "○"
 		badge.text = "%s %s %s" % [icon, wname, pips]
 		badge.add_theme_color_override("font_color", Color.WHITE)
-		_style_badge_box(badge, Color(0.35, 0.60, 0.85, 0.85), Color(0.08, 0.12, 0.18, 0.85))
+		_style_badge_box(badge, Color(0.35, 0.60, 0.85, 0.85), Color(0.08, 0.12, 0.18, 0.88), false)
 	else:
 		badge.text = "%s %s 🔒" % [icon, wname]
 		badge.add_theme_color_override("font_color", Color(0.55, 0.60, 0.70, 0.65))
-		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75))
+		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75), false)
 
-func _style_badge_box(badge: Label, border_color: Color, bg_color: Color) -> void:
+func _style_badge_box(badge: Label, border_color: Color, bg_color: Color, is_evo: bool = false) -> void:
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = bg_color
 	sb.border_color = border_color
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(4)
+	sb.set_border_width_all(2 if is_evo else 1)
+	sb.set_corner_radius_all(10)
 	sb.set_content_margin_all(5)
+	if is_evo:
+		sb.shadow_color = Color(border_color.r, border_color.g, border_color.b, 0.4)
+		sb.shadow_size = 4
 	badge.add_theme_stylebox_override("normal", sb)
+
+func _setup_relic_slots() -> void:
+	var game_ui = get_node_or_null("GameUI")
+	if not game_ui:
+		return
+	if not relics_bar:
+		relics_bar = get_node_or_null("GameUI/RelicsBar")
+	if not relics_bar:
+		relics_bar = HBoxContainer.new()
+		relics_bar.name = "RelicsBar"
+		relics_bar.layout_mode = 1
+		relics_bar.offset_left = 16.0
+		relics_bar.offset_top = 84.0
+		relics_bar.offset_right = 320.0
+		relics_bar.offset_bottom = 112.0
+		relics_bar.add_theme_constant_override("separation", 6)
+		game_ui.add_child(relics_bar)
+	
+	for rdef in RELIC_SLOT_DEFS:
+		var slot_name = "RelicSlot_" + rdef["id"]
+		var slot: Label = relics_bar.get_node_or_null(slot_name)
+		if not slot:
+			slot = Label.new()
+			slot.name = slot_name
+			slot.custom_minimum_size = Vector2(28, 28)
+			slot.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			slot.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			relics_bar.add_child(slot)
+		slot.text = "◇"
+		slot.tooltip_text = rdef["name"]
+		relic_slot_labels[rdef["id"]] = slot
+	
+	_update_relic_slots()
+
+func _update_relic_slots() -> void:
+	if not relics_bar or relic_slot_labels.is_empty():
+		return
+	var collected = GameManager.collected_relics if GameManager else []
+	for rdef in RELIC_SLOT_DEFS:
+		var rid = rdef["id"]
+		var slot: Label = relic_slot_labels.get(rid)
+		if not slot:
+			continue
+		var is_owned = collected.has(rid)
+		var sb = StyleBoxFlat.new()
+		sb.set_corner_radius_all(4)
+		if is_owned:
+			slot.text = rdef["icon"]
+			var r_data = GameManager.RELICS.get(rid, {}) if GameManager else {}
+			var accent_col: Color = r_data.get("color", UITheme.GOLD)
+			sb.bg_color = Color(0.14, 0.08, 0.05, 0.92)
+			sb.border_color = accent_col
+			sb.set_border_width_all(2)
+			sb.shadow_color = Color(accent_col.r, accent_col.g, accent_col.b, 0.4)
+			sb.shadow_size = 4
+			slot.tooltip_text = "%s: %s" % [r_data.get("name", rdef["name"]), r_data.get("desc", "")]
+		else:
+			slot.text = "·"
+			sb.bg_color = Color(0.06, 0.08, 0.10, 0.65)
+			sb.border_color = Color(0.20, 0.24, 0.30, 0.45)
+			sb.set_border_width_all(1)
+			slot.tooltip_text = "%s (Chưa sở hữu)" % rdef["name"]
+		slot.add_theme_stylebox_override("normal", sb)
+
+func _on_relic_collected(_id: String, _data: Dictionary) -> void:
+	_update_relic_slots()
+	_update_passives_display()
 
 func _update_passives_display() -> void:
 	if not passives_label:

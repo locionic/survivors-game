@@ -43,32 +43,32 @@
    - Confetti/qi burst explosion when confirming an upgrade card.
    - Implemented: `_card_lift()` (+12px, 1.05 scale), `_pulse_aura()` for epic cards, `_ember_motes()` for legendary, `_qi_burst()` on selection, `ui_hover` sound at -12dB.
 
-### Phase 2: Atmospheric Wuxia Arena Overhaul
+### Phase 2: Atmospheric Wuxia Arena Overhaul — **DONE**
 *Target: `scenes/main.tscn` (arena theming), `scripts/hud.gd` (boss banner), `scripts/gem.gd` & `scripts/coin.gd` (magnet arcs), `scripts/sound_manager.gd` (gong)*
 
-1. **Themed Floor & Props** — **PARTIALLY DONE** in `main.tscn`:
+1. **Themed Floor & Props** — **DONE**:
    - **Ba Lăng Huyện**: Ancient paving stones interwoven with patches of green moss, bamboo reeds, weathered stone guardian lions, and floating golden autumn leaves (`CPUParticles2D`).
-   - **Borders & Walls**: Carved wooden fences and traditional red lantern posts that glow in the darkness.
-   - Procedural helpers exist: `_make_bamboo_reed`, `_make_moss_patch`, `_make_guardian_lion`, `_make_lantern_post` in `main.tscn` script.
-2. **Boss Entrance Alert** — **NOT DONE**:
-   - Dramatic crimson banner: `⚠️ MA GIÁO XUẤT HIỆN: HẮC Y TỔNG QUẢN ⚠️` with heavy gong sound effect.
-   - `buddha_gong` sound exists in `sound_manager.gd:195-197`, localization key `"hud.boss_warning": "MA GIÁO XUẤT HIỆN: %s"` in `loc.gd`.
-   - `WarningBanner` node exists in HUD (`main.tscn:475-493`) but shows generic "⚠️ WARNING!".
-   - Boss warning signals already emitted: `enemy_spawner.gd` & `wave_director.gd` emit `wave_event_announced`.
-3. **XP Gem & Gold Magnet Arcs** — **NOT DONE**:
-   - Glowing jade fragments and golden sycees (kim nguyên bảo) that pull toward the player with smooth magnetic trailing arcs.
-   - `gem.gd:49-57` and `coin.gd:33-38` have magnet pull logic with squash effect but no visual arc trails.
+   - Textures generated and imported: `bamboo_reed.png`, `moss_patch.png`, `guardian_lion.png`, `red_lantern.png`.
+   - Procedural helpers in `scripts/main.gd`: `_make_bamboo_reeds`, `_make_moss_patches`, `_make_guardian_lions`, `_make_lantern_posts`, `_make_autumn_leaves`.
+2. **Boss Entrance Alert** — **DONE**:
+   - Dramatic crimson banner with gold filigree border and shadow: `⚠️ MA GIÁO XUẤT HIỆN: %s ⚠️` with heavy gong sound effect (`buddha_gong`).
+   - Boss warning signals wired in `hud.gd:_on_wave_event_announced()`.
+3. **XP Gem & Gold Magnet Arcs** — **DONE**:
+   - Glowing jade fragments and golden sycees with `MagnetTrail` (`CPUParticles2D` with `local_coords = false`) producing visible magnetic trailing arcs during pull toward the player.
 
-### Phase 3: Clean, Elegant Oriental HUD
-*Target: `scripts/hud.gd`*
+### Phase 3: Clean, Elegant Oriental HUD — **DONE**
+*Target: `scripts/hud.gd`, `scenes/main.tscn`*
 
-1. **Visual Weapon & Relic Slots** — **NOT DONE**:
-   - Replace bracketed text tags with 6 circular lacquer weapon slots and 6 square relic slots.
-   - Small level pips under each icon (e.g. 5 tiny golden stars for Level 5 maxed skill).
-   - Text `equipment_slots` iteration exists at `hud.gd:1007` but no visual slots rendered.
-2. **Streamlined Health & EXP Gauges** — **NOT DONE**:
-   - HP bar styled as a red Dragon Qi gauge with an ornate gold dragon-head frame.
-   - EXP bar running across the top with radiant jade green glow.
+1. **Visual Weapon & Relic Slots** — **DONE**:
+   - 6 circular lacquer weapon slots (`Dagger`, `Shield`, `Thunder`, `Fireball`, `Axe`, `Slash`) with tier/evolution borders and level pips.
+   - 6 square lacquer relic slots (`RelicsBar`) tracking collected relics (`vampire_fang`, `storm_amulet`, `phoenix_feather`, `golden_horseshoe`, `berserker_brand`, `chrono_hourglass`).
+2. **Streamlined Health & EXP Gauges** — **DONE**:
+   - HP bar styled as a red Dragon Qi gauge with ornate gold dragon lacquer accent frame.
+   - EXP bar running with radiant jade green celestial glow.
+
+---
+
+> **Note**: For the ongoing **Zombie Outbreak Mode** roadmap and features, see [GAME_DEV_PLAN.md](GAME_DEV_PLAN.md).
 
 ---
 

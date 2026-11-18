@@ -35,22 +35,23 @@ func _ready() -> void:
 	# Magnet arc trail: glowing jade fragments trailing behind during magnetic pull
 	var trail = CPUParticles2D.new()
 	trail.name = "MagnetTrail"
-	trail.amount = 8
-	trail.lifetime = 0.3
+	trail.amount = 12
+	trail.local_coords = false
+	trail.lifetime = 0.35
 	trail.preprocess = 0.0
-	trail.explosiveness = 0.8
-	trail.speed_scale = 0.5
+	trail.explosiveness = 0.7
+	trail.speed_scale = 0.6
 	trail.direction = Vector2.ZERO
 	trail.gravity = Vector2.ZERO
-	trail.spread = 0.0
-	trail.initial_velocity_min = 0.0
-	trail.initial_velocity_max = 30.0
-	trail.scale_amount_min = 0.3
-	trail.scale_amount_max = 0.6
-	trail.color = Color(0.4, 1.0, 0.6, 0.8)
+	trail.spread = 20.0
+	trail.initial_velocity_min = 5.0
+	trail.initial_velocity_max = 25.0
+	trail.scale_amount_min = 0.4
+	trail.scale_amount_max = 0.7
+	trail.color = Color(0.4, 1.0, 0.6, 0.85)
 	trail.color_ramp = Gradient.new()
 	trail.color_ramp.set_offsets(PackedFloat32Array([0.0, 1.0]))
-	trail.color_ramp.set_colors(PackedColorArray([Color(0.5, 1.0, 0.7, 0.9), Color(0.3, 0.8, 0.4, 0.0)]))
+	trail.color_ramp.set_colors(PackedColorArray([Color(0.5, 1.0, 0.7, 0.95), Color(0.3, 0.8, 0.4, 0.0)]))
 	trail.emitting = false
 	trail.z_index = 10
 	add_child(trail)
@@ -84,13 +85,17 @@ func _process(delta: float) -> void:
 			trail.global_position = global_position
 		if dist < 18.0:
 			collect()
-	elif toss_timer > 0.0:
-		toss_timer -= delta
-		global_position += toss_vel * delta
-		toss_vel = toss_vel.move_toward(Vector2.ZERO, 400.0 * delta)
 	else:
-		# Subtle vertical gleam bob
-		position.y += sin(bob_time) * 0.15
+		var trail = get_node_or_null("MagnetTrail")
+		if trail and trail.emitting:
+			trail.emitting = false
+		if toss_timer > 0.0:
+			toss_timer -= delta
+			global_position += toss_vel * delta
+			toss_vel = toss_vel.move_toward(Vector2.ZERO, 400.0 * delta)
+		else:
+			# Subtle vertical gleam bob
+			position.y += sin(bob_time) * 0.15
 
 ## Milestone 3b: the per-node drop shadow is gone (45+ shadowed circles a frame
 ## is real fill-rate for a shadow nobody sees under a moving magnet pull). This

@@ -39,27 +39,27 @@ const STRINGS: Dictionary = {
 
 	# --- Weapons. These six are CANONICAL: the dps report, the arsenal cards
 	# and the HUD badges all read them, so they cannot drift apart. ----------
-	"weapon.dagger.name": {"en": "Tactical Pistol", "vi": "Súng Lục Tác Chiến"},
-	"weapon.shield.name": {"en": "Riot Shield Orbit", "vi": "Khiên Chống Bạo Động"},
-	"weapon.lightning.name": {"en": "Tesla Arc Coil", "vi": "Súng Phóng Điện Tesla"},
-	"weapon.fireball.name": {"en": "Molotov Launcher", "vi": "Bom Xăng Molotov"},
-	"weapon.axe.name": {"en": "Frag Grenade", "vi": "Lựu Đạn Mảnh"},
-	"weapon.slash.name": {"en": "Combat Machete", "vi": "Dao Rựa Dã Chiến"},
+	"weapon.dagger.name": {"en": "Thousand Daggers", "vi": "Vạn Phi Đao"},
+	"weapon.shield.name": {"en": "Eight Trigrams Shield", "vi": "Khiên Bát Quái"},
+	"weapon.lightning.name": {"en": "Heaven's Wrath", "vi": "Cửu Thiên Lôi Điện"},
+	"weapon.fireball.name": {"en": "Apocalypse Meteor", "vi": "Liệt Hỏa Chưởng Cầu"},
+	"weapon.axe.name": {"en": "Dog-Beating Staff", "vi": "Đả Cẩu Trận"},
+	"weapon.slash.name": {"en": "Nine Swords Cleave", "vi": "Độc Cô Cửu Kiếm"},
 
 	# --- Evolutions ----------------------------------------------------------
-	"evo.dagger.name": {"en": "Minigun Barrage", "vi": "Súng Máy Gatling"},
-	"evo.shield.name": {"en": "Bio-Barrier Array", "vi": "Lá Chắn Sinh Học"},
-	"evo.lightning.name": {"en": "EMP Storm Grid", "vi": "Bão Từ Trường EMP"},
-	"evo.fireball.name": {"en": "Napalm Strike", "vi": "Không Kích Napalm"},
-	"evo.axe.name": {"en": "Cluster Warhead", "vi": "Đầu Đạn Chùm"},
-	"evo.slash.name": {"en": "Chainsaw Ripper", "vi": "Cưa Máy Cuồng Nộ"},
+	"evo.dagger.name": {"en": "Thousand Blades", "vi": "Vô Ảnh Thần Châm"},
+	"evo.shield.name": {"en": "Solar Bulwark", "vi": "Thái Cực Hộ Thể"},
+	"evo.lightning.name": {"en": "Heaven's Wrath", "vi": "Cửu Thiên Huyền Lôi"},
+	"evo.fireball.name": {"en": "Apocalypse Meteor", "vi": "Kim Cương Hỏa Chưởng"},
+	"evo.axe.name": {"en": "Reaper's Cleave", "vi": "Càn Khôn Đại Na Di"},
+	"evo.slash.name": {"en": "Nine Swords Cleave", "vi": "Độc Cô Cửu Kiếm Quy Tông"},
 
 	# --- Tinh Võ Hợp Nhất / dual-weapon synergy fusions -----------------------
-	"synergy.lotus_storm.name": {"en": "Bullet Hell Barrage", "vi": "Mưa Đạn Bão Táp"},
-	"synergy.frost_sovereign.name": {"en": "Cryo-Shock Cleaver", "vi": "Lưỡi Cắt Đông Cứng"},
+	"synergy.lotus_storm.name": {"en": "Lotus Storm", "vi": "Bão Vũ Lê Hoa Châm"},
+	"synergy.frost_sovereign.name": {"en": "Frost Sovereign", "vi": "Băng Phách Thần Kiếm"},
 
 	# --- Tàng Kinh Các / Martial Pavilion (intermission shop) ---------------
-	"shop.title": {"en": "Supply Depot", "vi": "Kho Tiếp Tế"},
+	"shop.title": {"en": "Martial Pavilion", "vi": "Tàng Kinh Các"},
 	"shop.reroll": {"en": "Reroll", "vi": "Đổi bài"},
 	"shop.lock": {"en": "Lock", "vi": "Khóa"},
 	"shop.unlock": {"en": "Unlock", "vi": "Mở khóa"},
@@ -70,22 +70,22 @@ const STRINGS: Dictionary = {
 	"shop.wave_cleared": {"en": "Wave Cleared", "vi": "Đã Thông Hiệp"},
 	"shop.tradeoff_scroll": {"en": "Trade-off Scroll", "vi": "Cuộn Đánh Đổi"},
 	"shop.next_wave": {"en": "Next Wave", "vi": "Hiệp Sau"},
-	"shop.weapon": {"en": "Weapon", "vi": "Vũ Khí"},
+	"shop.weapon": {"en": "Weapon", "vi": "Võ Khí"},
 	"shop.bought": {"en": "Bought", "vi": "Đã Mua"},
 	"shop.broke": {"en": "Not enough gold", "vi": "Không đủ vàng"},
 	"shop.sold": {"en": "Sold", "vi": "Đã Bán"},
 
 	# --- HUD: waves, streaks, boss alarms, end screens -----------------------
 	"hud.wave": {"en": "Wave", "vi": "Hiệp"},
-	"hud.wave_banner": {"en": "WAVE %d / %d - HORDE INCOMING!", "vi": "ĐỢT %d / %d - BẦY ZOMBIE TẤN CÔNG!"},
-	"hud.victory_banner": {"en": "EXTRACTION COMPLETE! SURVIVED %d WAVES!", "vi": "GIẢI CỨU THÀNH CÔNG! SỐNG SÓT QUA %d ĐỢT!"},
+	"hud.wave_banner": {"en": "WAVE %d / %d - ARENA OPEN!", "vi": "HIỆP %d / %d - VÕ ĐÀI MỞ!"},
+	"hud.victory_banner": {"en": "TOTAL VICTORY! THE ARENA FALLS AFTER %d WAVES!", "vi": "TOÀN THẮNG! VÕ ĐÀI CHIẾN THẮNG %d HIỆP!"},
 	"hud.streak_50": {"en": "⚔️ 50 KILLS: MASSACRE! (+25% BLOOD RAGE)", "vi": "⚔️ TRẢM TƯỚNG ĐOẠT KỲ! (+25% CUỒNG BẠO)"},
 	"hud.streak_100": {"en": "🔥 100 KILLS: ONESWORDED! (+25% BLOOD RAGE)", "vi": "🔥 BÁCH NHÂN ĐỊCH! (+25% CUỒNG BẠO)"},
 	"hud.streak_250": {"en": "⚡ 250 KILLS: FRENZY UNLEASHED! (+25% BLOOD RAGE)", "vi": "⚡ CUỒNG MA XUẤT THẾ! (+25% CUỒNG BẠO)"},
 	"hud.streak_500": {"en": "👑 500 KILLS: UNSHAKEABLE LEGION! (+25% BLOOD RAGE)", "vi": "👑 VẠN QUÂN BẤT ĐỊCH! (+25% CUỒNG BẠO)"},
 	"hud.streak_1000": {"en": "🌌 1000 KILLS: LONE WALKER OF HEAVEN! (+25% BLOOD RAGE)", "vi": "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"},
-	"hud.boss_alarm": {"en": "MUTANT ALPHA DETECTED!", "vi": "PHÁT HIỆN ZOMBIE ĐỘT BIẾN ALPHA!"},
-	"hud.boss_warning": {"en": "BIO-THREAT APPROACHING: %s", "vi": "MỐI ĐE DỌA SINH HỌC: %s"},
+	"hud.boss_alarm": {"en": "ELITE CHAMPION DESCENDS!", "vi": "TINH ANH LỆNH GIÁ THỔNG GIANG!"},
+	"hud.boss_warning": {"en": "A DEMONIC PRESENCE EMERGES: %s", "vi": "MA GIÁO XUẤT HIỆN: %s"},
 	"hud.victory": {"en": "VICTORY", "vi": "TOÀN THẮNG"},
 	"hud.defeat": {"en": "DEFEAT", "vi": "THẤT BẠI"},
 	"hud.paused": {"en": "PAUSED", "vi": "TẠM DỪNG"},
@@ -95,7 +95,7 @@ const STRINGS: Dictionary = {
 	"hud.level": {"en": "Level", "vi": "Cấp"},
 	"hud.kills": {"en": "Kills", "vi": "Tiêu diệt"},
 	"hud.kills_count": {"en": "%d KILLS", "vi": "%d TIÊU DIỆT"},
-	"hud.level_up": {"en": "LEVEL UP! CHOOSE FIELD UPGRADE", "vi": "THĂNG CẤP! CHỌN TRANG BỊ / KỸ NĂNG"},
+	"hud.level_up": {"en": "LEVEL UP! CHOOSE AN UPGRADE", "vi": "THĂNG CẤP! CHỌN VÕ HỌC / BÍ KÍP"},
 	"hud.reroll": {"en": "🎲 Reroll [%d/%d] (R)", "vi": "🎲 TẨY TỦY [%d/%d] (R)"},
 	"hud.reroll_spent": {"en": "🎲 Reroll (spent)", "vi": "🎲 TẨY TỦY (HẾT LƯỢT)"},
 	"hud.dps": {"en": "Damage Dealt", "vi": "Sát thương gây ra"},
@@ -103,20 +103,20 @@ const STRINGS: Dictionary = {
 
 	# --- Danger / Torture ladder --------------------------------------------
 	"danger.title": {"en": "Danger", "vi": "Cấp độ"},
-	"danger.0.name": {"en": "Recruit", "vi": "Tân Binh"},
-	"danger.1.name": {"en": "Survivor", "vi": "Người Sống Sót"},
-	"danger.2.name": {"en": "Veteran", "vi": "Cựu Binh"},
-	"danger.3.name": {"en": "Commando", "vi": "Biệt Kích"},
-	"danger.4.name": {"en": "Bio-Hazard", "vi": "Thảm Họa Sinh Học"},
-	"danger.5.name": {"en": "Apocalypse", "vi": "Tận Thế"},
+	"danger.0.name": {"en": "Novice", "vi": "Nhập Môn"},
+	"danger.1.name": {"en": "Initiate", "vi": "Hiệp Khách"},
+	"danger.2.name": {"en": "Adept", "vi": "Chưởng Môn"},
+	"danger.3.name": {"en": "Master", "vi": "Tông Sư"},
+	"danger.4.name": {"en": "Grandmaster", "vi": "Tuyệt Thế"},
+	"danger.5.name": {"en": "Immortal", "vi": "Thiên Hạ Vô Song"},
 	"danger.desc": {"en": "Enemy HP %d%% · Speed %d%% · Score x%.1f", "vi": "Máu quái %d%% · Tốc độ %d%% · Điểm x%.1f"},
 
 	# --- Run bounties (Chiến Tích Lệnh) --------------------------------------
 	# These were English literals inside init_run_bounties() and are the reason
 	# test_untranslated_copy.gd exempted four rows from its card-copy rule. The
 	# ids are the contract; this table is the copy.
-	"bounty.slay_bats.title": {"en": "Zombie Hunter", "vi": "Thợ Săn Thây Ma"},
-	"bounty.slay_bats.desc": {"en": "Slay 25 Infected", "vi": "Tiêu diệt 25 Thây Ma"},
+	"bounty.slay_bats.title": {"en": "Bat Hunter", "vi": "Thợ Săn Dơi Ma"},
+	"bounty.slay_bats.desc": {"en": "Slay 25 Bats", "vi": "Tiêu diệt 25 Dơi Ma"},
 	"bounty.survive_time.title": {"en": "Iron Resolve", "vi": "Ý Chí Sắt Đá"},
 	"bounty.survive_time.desc": {"en": "Survive 2 Minutes", "vi": "Sinh tồn 2 Phút"},
 	"bounty.defeat_champion.title": {"en": "Champion Slayer", "vi": "Trảm Tướng Tinh Anh"},
@@ -146,6 +146,53 @@ const STRINGS: Dictionary = {
 	"ui.locked": {"en": "(Locked)", "vi": "(Chưa mở)"},
 }
 
+## Outbreak / Bio-hazard localized overrides when running Zombie City mode.
+## Kept separate from STRINGS to preserve canonical IDs and test suite assertions.
+const ZOMBIE_STRINGS: Dictionary = {
+	# --- Weapons -------------------------------------------------------------
+	"weapon.dagger.name": {"en": "Tactical Pistol", "vi": "Súng Lục Tác Chiến"},
+	"weapon.shield.name": {"en": "Riot Shield Orbit", "vi": "Khiên Chống Bạo Động"},
+	"weapon.lightning.name": {"en": "Tesla Arc Coil", "vi": "Súng Phóng Điện Tesla"},
+	"weapon.fireball.name": {"en": "Molotov Launcher", "vi": "Bom Xăng Molotov"},
+	"weapon.axe.name": {"en": "Frag Grenade", "vi": "Lựu Đạn Mảnh"},
+	"weapon.slash.name": {"en": "Combat Machete", "vi": "Dao Rựa Dã Chiến"},
+
+	# --- Evolutions ----------------------------------------------------------
+	"evo.dagger.name": {"en": "Minigun Barrage", "vi": "Súng Máy Gatling"},
+	"evo.shield.name": {"en": "Bio-Barrier Array", "vi": "Lá Chắn Sinh Học"},
+	"evo.lightning.name": {"en": "EMP Storm Grid", "vi": "Bão Từ Trường EMP"},
+	"evo.fireball.name": {"en": "Napalm Strike", "vi": "Không Kích Napalm"},
+	"evo.axe.name": {"en": "Cluster Warhead", "vi": "Đầu Đạn Chùm"},
+	"evo.slash.name": {"en": "Chainsaw Ripper", "vi": "Cưa Máy Cuồng Nộ"},
+
+	# --- Tinh Võ Hợp Nhất / dual-weapon synergy fusions -----------------------
+	"synergy.lotus_storm.name": {"en": "Bullet Hell Barrage", "vi": "Mưa Đạn Bão Táp"},
+	"synergy.frost_sovereign.name": {"en": "Cryo-Shock Cleaver", "vi": "Lưỡi Cắt Đông Cứng"},
+
+	# --- Supply Depot / Intermission shop -----------------------------------
+	"shop.title": {"en": "Supply Depot", "vi": "Kho Tiếp Tế"},
+	"shop.weapon": {"en": "Weapon", "vi": "Vũ Khí"},
+
+	# --- HUD: waves, streaks, boss alarms, end screens -----------------------
+	"hud.wave_banner": {"en": "WAVE %d / %d - HORDE INCOMING!", "vi": "ĐỢT %d / %d - BẦY ZOMBIE TẤN CÔNG!"},
+	"hud.victory_banner": {"en": "EXTRACTION COMPLETE! SURVIVED %d WAVES!", "vi": "GIẢI CỨU THÀNH CÔNG! SỐNG SÓT QUA %d ĐỢT!"},
+	"hud.boss_alarm": {"en": "MUTANT ALPHA DETECTED!", "vi": "PHÁT HIỆN ZOMBIE ĐỘT BIẾN ALPHA!"},
+	"hud.boss_warning": {"en": "BIO-THREAT APPROACHING: %s", "vi": "MỐI ĐE DỌA SINH HỌC: %s"},
+	"hud.level_up": {"en": "LEVEL UP! CHOOSE FIELD UPGRADE", "vi": "THĂNG CẤP! CHỌN TRANG BỊ / KỸ NĂNG"},
+
+	# --- Danger / Torture ladder --------------------------------------------
+	"danger.0.name": {"en": "Recruit", "vi": "Tân Binh"},
+	"danger.1.name": {"en": "Survivor", "vi": "Người Sống Sót"},
+	"danger.2.name": {"en": "Veteran", "vi": "Cựu Binh"},
+	"danger.3.name": {"en": "Commando", "vi": "Biệt Kích"},
+	"danger.4.name": {"en": "Bio-Hazard", "vi": "Thảm Họa Sinh Học"},
+	"danger.5.name": {"en": "Apocalypse", "vi": "Tận Thế"},
+
+	# --- Run bounties --------------------------------------------------------
+	"bounty.slay_bats.title": {"en": "Zombie Hunter", "vi": "Thợ Săn Thây Ma"},
+	"bounty.slay_bats.desc": {"en": "Slay 25 Infected", "vi": "Tiêu diệt 25 Thây Ma"},
+}
+
 var current_locale: String = DEFAULT_LOCALE
 
 func _ready() -> void:
@@ -168,7 +215,14 @@ func _setup_symbol_fallback() -> void:
 ## it keeps a missing key from blanking a button, so new UI can ship before its
 ## translation row exists.
 func t(key: String, default_text: String = "") -> String:
-	var row = STRINGS.get(key)
+	var row = null
+	var main_loop = Engine.get_main_loop()
+	if main_loop and "root" in main_loop and main_loop.root:
+		var gm = main_loop.root.get_node_or_null("GameManager")
+		if gm and gm.selected_stage == "zombie_city" and ZOMBIE_STRINGS.has(key):
+			row = ZOMBIE_STRINGS[key]
+	if row == null:
+		row = STRINGS.get(key)
 	if row is Dictionary and row.has(current_locale):
 		return String(row[current_locale])
 	if row is Dictionary and row.has(DEFAULT_LOCALE):

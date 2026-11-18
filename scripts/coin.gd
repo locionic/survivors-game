@@ -35,7 +35,7 @@ func _ready() -> void:
 	trail.name = "MagnetTrail"
 	trail.amount = 8
 	trail.lifetime = 0.3
-	trail.pre_process_time = 0.0
+	trail.preprocess = 0.0
 	trail.explosiveness = 0.8
 	trail.speed_scale = 0.5
 	trail.direction = Vector2.ZERO

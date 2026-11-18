@@ -197,26 +197,32 @@ func _update_stage_and_gear_ui() -> void:
 		
 	var st = GameManager.selected_stage
 	if stage_plains_btn:
-		stage_plains_btn.visible = false
+		stage_plains_btn.text = ("✓ " if st == "plains" else "") + "🌲 Ba Lăng Huyện"
+		stage_plains_btn.modulate = Color(0.4, 1.0, 0.5) if st == "plains" else Color(0.8, 0.8, 0.8)
 	if stage_hua_btn:
-		stage_hua_btn.visible = false
+		stage_hua_btn.text = ("✓ " if st == "mount_hua" else "") + "❄️ Đỉnh Hoa Sơn (Bão Tuyết)"
+		stage_hua_btn.modulate = Color(0.4, 0.9, 1.0) if st == "mount_hua" else Color(0.8, 0.8, 0.8)
+	var is_z = (st == "zombie_city")
 	if stage_zombie_btn:
-		stage_zombie_btn.text = ("✓ " if st == "zombie_city" else "") + "☣️ Khu Cách Ly (Zombie City)"
+		stage_zombie_btn.text = ("✓ " if st == "zombie_city" else "") + ("☣️ Khu Cách Ly (Zombie City)" if is_z else "☣️ Thành Phố Zombie")
 		stage_zombie_btn.modulate = Color(0.3, 1.0, 0.4) if st == "zombie_city" else Color(0.8, 0.8, 0.8)
 		
 	if gear_weapon_btn:
 		var has_wpn = GameManager.has_equipped("y_thien_kiem")
-		gear_weapon_btn.text = ("✓ " if has_wpn else "+ ") + "🔪 Dao Tác Chiến Mk.II"
+		var wpn_title = "🔪 Dao Tác Chiến Mk.II" if is_z else "⚔️ Ỷ Thiên Kiếm"
+		gear_weapon_btn.text = ("✓ " if has_wpn else "+ ") + wpn_title
 		gear_weapon_btn.modulate = Color(0.3, 0.85, 1.0) if has_wpn else Color(0.7, 0.7, 0.7)
 		
 	if gear_armor_btn:
 		var has_arm = GameManager.has_equipped("nhuyen_vi_giap")
-		gear_armor_btn.text = ("✓ " if has_arm else "+ ") + "🦺 Áo Giáp Kevlar"
+		var arm_title = "🦺 Áo Giáp Kevlar" if is_z else "🛡️ Nhuyễn Vị Giáp"
+		gear_armor_btn.text = ("✓ " if has_arm else "+ ") + arm_title
 		gear_armor_btn.modulate = Color(1.0, 0.8, 0.25) if has_arm else Color(0.7, 0.7, 0.7)
 		
 	if gear_boots_btn:
 		var has_bts = GameManager.has_equipped("van_hac_hai")
-		gear_boots_btn.text = ("✓ " if has_bts else "+ ") + "🥾 Giày Trinh Sát"
+		var bts_title = "🥾 Giày Trinh Sát" if is_z else "🥾 Vân Hạc Hài"
+		gear_boots_btn.text = ("✓ " if has_bts else "+ ") + bts_title
 		gear_boots_btn.modulate = Color(0.4, 0.95, 0.6) if has_bts else Color(0.7, 0.7, 0.7)
 
 func _on_stage_selected(stage_id: String) -> void:
@@ -267,7 +273,7 @@ func render_cards() -> void:
 		child.queue_free()
 		
 	var is_zombie_mode = (GameManager and GameManager.selected_stage == "zombie_city")
-	var active_id = GameManager.selected_character if GameManager else "swat"
+	var active_id = GameManager.selected_character if GameManager else ("swat" if is_zombie_mode else "knight")
 	var characters = []
 	if GameManager:
 		if is_zombie_mode and GameManager.has_method("get_selected_character_data") and "ZOMBIE_CHARACTERS" in GameManager:

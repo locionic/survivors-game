@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" path="res://assets/textures/zombie_title_bg.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/textures/title_bg.png" id="2_bg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 bg_color = Color(0.06, 0.08, 0.13, 0.92)
@@ -95,7 +95,7 @@ initial_velocity_min = 25.0
 initial_velocity_max = 60.0
 scale_amount_min = 2.0
 scale_amount_max = 4.5
-color = Color(0.3, 1, 0.45, 0.45)
+color = Color(1, 0.8, 0.3, 0.45)
 
 [node name="MarginContainer" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -123,7 +123,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.28, 1)
 theme_override_font_sizes/font_size = 14
-text = "PROJECT Z-SURVIVOR • BIO-HAZARD ROGUELIKE"
+text = "VÕ LÂM HUYỀN THOẠI • SURVIVOR ROGUELIKE"
 horizontal_alignment = 1
 
 [node name="MainTitle" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
@@ -132,14 +132,14 @@ theme_override_colors/font_color = Color(1, 0.92, 0.5, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.02, 1)
 theme_override_constants/outline_size = 8
 theme_override_font_sizes/font_size = 46
-text = "Z-SURVIVOR: OUTBREAK"
+text = "SURVIVOR QUEST"
 horizontal_alignment = 1
 
 [node name="SubTitle" type="Label" parent="MarginContainer/MainVBox/TitleVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.88, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "☣️ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
+text = "ĐẠI HỘI VÕ LÂM • TRĂM NĂM TRANH ĐOẠT"
 horizontal_alignment = 1
 
 [node name="ShowcaseHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
@@ -174,7 +174,7 @@ stretch_mode = 5
 [node name="HeroNameLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Corporal Miller (SWAT) - Chỉ Huy Biệt Đội Tác Chiến"
+text = "Sir Kaelen - The Royal Knight"
 horizontal_alignment = 1
 
 [node name="HeroDescLabel" type="Label" parent="MarginContainer/MainVBox/ShowcaseHBox/HeroCard/VBox"]
@@ -293,7 +293,7 @@ text = "Phong Thần [Q]"
 custom_minimum_size = Vector2(130, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
-text = "☣️ Sinh Tồn [Z]"
+text = "☣ Sinh Tồn [Z]"
 
 [node name="FooterHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
 layout_mode = 2

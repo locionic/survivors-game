@@ -8,7 +8,7 @@
 [ext_resource type="Script" path="res://scripts/upgrade_manager.gd" id="6_upgrade"]
 [ext_resource type="Script" path="res://scripts/hud.gd" id="7_hud"]
 [ext_resource type="Script" path="res://scripts/camera.gd" id="8_cam"]
-[ext_resource type="Texture2D" path="res://assets/textures/dungeon_floor.png" id="9_floor"]
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_floor.png" id="9_floor"]
 [ext_resource type="PackedScene" path="res://scenes/necromancer.tscn" id="10_necro"]
 [ext_resource type="PackedScene" path="res://scenes/behemoth.tscn" id="11_behemoth"]
 [ext_resource type="PackedScene" path="res://scenes/powerup.tscn" id="12_pup"]
@@ -73,10 +73,11 @@ func _setup_arena_boundaries() -> void:
 		col.shape = rect
 		col.position = w["pos"]
 		bounds.add_child(col)
-	# Võ Đài perimeter: a bright gate-line plus a dim wide glow, so the walled
-	# arena reads as a duel ring instead of an invisible wall.
+	var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
+	var line_c1 = Color(0.25, 0.95, 0.45, 0.90) if is_zombie else Color(1.0, 0.82, 0.35, 0.95)
+	var line_c2 = Color(0.20, 0.85, 0.35, 0.16) if is_zombie else Color(0.95, 0.55, 0.18, 0.16)
 	var corners = [Vector2(-half_w, -half_h), Vector2(half_w, -half_h), Vector2(half_w, half_h), Vector2(-half_w, half_h), Vector2(-half_w, -half_h)]
-	for ring in [[14.0, Color(1.0, 0.82, 0.35, 0.95), 900], [52.0, Color(0.95, 0.55, 0.18, 0.16), 899]]:
+	for ring in [[14.0, line_c1, 900], [52.0, line_c2, 899]]:
 		var line = Line2D.new()
 		line.points = PackedVector2Array(corners)
 		line.width = ring[0]
@@ -88,7 +89,7 @@ func _setup_arena_boundaries() -> void:
 	var corner_pts = [Vector2(-half_w, -half_h), Vector2(half_w, -half_h), Vector2(half_w, half_h), Vector2(-half_w, half_h)]
 	var brazier_tex = load("res://assets/textures/brazier.png") if ResourceLoader.exists("res://assets/textures/brazier.png") else null
 	for pt in corner_pts:
-		if brazier_tex:
+		if brazier_tex and not is_zombie:
 			var sp = Sprite2D.new()
 			sp.texture = brazier_tex
 			sp.position = pt
@@ -106,7 +107,7 @@ func _setup_arena_boundaries() -> void:
 		fire.initial_velocity_max = 45.0
 		fire.scale_amount_min = 2.0
 		fire.scale_amount_max = 4.0
-		fire.color = Color(1.0, 0.65, 0.2, 0.85)
+		fire.color = Color(0.3, 1.0, 0.45, 0.75) if is_zombie else Color(1.0, 0.65, 0.2, 0.85)
 		fire.z_index = 951
 		bounds.add_child(fire)
 	add_child(bounds)
@@ -373,7 +374,7 @@ func _setup_arena_boundaries() -> void:
 		fire.initial_velocity_max = 45.0
 		fire.scale_amount_min = 2.0
 		fire.scale_amount_max = 4.0
-		fire.color = Color(1.0, 0.65, 0.2, 0.85)
+		fire.color = Color(0.3, 1.0, 0.45, 0.75) if is_zombie else Color(1.0, 0.65, 0.2, 0.85)
 		fire.z_index = 951
 		bounds.add_child(fire)
 	add_child(bounds)

@@ -1310,6 +1310,10 @@ func load_save_data() -> void:
 					for key in meridian_upgrades.keys():
 						if parsed["meridian_upgrades"].has(key):
 							meridian_upgrades[key] = int(parsed["meridian_upgrades"][key])
+				if selected_stage != "zombie_city":
+					selected_stage = "zombie_city"
+				if not ZOMBIE_CHARACTERS.has(selected_character):
+					selected_character = "swat"
 				print("[GameManager] Restored save from localStorage. Gold: ", total_gold, " Char: ", selected_character, " Comp: ", selected_companion, " Stage: ", selected_stage, " Gear: ", equipment_slots)
 				return
 				
@@ -1329,6 +1333,10 @@ func load_save_data() -> void:
 			meta_upgrades[key] = config.get_value("meta_upgrades", key, meta_upgrades.get(key, 0))
 		for key in meridian_upgrades.keys():
 			meridian_upgrades[key] = config.get_value("meridian_upgrades", key, meridian_upgrades.get(key, 0))
+		if selected_stage != "zombie_city":
+			selected_stage = "zombie_city"
+		if not ZOMBIE_CHARACTERS.has(selected_character):
+			selected_character = "swat"
 		print("[GameManager] Restored save from ConfigFile. Gold: ", total_gold, " Char: ", selected_character, " Comp: ", selected_companion, " Stage: ", selected_stage, " Gear: ", equipment_slots)
 
 

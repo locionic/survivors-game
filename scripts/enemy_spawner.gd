@@ -271,11 +271,17 @@ func _process_legacy_timeline(r_time: float) -> void:
 ## spend in the Tàng Kinh Các. The base cadence already leans bats this early
 ## (see get_difficulty_seconds), so this only adds a visible burst.
 func _wave_opening_swarm() -> void:
-	trigger_swarm("🦇 BẦY CUA MỘ ĐANG BAY VỀ! 🦇", bat_scene, 10)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		trigger_swarm("☣️ ĐÀN ZOMBIE RUNNER ĐANG LAO TỚI! ☣️", zombie_runner_scene, 10)
+	else:
+		trigger_swarm("🦇 BẦY CUA MỘ ĐANG BAY VỀ! 🦇", bat_scene, 10)
 
 ## Hiệp 8: the pinned-down ambush -- skeletons from every angle at once.
 func _wave_ambush_swarm() -> void:
-	trigger_swarm("⚠️ PHỤC KÍCH! BỐN MẶT THI MA TRẬN! ⚠️", skeleton_scene, 24)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		trigger_swarm("⚠️ BÁO ĐỘNG! VÒNG VÂY THÂY MA TỪ BỐN PHÍA! ⚠️", zombie_walker_scene, 24)
+	else:
+		trigger_swarm("⚠️ PHỤC KÍCH! BỐN MẶT THI MA TRẬN! ⚠️", skeleton_scene, 24)
 
 ## Hiệp 12: the Blood Moon pays double while a wandering hermit turns up to sell
 ## a reprieve. Greed and safety in the same round.
@@ -300,7 +306,10 @@ func _wave_dual_elites() -> void:
 ## player from closing on it.
 func _wave_behemoth_duo() -> void:
 	spawn_boss_2()
-	trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 12)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		trigger_swarm("☣️ ĐÀN BLOATER ĐỘC TỐ ĐANG ÁP SÁT! ☣️", zombie_bloater_scene, 12)
+	else:
+		trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 12)
 
 const MAX_ACTIVE_ENEMIES: int = 180
 
@@ -477,7 +486,10 @@ func spawn_boss_1() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_boss_2() -> void:
-	emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		emit_signal("wave_event_announced", "☣️ MUTANT JUGGERNAUT AWAKENS! ☣️", true)
+	else:
+		emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -499,7 +511,10 @@ func spawn_boss_2() -> void:
 				hud.attach_boss_bar(boss)
 
 func spawn_boss_3() -> void:
-	emit_signal("wave_event_announced", "👑 SONG THỦ MA TƯỚNG GIÁNG LÂM! 👑", true)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		emit_signal("wave_event_announced", "☣️ TWIN APEX MUTANTS EMERGE! ☣️", true)
+	else:
+		emit_signal("wave_event_announced", "👑 SONG THỦ MA TƯỚNG GIÁNG LÂM! 👑", true)
 	SoundManager.play("boss_alarm", 0.05)
 	
 	var cam = get_tree().get_first_node_in_group("camera")
@@ -518,7 +533,7 @@ func spawn_boss_3() -> void:
 			# Sòng Thủ was the same fight on hiệp 20 as on hiệp 1.
 			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
-			boss.set("boss_name", "👑 SONG THỦ MA TƯỚNG")
+			boss.set("boss_name", "☣️ TWIN APEX MUTANTS" if (GameManager and GameManager.selected_stage == "zombie_city") else "👑 SONG THỦ MA TƯỚNG")
 			var cur_hp = boss.get("max_health")
 			if cur_hp != null:
 				boss.set("max_health", cur_hp * 1.8)

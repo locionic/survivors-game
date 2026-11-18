@@ -146,6 +146,53 @@ const STRINGS: Dictionary = {
 	"ui.locked": {"en": "(Locked)", "vi": "(Chưa mở)"},
 }
 
+## Outbreak / Bio-hazard localized overrides when running Zombie City mode.
+## Kept separate from STRINGS to preserve canonical IDs and test suite assertions.
+const ZOMBIE_STRINGS: Dictionary = {
+	# --- Weapons -------------------------------------------------------------
+	"weapon.dagger.name": {"en": "Tactical Pistol", "vi": "Súng Lục Tác Chiến"},
+	"weapon.shield.name": {"en": "Riot Shield Orbit", "vi": "Khiên Chống Bạo Động"},
+	"weapon.lightning.name": {"en": "Tesla Arc Coil", "vi": "Súng Phóng Điện Tesla"},
+	"weapon.fireball.name": {"en": "Molotov Launcher", "vi": "Bom Xăng Molotov"},
+	"weapon.axe.name": {"en": "Frag Grenade", "vi": "Lựu Đạn Mảnh"},
+	"weapon.slash.name": {"en": "Combat Machete", "vi": "Dao Rựa Dã Chiến"},
+
+	# --- Evolutions ----------------------------------------------------------
+	"evo.dagger.name": {"en": "Minigun Barrage", "vi": "Súng Máy Gatling"},
+	"evo.shield.name": {"en": "Bio-Barrier Array", "vi": "Lá Chắn Sinh Học"},
+	"evo.lightning.name": {"en": "EMP Storm Grid", "vi": "Bão Từ Trường EMP"},
+	"evo.fireball.name": {"en": "Napalm Strike", "vi": "Không Kích Napalm"},
+	"evo.axe.name": {"en": "Cluster Warhead", "vi": "Đầu Đạn Chùm"},
+	"evo.slash.name": {"en": "Chainsaw Ripper", "vi": "Cưa Máy Cuồng Nộ"},
+
+	# --- Tinh Võ Hợp Nhất / dual-weapon synergy fusions -----------------------
+	"synergy.lotus_storm.name": {"en": "Bullet Hell Barrage", "vi": "Mưa Đạn Bão Táp"},
+	"synergy.frost_sovereign.name": {"en": "Cryo-Shock Cleaver", "vi": "Lưỡi Cắt Đông Cứng"},
+
+	# --- Supply Depot / Intermission shop -----------------------------------
+	"shop.title": {"en": "Supply Depot", "vi": "Kho Tiếp Tế"},
+	"shop.weapon": {"en": "Weapon", "vi": "Vũ Khí"},
+
+	# --- HUD: waves, streaks, boss alarms, end screens -----------------------
+	"hud.wave_banner": {"en": "WAVE %d / %d - HORDE INCOMING!", "vi": "ĐỢT %d / %d - BẦY ZOMBIE TẤN CÔNG!"},
+	"hud.victory_banner": {"en": "EXTRACTION COMPLETE! SURVIVED %d WAVES!", "vi": "GIẢI CỨU THÀNH CÔNG! SỐNG SÓT QUA %d ĐỢT!"},
+	"hud.boss_alarm": {"en": "MUTANT ALPHA DETECTED!", "vi": "PHÁT HIỆN ZOMBIE ĐỘT BIẾN ALPHA!"},
+	"hud.boss_warning": {"en": "BIO-THREAT APPROACHING: %s", "vi": "MỐI ĐE DỌA SINH HỌC: %s"},
+	"hud.level_up": {"en": "LEVEL UP! CHOOSE FIELD UPGRADE", "vi": "THĂNG CẤP! CHỌN TRANG BỊ / KỸ NĂNG"},
+
+	# --- Danger / Torture ladder --------------------------------------------
+	"danger.0.name": {"en": "Recruit", "vi": "Tân Binh"},
+	"danger.1.name": {"en": "Survivor", "vi": "Người Sống Sót"},
+	"danger.2.name": {"en": "Veteran", "vi": "Cựu Binh"},
+	"danger.3.name": {"en": "Commando", "vi": "Biệt Kích"},
+	"danger.4.name": {"en": "Bio-Hazard", "vi": "Thảm Họa Sinh Học"},
+	"danger.5.name": {"en": "Apocalypse", "vi": "Tận Thế"},
+
+	# --- Run bounties --------------------------------------------------------
+	"bounty.slay_bats.title": {"en": "Zombie Hunter", "vi": "Thợ Săn Thây Ma"},
+	"bounty.slay_bats.desc": {"en": "Slay 25 Infected", "vi": "Tiêu diệt 25 Thây Ma"},
+}
+
 var current_locale: String = DEFAULT_LOCALE
 
 func _ready() -> void:
@@ -168,7 +215,14 @@ func _setup_symbol_fallback() -> void:
 ## it keeps a missing key from blanking a button, so new UI can ship before its
 ## translation row exists.
 func t(key: String, default_text: String = "") -> String:
-	var row = STRINGS.get(key)
+	var row = null
+	var main_loop = Engine.get_main_loop()
+	if main_loop and "root" in main_loop and main_loop.root:
+		var gm = main_loop.root.get_node_or_null("GameManager")
+		if gm and gm.selected_stage == "zombie_city" and ZOMBIE_STRINGS.has(key):
+			row = ZOMBIE_STRINGS[key]
+	if row == null:
+		row = STRINGS.get(key)
 	if row is Dictionary and row.has(current_locale):
 		return String(row[current_locale])
 	if row is Dictionary and row.has(DEFAULT_LOCALE):

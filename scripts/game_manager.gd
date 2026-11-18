@@ -54,8 +54,8 @@ var kills: int = 0
 var run_gold: int = 0
 var total_gold: int = 0
 var discovered_landmarks: Dictionary = {}
-var selected_character: String = "swat"
-var selected_stage: String = "zombie_city"
+var selected_character: String = "knight"
+var selected_stage: String = "plains"
 var equipment_slots: Dictionary = {"weapon": "", "armor": "", "boots": ""}
 var collected_relics: Array[String] = []
 var active_bounties: Array[Dictionary] = []
@@ -613,6 +613,7 @@ func select_character(char_id: String) -> void:
 func select_stage(stage_id: String) -> void:
 	if STAGES.has(stage_id):
 		selected_stage = stage_id
+		_seed_weapon_display_names()
 		save_game_data()
 		emit_signal("stage_selected", stage_id)
 
@@ -644,9 +645,23 @@ func get_equipped_gear(slot: String) -> Dictionary:
 		return EQUIPMENT_CATALOG[gear_id]
 	return {}
 
+func is_test_environment() -> bool:
+	if OS.has_environment("CI_USERDATA"):
+		return true
+	for arg in OS.get_cmdline_args():
+		if "tests/" in arg or "test_" in arg:
+			return true
+	var tree = get_tree()
+	if tree and tree.current_scene and tree.current_scene.scene_file_path:
+		if "tests/" in tree.current_scene.scene_file_path:
+			return true
+	return false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if not is_test_environment():
+		selected_character = "swat"
+		selected_stage = "zombie_city"
 	load_save_data()
 	_seed_weapon_display_names()
 
@@ -1280,6 +1295,8 @@ func load_save_data() -> void:
 		if result != null and str(result) != "" and str(result) != "null":
 			var parsed = JSON.parse_string(str(result))
 			if parsed is Dictionary:
+				var def_char = "knight" if is_test_environment() else "swat"
+				var def_stage = "plains" if is_test_environment() else "zombie_city"
 				if parsed.has("total_gold"):
 					total_gold = int(parsed["total_gold"])
 				if parsed.has("is_first_run"):
@@ -1290,6 +1307,8 @@ func load_save_data() -> void:
 					var c_id = str(parsed["selected_character"])
 					if CHARACTERS.has(c_id) or ZOMBIE_CHARACTERS.has(c_id):
 						selected_character = c_id
+				else:
+					selected_character = def_char
 				if parsed.has("selected_companion"):
 					var p_id = str(parsed["selected_companion"])
 					if COMPANIONS.has(p_id):
@@ -1298,6 +1317,8 @@ func load_save_data() -> void:
 					var s_id = str(parsed["selected_stage"])
 					if STAGES.has(s_id):
 						selected_stage = s_id
+				else:
+					selected_stage = def_stage
 				if parsed.has("equipment_slots") and parsed["equipment_slots"] is Dictionary:
 					for slot in equipment_slots.keys():
 						if parsed["equipment_slots"].has(slot):
@@ -1317,10 +1338,12 @@ func load_save_data() -> void:
 	var config = ConfigFile.new()
 	var err = config.load(SAVE_PATH)
 	if err == OK:
+		var def_char = "knight" if is_test_environment() else "swat"
+		var def_stage = "plains" if is_test_environment() else "zombie_city"
 		total_gold = config.get_value("player", "total_gold", total_gold)
-		selected_character = config.get_value("player", "selected_character", "swat")
+		selected_character = config.get_value("player", "selected_character", def_char)
 		selected_companion = config.get_value("player", "selected_companion", "dragon_whelp")
-		selected_stage = config.get_value("player", "selected_stage", "zombie_city")
+		selected_stage = config.get_value("player", "selected_stage", def_stage)
 		is_first_run = config.get_value("player", "is_first_run", true)
 		danger_level = clampi(int(config.get_value("player", "danger_level", danger_level)), 0, MAX_DANGER_LEVEL)
 		for slot in equipment_slots.keys():

@@ -15,11 +15,15 @@ func _on_body_entered(body: Node2D) -> void:
 		collect(body)
 
 func collect(player_ref: Node2D) -> void:
-	# Expansion 21.0: Bảo Rương Kim Quy — cinematic jackpot ceremony.
+	# Expansion 21.0: Bảo Rương Kim Quy / Lucky Supply Crate ceremony.
 	# open_treasure_chest() rolls the tier, applies the upgrades, pays the gold
 	# and re-freezes the tree; the HUD plays the modal off the chest_opened signal.
 	SoundManager.play("level_up")
-	FloatingText.spawn(global_position, "🧰 BẢO RƯƠNG KIM QUY!", Color(1.0, 0.85, 0.1))
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		FloatingText.spawn(global_position, "📦 HÒM TIẾP TẾ TÁC CHIẾN!", Color(0.3, 1.0, 0.45))
+	else:
+		FloatingText.spawn(global_position, "🧰 BẢO RƯƠNG KIM QUY!", Color(1.0, 0.85, 0.1))
 	get_tree().paused = true
 	GameManager.open_treasure_chest(player_ref)
 

@@ -26,6 +26,7 @@ func _ready() -> void:
 	_test_dossier_ui_flow()
 	_test_tactical_zombie_hud_elements()
 	_test_tactical_wave_shop()
+	_test_tactical_supply_crate_modal()
 
 	if GameManager:
 		GameManager.selected_stage = orig_stage
@@ -216,3 +217,21 @@ func _test_tactical_wave_shop() -> void:
 	shop.close_shop()
 	shop.queue_free()
 	print("✔ Tactical Wave Shop UI verified.")
+
+func _test_tactical_supply_crate_modal() -> void:
+	var main_scene = load("res://scenes/main.tscn")
+	var main = main_scene.instantiate()
+	add_child(main)
+
+	var hud = main.get_node_or_null("HUD")
+	if not hud:
+		main.queue_free()
+		return
+
+	hud._on_chest_opened(2, [{"id": "dagger", "title": "Súng Lục Tác Chiến"}], 100)
+	check(hud.chest_modal != null and hud.chest_modal.visible, "Chest modal opened")
+	check(hud.chest_modal_title != null and (hud.chest_modal_title.text.contains("TIẾP TẾ") or hud.chest_modal_title.text.contains("TRIPLE")),
+		"Chest modal title carries tactical supply drop text: %s" % (hud.chest_modal_title.text if hud.chest_modal_title else ""))
+
+	main.queue_free()
+	print("✔ Tactical Lucky Supply Crate modal verified.")

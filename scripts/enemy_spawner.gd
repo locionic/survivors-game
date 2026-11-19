@@ -199,12 +199,17 @@ func _process_legacy_timeline(r_time: float) -> void:
 		goblin_1_spawned = true
 		spawn_treasure_goblin()
 	
+	var is_zombie_spawner := GameManager and GameManager.selected_stage == "zombie_city"
+
 	# 45s: Swarm Warning 1
 	if r_time >= 45.0 and not swarm_1_triggered:
 		swarm_1_triggered = true
-		trigger_swarm("⚠️ BAT SWARM DETECTED! ⚠️", bat_scene, 28)
+		if is_zombie_spawner:
+			trigger_swarm("☣️ BÁO ĐỘNG ĐỎ: ĐÀN ZOMBIE RUNNER TIÊN PHONG! ☣️", zombie_runner_scene, 28)
+		else:
+			trigger_swarm("⚠️ BAT SWARM DETECTED! ⚠️", bat_scene, 28)
 		
-	# 60s: Boss 1 (Dreadlord Malakor)
+	# 60s: Boss 1 (Dreadlord Malakor / Toxic Spitter Abomination)
 	if r_time >= 60.0 and not boss_1_spawned:
 		boss_1_spawned = true
 		spawn_boss_1()
@@ -219,17 +224,20 @@ func _process_legacy_timeline(r_time: float) -> void:
 		blood_moon_triggered = true
 		trigger_blood_moon_event()
 		
-	# 100s: Swarm Warning 2 (Armored Skeletons)
+	# 100s: Swarm Warning 2 (Armored Walkers / Skeletons)
 	if r_time >= 100.0 and not swarm_2_triggered:
 		swarm_2_triggered = true
-		trigger_swarm("💀 UNDEAD SIEGE INCOMING! 💀", skeleton_scene, 22)
+		if is_zombie_spawner:
+			trigger_swarm("☣️ BÁO ĐỘNG: BẦY THÂY MA BIẾN DỊ ÁP SÁT BỐN BỀ! ☣️", zombie_walker_scene, 24)
+		else:
+			trigger_swarm("💀 UNDEAD SIEGE INCOMING! 💀", skeleton_scene, 22)
 		
 	# 110s: Second Treasure Goblin Appears!
 	if r_time >= 110.0 and not goblin_2_spawned:
 		goblin_2_spawned = true
 		spawn_treasure_goblin()
 		
-	# 120s (2:00): Boss 2 (Infernal Behemoth)
+	# 120s (2:00): Boss 2 (Infernal Behemoth / Mutant Juggernaut)
 	if r_time >= 120.0 and not boss_2_spawned:
 		boss_2_spawned = true
 		spawn_boss_2()
@@ -244,27 +252,34 @@ func _process_legacy_timeline(r_time: float) -> void:
 		elite_champion_2_spawned = true
 		spawn_elite_champion()
 
-	# 180s (3:00): Swarm 3 (Thi Ma Trận - Skeletal Legion)
+	# 180s (3:00): Swarm 3 (Bloater Corps / Thi Ma Trận)
 	if r_time >= 180.0 and not swarm_3_triggered:
 		swarm_3_triggered = true
-		trigger_swarm("💀 VẠN QUỶ XUẤT ĐỘNG: THI MA TRẬN! 💀", skeleton_scene, 28)
+		if is_zombie_spawner:
+			trigger_swarm("☣️ QUÂN ĐOÀN BLOATER BỘC PHÁ ĐỘC TỐ! ☣️", zombie_bloater_scene, 26)
+		else:
+			trigger_swarm("💀 VẠN QUỶ XUẤT ĐỘNG: THI MA TRẬN! 💀", skeleton_scene, 28)
 		
 	# 210s (3:30): Third Treasure Goblin
 	if r_time >= 210.0 and not goblin_3_spawned:
 		goblin_3_spawned = true
 		spawn_treasure_goblin()
 		
-	# 240s (4:00): Swarm 4 (Vu Độc Ma Trận - Necromancers)
+	# 240s (4:00): Swarm 4 (Spitters / Necromancers)
 	if r_time >= 240.0 and not swarm_4_triggered:
 		swarm_4_triggered = true
-		trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 18)
+		if is_zombie_spawner:
+			var s_scene = zombie_spitter_scene if zombie_spitter_scene else zombie_bloater_scene
+			trigger_swarm("☣️ ĐỘI QUÂN NHỔ AXIT TẦM XA KHÉP VÒNG VÂY! ☣️", s_scene, 20)
+		else:
+			trigger_swarm("🔮 VU ĐỘC MA TRẬN BAO VÂY! CẨN THẬN MA PHÁP! 🔮", necromancer_scene, 18)
 		
 	# 270s (4:30): Blood Moon Eclipse 2 (30s duration - 2x XP & Gold)
 	if r_time >= 270.0 and not blood_moon_2_triggered:
 		blood_moon_2_triggered = true
 		trigger_blood_moon_event()
 		
-	# 300s (5:00): Boss 3 (Song Thủ Ma Tướng)
+	# 300s (5:00): Boss 3 (Song Thủ Ma Tướng / Twin Apex Mutants)
 	if r_time >= 300.0 and not boss_3_spawned:
 		boss_3_spawned = true
 		spawn_boss_3()
@@ -274,10 +289,13 @@ func _process_legacy_timeline(r_time: float) -> void:
 		hermit_2_spawned = true
 		spawn_hermit()
 		
-	# 390s (6:30): Apocalypse Swarm (Vạn Ma Vây Hãm)
+	# 390s (6:30): Apocalypse Swarm (Vạn Ma Vây Hãm / Đại Dịch Tận Thế)
 	if r_time >= 390.0 and not swarm_5_triggered:
 		swarm_5_triggered = true
-		trigger_swarm("⚡ ĐẠI KIẾP NẠN: VẠN MA VÂY HÃM! ĐỈNH CAO SINH TỒN! ⚡", skeleton_scene, 32)
+		if is_zombie_spawner:
+			trigger_swarm("☣️ ĐẠI DỊCH TẬN THẾ: TỔNG TẤN CÔNG DIỆT CHỦNG! ☣️", zombie_walker_scene, 36)
+		else:
+			trigger_swarm("⚡ ĐẠI KIẾP NẠN: VẠN MA VÂY HÃM! ĐỈNH CAO SINH TỒN! ⚡", skeleton_scene, 32)
 		
 	# 435s (7:15): Final Boss (Hắc Huyết Ma Hoàng)
 	if r_time >= 435.0 and not demon_emperor_spawned:

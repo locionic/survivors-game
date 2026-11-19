@@ -2048,6 +2048,12 @@ const CHEST_ANNOUNCEMENTS: Dictionary = {
 	3: "👑 CHÍ TÔN BẢO RƯƠNG: SUPREME JACKPOT (%d VÕ HỌC) +%d VÀNG!"
 }
 
+const ZOMBIE_CHEST_ANNOUNCEMENTS: Dictionary = {
+	1: "📦 THÙNG TIẾP TẾ TÁC CHIẾN ⭐ (%d TRANG BỊ) +%d VÀNG!",
+	2: "🎰 SIÊU TIẾP TẾ: TRIPLE SUPPLY ⭐⭐⭐ (%d TRANG BỊ) +%d VÀNG!",
+	3: "☢️ TIẾP TẾ TỐI THƯỢNG: MEGA JACKPOT ⭐⭐⭐⭐⭐ (%d TRANG BỊ) +%d VÀNG!"
+}
+
 func _setup_chest_modal() -> void:
 	chest_modal = PanelContainer.new()
 	chest_modal.name = "ChestOpeningModal"
@@ -2114,47 +2120,63 @@ func _on_chest_opened(jackpot_tier: int, upgrades: Array, gold_awarded: int) -> 
 	get_tree().paused = true
 	chest_modal.visible = true
 
-	var template: String = CHEST_ANNOUNCEMENTS.get(jackpot_tier, "🎁 BẢO RƯƠNG KIM QUY (%d VÕ HỌC) +%d VÀNG!")
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	var template: String
+	if is_zombie:
+		template = ZOMBIE_CHEST_ANNOUNCEMENTS.get(jackpot_tier, "📦 THÙNG TIẾP TẾ TÁC CHIẾN (%d TRANG BỊ) +%d VÀNG!")
+	else:
+		template = CHEST_ANNOUNCEMENTS.get(jackpot_tier, "🎁 BẢO RƯƠNG KIM QUY (%d VÕ HỌC) +%d VÀNG!")
 	if chest_modal_title:
 		chest_modal_title.text = template % [upgrades.size(), gold_awarded]
+		if is_zombie:
+			chest_modal_title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45) if jackpot_tier == 1 else (Color(1.0, 0.85, 0.2) if jackpot_tier == 2 else Color(1.0, 0.4, 0.4)))
+		else:
+			chest_modal_title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.3))
 
 	for child in chest_modal_list.get_children():
 		child.queue_free()
 
 	if upgrades.is_empty():
 		var none_lbl = Label.new()
-		none_lbl.text = "(Rương rỗng — không còn võ học nào để ban!)"
+		none_lbl.text = "(Không còn trang bị nào để tiếp tế!)" if is_zombie else "(Rương rỗng — không còn võ học nào để ban!)"
 		none_lbl.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
 		none_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		chest_modal_list.add_child(none_lbl)
 	else:
 		for item in upgrades:
 			var lbl = Label.new()
-			lbl.text = "✨ %s" % item.get("title", str(item.get("id", "?")))
+			lbl.text = "⭐ %s" % item.get("title", str(item.get("id", "?"))) if is_zombie else "✨ %s" % item.get("title", str(item.get("id", "?")))
 			lbl.add_theme_font_size_override("font_size", 15)
-			lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.4))
-			lbl.add_theme_color_override("font_shadow_color", Color(1.0, 0.6, 0.0, 0.9))
+			lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6) if is_zombie else Color(1.0, 0.88, 0.4))
+			lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.4, 0.2, 0.9) if is_zombie else Color(1.0, 0.6, 0.0, 0.9))
 			lbl.add_theme_constant_override("shadow_offset_x", 2)
 			lbl.add_theme_constant_override("shadow_offset_y", 2)
 			lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			chest_modal_list.add_child(lbl)
 
-	# Golden pulse on the chest icon for the reveal
-	var icon = chest_modal.get_node_or_null("CenterContainer/VBox/ChestIcon")
+	# Claim button label
+	var claim_btn = chest_modal.find_child("ClaimButton", true, false) as Button
+	if claim_btn:
+		claim_btn.text = "[ NHẬN TIẾP TẾ & CHIẾN ĐẤU (ENTER/SPACE) ]" if is_zombie else "[ NHẬN THƯỞNG & TIẾP TỤC (ENTER/SPACE) ]"
+
+	# Pulse on the chest icon for the reveal
+	var icon = chest_modal.get_node_or_null("CenterContainer/VBox/ChestIcon") as Label
 	if icon == null:
 		for n in chest_modal.find_children("*", "Label", true, false):
-			if n.text == "🧰":
+			if n.name == "ChestIcon" or n.text == "🧰" or n.text == "📦":
 				icon = n
 				break
 	if icon:
+		icon.text = "📦" if is_zombie else "🧰"
+		icon.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5) if is_zombie else Color(1.0, 0.85, 0.25))
 		icon.pivot_offset = icon.size / 2.0
 		icon.scale = Vector2(0.4, 0.4)
 		var tw = create_tween()
 		tw.tween_property(icon, "scale", Vector2(1.25, 1.25), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.tween_property(icon, "scale", Vector2(1.0, 1.0), 0.15)
-		tw.tween_property(icon, "scale", Vector2(1.1, 1.1), 0.5).set_trans(Tween.TRANS_SINE)
-		tw.tween_property(icon, "scale", Vector2(1.0, 1.0), 0.5).set_trans(Tween.TRANS_SINE).set_loops()
 
+	if jackpot_tier >= 2:
+		SoundManager.play("fanfare", 0.4)
 	SoundManager.play("powerup", 0.3)
 
 func _close_chest_modal() -> void:

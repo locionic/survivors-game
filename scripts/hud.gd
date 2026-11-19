@@ -658,25 +658,35 @@ func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 		return
 	
 	if is_boss:
-		# Boss entrance: localized dramatic banner + heavy gong
+		# Boss entrance: localized dramatic banner + audio cue
 		var boss_name = message.replace("🏯 ", "").replace(" - ARENA OPEN!", "").replace("HIỆP ", "").replace("WAVE ", "")
 		var warning_text = Loc.tf("hud.boss_warning", [boss_name])
 		warning_banner.text = "⚠️ %s ⚠️" % warning_text
 		
-		# Dramatic crimson lacquer banner styling with gold border
+		var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
 		var sb = StyleBoxFlat.new()
-		sb.bg_color = Color(0.28, 0.04, 0.06, 0.94)
-		sb.border_color = UITheme.GOLD
-		sb.set_border_width_all(2)
-		sb.set_corner_radius_all(6)
-		sb.set_content_margin_all(10)
-		sb.shadow_color = Color(0.95, 0.15, 0.15, 0.45)
-		sb.shadow_size = 8
-		warning_banner.add_theme_stylebox_override("normal", sb)
-		warning_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-		
-		# Play buddha gong for boss entrance
-		SoundManager.play("buddha_gong", 0.15)
+		if is_zombie:
+			sb.bg_color = Color(0.06, 0.16, 0.08, 0.95)
+			sb.border_color = Color(0.25, 0.95, 0.4)
+			sb.set_border_width_all(2)
+			sb.set_corner_radius_all(6)
+			sb.set_content_margin_all(10)
+			sb.shadow_color = Color(0.1, 0.9, 0.25, 0.5)
+			sb.shadow_size = 10
+			warning_banner.add_theme_stylebox_override("normal", sb)
+			warning_banner.add_theme_color_override("font_color", Color(0.35, 1.0, 0.45))
+			SoundManager.play("boss_alarm", 0.20)
+		else:
+			sb.bg_color = Color(0.28, 0.04, 0.06, 0.94)
+			sb.border_color = UITheme.GOLD
+			sb.set_border_width_all(2)
+			sb.set_corner_radius_all(6)
+			sb.set_content_margin_all(10)
+			sb.shadow_color = Color(0.95, 0.15, 0.15, 0.45)
+			sb.shadow_size = 8
+			warning_banner.add_theme_stylebox_override("normal", sb)
+			warning_banner.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+			SoundManager.play("buddha_gong", 0.15)
 	else:
 		warning_banner.text = message
 		var sb = StyleBoxFlat.new()
@@ -970,21 +980,42 @@ func _on_score_updated(kills: int, time: float) -> void:
 		_dismiss_ftue_banner()
 	
 	# Kill Streak Announcements
-	if kills >= 25 and last_streak_announced < 25:
-		last_streak_announced = 25
-		_on_wave_event_announced("25 KILLS: KILLING SPREE!", false)
-	elif kills >= 50 and last_streak_announced < 50:
-		last_streak_announced = 50
-		_on_wave_event_announced("50 KILLS: UNSTOPPABLE SLAYER!", false)
-	elif kills >= 100 and last_streak_announced < 100:
-		last_streak_announced = 100
-		_on_wave_event_announced("100 KILLS: RAMPAGE!", false)
-	elif kills >= 200 and last_streak_announced < 200:
-		last_streak_announced = 200
-		_on_wave_event_announced("200 KILLS: LEGENDARY!", true)
-	elif kills >= 350 and last_streak_announced < 350:
-		last_streak_announced = 350
-		_on_wave_event_announced("350 KILLS: GODLIKE!", true)
+	var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		if kills >= 1000 and last_streak_announced < 1000:
+			last_streak_announced = 1000
+			_on_wave_event_announced(Loc.t("streak.1000", "👑 1000 KILLS: GOD OF SURVIVORS!"), true)
+		elif kills >= 500 and last_streak_announced < 500:
+			last_streak_announced = 500
+			_on_wave_event_announced(Loc.t("streak.500", "🔥 500 KILLS: UNSTOPPABLE SLAYER!"), true)
+		elif kills >= 250 and last_streak_announced < 250:
+			last_streak_announced = 250
+			_on_wave_event_announced(Loc.t("streak.250", "⚡ 250 KILLS: APOCALYPSE REAPER!"), true)
+		elif kills >= 100 and last_streak_announced < 100:
+			last_streak_announced = 100
+			_on_wave_event_announced(Loc.t("streak.100", "☣️ 100 KILLS: BIO-CONTAMINATOR!"), false)
+		elif kills >= 50 and last_streak_announced < 50:
+			last_streak_announced = 50
+			_on_wave_event_announced(Loc.t("streak.50", "💥 50 KILLS: HORDE MASSACRE!"), false)
+		elif kills >= 25 and last_streak_announced < 25:
+			last_streak_announced = 25
+			_on_wave_event_announced("🔫 25 KILLS: OUTBREAK BREAKER!", false)
+	else:
+		if kills >= 350 and last_streak_announced < 350:
+			last_streak_announced = 350
+			_on_wave_event_announced("350 KILLS: GODLIKE!", true)
+		elif kills >= 200 and last_streak_announced < 200:
+			last_streak_announced = 200
+			_on_wave_event_announced("200 KILLS: LEGENDARY!", true)
+		elif kills >= 100 and last_streak_announced < 100:
+			last_streak_announced = 100
+			_on_wave_event_announced("100 KILLS: RAMPAGE!", false)
+		elif kills >= 50 and last_streak_announced < 50:
+			last_streak_announced = 50
+			_on_wave_event_announced("50 KILLS: UNSTOPPABLE SLAYER!", false)
+		elif kills >= 25 and last_streak_announced < 25:
+			last_streak_announced = 25
+			_on_wave_event_announced("25 KILLS: KILLING SPREE!", false)
 
 func _on_gold_updated(new_total: int) -> void:
 	if gold_label:
@@ -1637,9 +1668,19 @@ func wave_num_from_clock() -> int:
 	return wave_dir.current_wave if is_instance_valid(wave_dir) else 1
 
 func _process(_delta: float) -> void:
+	if not is_instance_valid(player) and get_tree():
+		player = get_tree().get_first_node_in_group("player")
+
 	if is_dragon_active_ui and player and is_instance_valid(player) and "dragon_duration_timer" in player:
 		if dragon_button:
 			dragon_button.text = "🔥\n%.1fs" % max(0.1, player.dragon_duration_timer)
+
+	# Adrenaline Overdrive HUD Badge
+	if player and is_instance_valid(player) and "overdrive_buff_timer" in player:
+		if player.overdrive_buff_timer > 0.0:
+			_show_overdrive_indicator(player.overdrive_buff_timer)
+		else:
+			_hide_overdrive_indicator()
 
 	if GameManager and GameManager.is_run_active and not get_tree().paused and GameManager.selected_stage == "mount_hua":
 		blizzard_timer += _delta
@@ -1658,6 +1699,44 @@ func _process(_delta: float) -> void:
 			if player and is_instance_valid(player) and player.has_method("apply_blizzard_slow"):
 				player.apply_blizzard_slow(4.5)
 
+
+var overdrive_label: Label = null
+
+func _show_overdrive_indicator(time_left: float) -> void:
+	if not overdrive_label:
+		var game_ui = get_node_or_null("GameUI")
+		if not game_ui:
+			return
+		overdrive_label = Label.new()
+		overdrive_label.name = "OverdriveHUDIndicator"
+		overdrive_label.custom_minimum_size = Vector2(300, 32)
+		overdrive_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		overdrive_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		overdrive_label.position = Vector2(250, 48)
+		overdrive_label.size = Vector2(300, 32)
+		overdrive_label.add_theme_font_override("font", UITheme.get_body_bold_font())
+		overdrive_label.add_theme_font_size_override("font_size", 13)
+		overdrive_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.3))
+		
+		var sb = StyleBoxFlat.new()
+		sb.bg_color = Color(0.22, 0.13, 0.02, 0.92)
+		sb.border_color = Color(1.0, 0.82, 0.2)
+		sb.set_border_width_all(2)
+		sb.set_corner_radius_all(6)
+		sb.set_content_margin_all(6)
+		sb.shadow_color = Color(1.0, 0.65, 0.1, 0.5)
+		sb.shadow_size = 6
+		overdrive_label.add_theme_stylebox_override("normal", sb)
+		game_ui.add_child(overdrive_label)
+		
+	overdrive_label.visible = true
+	var pulse := (sin(float(Time.get_ticks_msec()) * 0.01) + 1.0) * 0.5
+	overdrive_label.text = "⚡ ADRENALINE OVERDRIVE: %.1fs" % time_left
+	overdrive_label.modulate = Color(1.0 + pulse * 0.25, 1.0 + pulse * 0.25, 0.85)
+
+func _hide_overdrive_indicator() -> void:
+	if overdrive_label and overdrive_label.visible:
+		overdrive_label.visible = false
 
 func _setup_dragon_awakening_widget() -> void:
 	var game_ui = get_node_or_null("GameUI")

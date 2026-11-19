@@ -87,11 +87,21 @@ The project has transitioned to **Zombie Outbreak** as its primary default theme
   - Contextual HUD lacquer badges with firearm icons in `scripts/hud.gd`.
   - Comprehensive automated test suite `tests/test_zombie_arsenal.tscn` (all assertions verified green).
 
+- [x] **Milestone 2: Quarantine Arena Props & Destructibles (Viral Chain Reactions)**:
+  - Concrete Jersey barriers (`assets/textures/jersey_barrier.png`) establishing tactical street choke points and bottlenecks.
+  - Explosive Hazard Drums (`assets/textures/explosive_barrel.png`, `scenes/explosive_barrel.tscn`, `scripts/explosive_barrel.gd`):
+    - 320 AoE damage to horde, screen shake, fiery particle shockwave.
+    - **Cascading Chain Reaction system**: Nearby barrels prime and detonate in 0.12s domino sequences!
+    - Permanent charred blast craters on asphalt (`assets/textures/charred_crater.png`) and bonus bio-vial loot.
+- [x] **Milestone 3: Emergency Airdrop Event System & Adrenaline Overdrive**:
+  - Timed parachute supply drops (`assets/textures/airdrop_crate.png`, `scenes/airdrop_crate.tscn`, `scripts/airdrop_crate.gd`):
+    - Green signal smoke flare descent.
+    - Instant screen-clearing tactical bio-purge strike (450 AoE damage).
+    - 12 seconds of **Adrenaline Overdrive** (+75% attack speed, +35% move speed) and +60 gold credits.
+  - Viral Kill Streak Announcer banners for `zombie_city` ("HORDE MASSACRE!", "BIO-CONTAMINATOR!", "APOCALYPSE REAPER!", "UNSTOPPABLE SLAYER!", "GOD OF SURVIVORS!").
+  - Automated test suite `tests/test_zombie_viral_features.tscn` (100% green).
+
 ### Open / Next Zombie Outbreak Features
-- [ ] **Milestone 2: Quarantine Arena Props & Destructibles**:
-  - Concrete jersey barriers, sandbag nests, military hazard drums (explosive on hit), flickering sodium streetlights.
-- [ ] **Milestone 3: Emergency Airdrop Event System**:
-  - Timed supply drops delivering high-grade military crates, weapon fuses, and temporary adrenaline boosts.
 - [ ] **Milestone 4: Bio-Contamination & Infection Mechanic**:
   - Hazardous toxic bile puddles left behind by Bloaters and Toxic Spitters requiring tactical movement.
 

@@ -660,6 +660,8 @@ func _physics_process(delta: float) -> void:
 
 	if drunken_buff_timer > 0.0:
 		drunken_buff_timer = max(0.0, drunken_buff_timer - delta)
+	if overdrive_buff_timer > 0.0:
+		overdrive_buff_timer = max(0.0, overdrive_buff_timer - delta)
 		
 	if is_dashing:
 		dash_timer -= delta
@@ -1011,12 +1013,21 @@ func get_crit_damage_multiplier() -> float:
 ## Composed rather than ternary'd because the two are now independent sources and
 ## the next one will be too. Multiplicative, like the relic: two buffs stacking to
 ## +70% reads as stronger than either, which is what a player expects from a stack.
+var overdrive_buff_timer: float = 0.0
+
+func apply_overdrive_buff(duration: float = 12.0) -> void:
+	overdrive_buff_timer = max(overdrive_buff_timer, duration)
+	speed_buff_timer = max(speed_buff_timer, duration)
+	speed_multiplier = max(speed_multiplier, 1.35)
+
 func get_attack_speed_multiplier() -> float:
 	var mult := 1.0
 	if is_demonic_rage_active():
 		mult *= RELIC_RAGE_ATTACK_SPEED
 	if drunken_buff_timer > 0.0:
 		mult *= 1.50
+	if overdrive_buff_timer > 0.0:
+		mult *= 1.75
 	mult *= run_attack_speed_penalty
 	return mult
 

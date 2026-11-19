@@ -83,10 +83,14 @@ func _setup_arena_boundaries() -> void:
 	add_child(bounds)
 
 func _setup_arena_theming() -> void:
-	# Only apply Ba Lăng Huyện theming for the martial arts stage
-	if not GameManager or GameManager.selected_stage != "martial_arts":
+	if not GameManager:
 		return
-	
+	if GameManager.selected_stage == "martial_arts":
+		_setup_martial_arena_theming()
+	elif GameManager.selected_stage == "zombie_city":
+		_setup_zombie_arena_theming()
+
+func _setup_martial_arena_theming() -> void:
 	var half_w = 1200.0
 	var half_h = 900.0
 	var theme_parent = Node2D.new()
@@ -108,6 +112,99 @@ func _setup_arena_theming() -> void:
 	
 	# 5. Floating golden autumn leaves (CPUParticles2D)
 	_make_autumn_leaves(theme_parent, half_w, half_h)
+
+func _setup_zombie_arena_theming() -> void:
+	var half_w = 1200.0
+	var half_h = 900.0
+	var theme_parent = Node2D.new()
+	theme_parent.name = "ZombieArenaTheming"
+	theme_parent.z_index = 500
+	add_child(theme_parent)
+
+	# 1. Concrete Jersey Barriers (Checkpoints forming tactical bottlenecks)
+	_make_jersey_barriers(theme_parent)
+
+	# 2. Explosive Hazard Drums (Chain reaction clusters!)
+	_make_explosive_barrels(theme_parent)
+
+	# 3. Low-lying toxic smog / ambient fog particles
+	_make_toxic_smog(theme_parent, half_w, half_h)
+
+func _make_jersey_barriers(parent: Node2D) -> void:
+	var barrier_tex = load("res://assets/textures/jersey_barrier.png") as Texture2D
+	if not barrier_tex:
+		return
+	# Barricade pairs forming street roadblocks and chokepoints
+	var positions = [
+		Vector2(-420, -320), Vector2(-360, -320),
+		Vector2(360, 320), Vector2(420, 320),
+		Vector2(-550, 0), Vector2(-550, 60),
+		Vector2(550, 0), Vector2(550, -60),
+		Vector2(-120, 400), Vector2(-60, 400),
+		Vector2(60, -400), Vector2(120, -400)
+	]
+	for pos in positions:
+		var body = StaticBody2D.new()
+		body.name = "JerseyBarrier"
+		body.collision_layer = 1
+		body.collision_mask = 3
+		body.global_position = pos
+
+		var sp = Sprite2D.new()
+		sp.texture = barrier_tex
+		body.add_child(sp)
+
+		var col = CollisionShape2D.new()
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(46, 20)
+		col.shape = rect
+		col.position = Vector2(0, 2)
+		body.add_child(col)
+
+		parent.add_child(body)
+
+func _make_explosive_barrels(parent: Node2D) -> void:
+	var barrel_scene = load("res://scenes/explosive_barrel.tscn") as PackedScene
+	if not barrel_scene:
+		return
+	# Tactical clusters near chokepoints that can chain react!
+	var barrel_clusters = [
+		Vector2(-390, -260), Vector2(-345, -260), # North cluster
+		Vector2(390, 260), Vector2(345, 260),     # South cluster
+		Vector2(-480, 40), Vector2(-440, 40),      # West cluster
+		Vector2(440, -40), Vector2(480, -40),      # East cluster
+		Vector2(-180, -180), Vector2(-140, -180), Vector2(-160, -140), # NW trio
+		Vector2(180, 180), Vector2(140, 180), Vector2(160, 140)        # SE trio
+	]
+	for pos in barrel_clusters:
+		var b = barrel_scene.instantiate()
+		if b:
+			b.global_position = pos
+			parent.add_child(b)
+
+func _make_toxic_smog(parent: Node2D, half_w: float, half_h: float) -> void:
+	var smog = CPUParticles2D.new()
+	smog.name = "ToxicSmog"
+	smog.z_index = 300
+	smog.amount = 40
+	smog.lifetime = 6.0
+	smog.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	smog.emission_rect_extents = Vector2(half_w, half_h)
+	smog.direction = Vector2(1, 0.2)
+	smog.spread = 20.0
+	smog.gravity = Vector2.ZERO
+	smog.initial_velocity_min = 10.0
+	smog.initial_velocity_max = 25.0
+	smog.scale_amount_min = 40.0
+	smog.scale_amount_max = 85.0
+	var grad = Gradient.new()
+	grad.colors = PackedColorArray([
+		Color(0.15, 0.4, 0.2, 0.0),
+		Color(0.2, 0.5, 0.25, 0.09),
+		Color(0.15, 0.35, 0.2, 0.0)
+	])
+	smog.color_ramp = grad
+	parent.add_child(smog)
 
 func _make_bamboo_reeds(parent: Node2D, half_w: float, half_h: float) -> void:
 	var bamboo_tex = load("res://assets/textures/bamboo_reed.png") if ResourceLoader.exists("res://assets/textures/bamboo_reed.png") else null

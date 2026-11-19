@@ -176,6 +176,11 @@ const ZOMBIE_STRINGS: Dictionary = {
 	# --- HUD: waves, streaks, boss alarms, end screens -----------------------
 	"hud.wave_banner": {"en": "WAVE %d / %d - HORDE INCOMING!", "vi": "ĐỢT %d / %d - BẦY ZOMBIE TẤN CÔNG!"},
 	"hud.victory_banner": {"en": "EXTRACTION COMPLETE! SURVIVED %d WAVES!", "vi": "GIẢI CỨU THÀNH CÔNG! SỐNG SÓT QUA %d ĐỢT!"},
+	"hud.streak_50": {"en": "💥 50 KILLS: HORDE MASSACRE! (+25% ADRENALINE)", "vi": "💥 50 XÁC SỐNG: ĐẠI ĐỒ SÁT! (+25% CUỒNG BẠO)"},
+	"hud.streak_100": {"en": "☣️ 100 KILLS: BIO-CONTAMINATOR! (+25% ADRENALINE)", "vi": "☣️ 100 XÁC SỐNG: CHIẾN BINH DIỆT CHỦNG! (+25% CUỒNG BẠO)"},
+	"hud.streak_250": {"en": "⚡ 250 KILLS: APOCALYPSE REAPER! (+25% ADRENALINE)", "vi": "⚡ 250 XÁC SỐNG: TỬ THẦN TẬN THẾ! (+25% CUỒNG BẠO)"},
+	"hud.streak_500": {"en": "🔥 500 KILLS: UNSTOPPABLE SLAYER! (+25% ADRENALINE)", "vi": "🔥 500 XÁC SỐNG: HUYỀN THOẠI SỐNG SÓT! (+25% CUỒNG BẠO)"},
+	"hud.streak_1000": {"en": "👑 1000 KILLS: GOD OF SURVIVORS! (+25% ADRENALINE)", "vi": "👑 1000 XÁC SỐNG: CHÚA TỂ TẬN THẾ! (+25% CUỒNG BẠO)"},
 	"hud.boss_alarm": {"en": "MUTANT ALPHA DETECTED!", "vi": "PHÁT HIỆN ZOMBIE ĐỘT BIẾN ALPHA!"},
 	"hud.boss_warning": {"en": "BIO-THREAT APPROACHING: %s", "vi": "MỐI ĐE DỌA SINH HỌC: %s"},
 	"hud.level_up": {"en": "LEVEL UP! CHOOSE FIELD UPGRADE", "vi": "THĂNG CẤP! CHỌN TRANG BỊ / KỸ NĂNG"},

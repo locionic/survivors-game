@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/airdrop_crate.gd" id="1_airdrop"]
+[ext_resource type="Texture2D" path="res://assets/textures/airdrop_crate.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_drop"]
+radius = 18.0
+
+[node name="AirdropCrate" type="Area2D"]
+collision_layer = 2
+collision_mask = 2
+script = ExtResource("1_airdrop")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_tex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, 4)
+shape = SubResource("CircleShape2D_drop")

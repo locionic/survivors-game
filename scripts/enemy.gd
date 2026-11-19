@@ -871,7 +871,10 @@ func spawn_death_particles() -> void:
 	particles.scale_amount_min = 2.5
 	particles.scale_amount_max = 5.0
 	var grad = Gradient.new()
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
 	var base_col = champ_aura_color if is_champion else (Color(1.0, 0.35, 0.15) if is_boss else Color(0.85, 0.4, 1.0))
+	if is_zombie:
+		base_col = Color(0.25, 0.95, 0.35) if randf() < 0.5 else Color(0.85, 0.18, 0.18)
 	grad.colors = PackedColorArray([Color(base_col.r, base_col.g, base_col.b, 0.95), Color(base_col.r * 1.3, base_col.g * 1.3, base_col.b * 1.3, 0.0)])
 	particles.color_ramp = grad
 	particles.global_position = global_position

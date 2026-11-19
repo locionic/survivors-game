@@ -153,12 +153,28 @@ func get_difficulty_seconds() -> float:
 		return float(clampi(int(dir.current_wave), 1, 20)) * WAVE_DIFFICULTY_SECONDS
 	return GameManager.run_time
 
+var airdrop_1_spawned: bool = false
+var airdrop_2_spawned: bool = false
+
+func spawn_emergency_airdrop() -> void:
+	var airdrop_scene = load("res://scenes/airdrop_crate.tscn") as PackedScene
+	if not airdrop_scene or not is_instance_valid(player):
+		return
+	var drop = airdrop_scene.instantiate()
+	if drop:
+		var offset = Vector2(randf_range(-220, 220), randf_range(-160, 160))
+		drop.global_position = player.global_position + offset
+		get_tree().current_scene.call_deferred("add_child", drop)
+		emit_signal("wave_event_announced", "📦 EMERGENCY AIRDROP INCOMING - SECURE THE CRATE!", false)
+
 func _process_wave_events(delta: float) -> void:
 	var wave := int(wave_director.current_wave)
 	if wave != _last_seen_wave:
 		_last_seen_wave = wave
 		_pending_wave = wave if WAVE_EVENTS.has(wave) else 0
 		_pending_timer = WAVE_EVENT_DELAY
+		if GameManager and GameManager.selected_stage == "zombie_city" and (wave == 3 or wave == 7 or wave == 12 or wave == 16):
+			spawn_emergency_airdrop()
 
 	if _pending_wave <= 0:
 		return

@@ -15,9 +15,15 @@ var tier_damage_mult: float = 1.0
 var speed_multiplier: float = 1.0
 var is_evolved: bool = false
 var scythe_tex: Texture2D = null
+var grenade_tex: Texture2D = null
+var warhead_tex: Texture2D = null
 
 func _ready() -> void:
 	scythe_tex = load("res://assets/textures/reapers_scythe.png")
+	if ResourceLoader.exists("res://assets/textures/frag_grenade.png"):
+		grenade_tex = load("res://assets/textures/frag_grenade.png")
+	if ResourceLoader.exists("res://assets/textures/cluster_warhead.png"):
+		warhead_tex = load("res://assets/textures/cluster_warhead.png")
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -32,6 +38,7 @@ func throw_axes() -> void:
 		return
 		
 	SoundManager.play("axe", 0.18 if is_evolved else 0.12)
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
 	
 	for i in range(axe_count):
 		var axe = axe_scene.instantiate()
@@ -44,7 +51,18 @@ func throw_axes() -> void:
 				
 			axe.velocity = Vector2(h_speed, -480.0 + randf_range(-30, 30))
 			axe.damage_multiplier = damage_multiplier * tier_damage_mult * _get_player_might()
-			if is_evolved and scythe_tex:
+			if is_zombie:
+				var spr = axe.get_node_or_null("Sprite2D")
+				if spr:
+					if is_evolved and warhead_tex:
+						spr.texture = warhead_tex
+						spr.scale = Vector2(1.35, 1.35)
+						axe.base_damage = 50.0
+						axe.fall_gravity = 600.0
+					elif grenade_tex:
+						spr.texture = grenade_tex
+						spr.scale = Vector2(1.2, 1.2)
+			elif is_evolved and scythe_tex:
 				var spr = axe.get_node_or_null("Sprite2D")
 				if spr:
 					spr.texture = scythe_tex

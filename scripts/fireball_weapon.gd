@@ -41,9 +41,15 @@ var run_blast_radius_bonus: float = 0.0:
 
 var is_evolved: bool = false
 var meteor_tex: Texture2D = null
+var molotov_tex: Texture2D = null
+var napalm_tex: Texture2D = null
 
 func _ready() -> void:
 	meteor_tex = load("res://assets/textures/apocalypse_meteor.png")
+	if ResourceLoader.exists("res://assets/textures/molotov.png"):
+		molotov_tex = load("res://assets/textures/molotov.png")
+	if ResourceLoader.exists("res://assets/textures/napalm_strike.png"):
+		napalm_tex = load("res://assets/textures/napalm_strike.png")
 
 func _process(delta: float) -> void:
 	if not is_active:
@@ -84,8 +90,19 @@ func fire_fireball() -> void:
 				fb.direction = dir
 				fb.damage_multiplier = damage_multiplier * tier_damage_mult * _get_player_might()
 				fb.blast_radius *= blast_radius_multiplier
-				if is_evolved and meteor_tex:
-					var spr = fb.get_node_or_null("Sprite2D")
+				var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+				var spr = fb.get_node_or_null("Sprite2D")
+				if is_zombie:
+					if is_evolved and napalm_tex:
+						if spr:
+							spr.texture = napalm_tex
+							spr.scale = Vector2(1.4, 1.4)
+						fb.blast_radius = max(fb.blast_radius, 160.0)
+					elif molotov_tex:
+						if spr:
+							spr.texture = molotov_tex
+							spr.scale = Vector2(1.2, 1.2)
+				elif is_evolved and meteor_tex:
 					if spr:
 						spr.texture = meteor_tex
 						spr.scale = Vector2(1.5, 1.5)

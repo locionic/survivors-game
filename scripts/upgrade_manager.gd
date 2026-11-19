@@ -200,6 +200,29 @@ const CARD_ICONS: Dictionary = {
 	"luck": "🍀",
 }
 
+const ZOMBIE_CARD_ICONS: Dictionary = {
+	"dagger": "🔫",
+	"shield": "🛡️",
+	"lightning": "⚡",
+	"fireball": "💣",
+	"axe": "🧨",
+	"slash": "🔪",
+	"orbit": "🛡️",
+	"damage": "💥",
+	"attack_speed": "⚡",
+	"projectile_count": "✨",
+	"move_speed": "🏃",
+	"magnet": "🧲",
+	"max_hp": "💉",
+	"might_surge": "☣️",
+	"synergy": "☣️",
+	"area": "💥",
+	"duration": "⏱",
+	"cooldown": "⚡",
+	"armor": "🦺",
+	"luck": "🎲",
+}
+
 ## Falls back to a neutral mark rather than no badge: a card whose icon lookup
 ## missed is a bug worth seeing on screen, not a gap worth hiding.
 ##
@@ -213,6 +236,12 @@ func card_icon(upgrade_id: String) -> String:
 	var key := upgrade_id
 	if key.begins_with("evolve_") or key.begins_with("unlock_"):
 		key = key.substr(key.find("_") + 1)
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		if ZOMBIE_CARD_ICONS.has(key):
+			return ZOMBIE_CARD_ICONS[key]
+		var token = key.split("_")[0]
+		if ZOMBIE_CARD_ICONS.has(token):
+			return ZOMBIE_CARD_ICONS[token]
 	if CARD_ICONS.has(key):
 		return CARD_ICONS[key]
 	return CARD_ICONS.get(key.split("_")[0], "✦")
@@ -305,6 +334,11 @@ func tier_color(tier: int) -> Color:
 	return TIER_COLORS[clampi(tier - 1, 0, TIER_COLORS.size() - 1)]
 
 func get_upgrade_catalog() -> Array[Dictionary]:
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		return _get_zombie_upgrade_catalog()
+	return _get_martial_upgrade_catalog()
+
+func _get_martial_upgrade_catalog() -> Array[Dictionary]:
 	var options: Array[Dictionary] = []
 	
 	# 1. Super Weapon Evolutions (weapons at Level >= 5 that haven't evolved yet)
@@ -457,6 +491,148 @@ func get_upgrade_catalog() -> Array[Dictionary]:
 	options.append({"id": "magnet", "title": "Hấp Tinh Đại Pháp", "desc": "+30% Phạm Vi Hút Ngọc & Vàng"})
 	options.append({"id": "max_hp", "title": "Kim Cang Bất Hoại", "desc": "+25 Máu Tối Đa & Hồi Phục 25 HP"})
 	options.append({"id": "might_surge", "title": "Bồ Đề Tâm Pháp", "desc": "+12% Sức Mạnh Sát Thương Toàn Thân"})
+
+	return options
+
+func _get_zombie_upgrade_catalog() -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	var is_en := Loc.current_locale == "en"
+	
+	# 1. Super Weapon Evolutions (Tactical Bio-hazard upgrades)
+	if weapon_levels.get("dagger", 0) >= 5 and not evolved_weapons.get("dagger", false):
+		options.append({
+			"id": "evolve_dagger",
+			"title": "[TIỆT KỸ] SÚNG MÁY GATLING (Minigun Barrage)" if not is_en else "[EVOLUTION] MINIGUN BARRAGE",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Súng Lục Lv.5 + Kích Thích Tác Chiến)\nBão đạn liên thanh 360° xuyên phá vạn thây ma!" if not is_en else "TACTICAL EVOLUTION!\n(Pistol Lv.5 + Adrenaline Shot)\nEndless 360° armor-piercing high-caliber lead storm!",
+			"is_evolution": true
+		})
+	if weapon_levels.get("shield", 0) >= 5 and not evolved_weapons.get("shield", false):
+		options.append({
+			"id": "evolve_shield",
+			"title": "[TIỆT KỸ] LÁ CHẮN SINH HỌC (Bio-Barrier Array)" if not is_en else "[EVOLUTION] BIO-BARRIER ARRAY",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Khiên Bạo Động Lv.5 + Giáp Chống Độc)\n5 lá chắn năng lượng sinh học xoay cực tốc phản kích bầy zombie!" if not is_en else "TACTICAL EVOLUTION!\n(Riot Shield Lv.5 + Hazard Plating)\n5 high-velocity bio-energy shields repelling infected!",
+			"is_evolution": true
+		})
+	if weapon_levels.get("lightning", 0) >= 5 and not evolved_weapons.get("lightning", false):
+		options.append({
+			"id": "evolve_lightning",
+			"title": "[TIỆT KỸ] BÃO TỪ TRƯỜNG EMP (EMP Storm Grid)" if not is_en else "[EVOLUTION] EMP STORM GRID",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Súng Tesla Lv.5 + Pin Điện Tác Chiến)\n4 luồng sốc điện EMP giật liên hoàn kèm xung kích bạo kích 100%!" if not is_en else "TACTICAL EVOLUTION!\n(Tesla Coil Lv.5 + Battery Cell)\n4 cascading EMP lightning arcs with 100% crit shockwaves!",
+			"is_evolution": true
+		})
+	if weapon_levels.get("fireball", 0) >= 5 and not evolved_weapons.get("fireball", false):
+		options.append({
+			"id": "evolve_fireball",
+			"title": "[TIỆT KỸ] KHÔNG KÍCH NAPALM (Napalm Strike)" if not is_en else "[EVOLUTION] NAPALM STRIKE",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Bom Xăng Lv.5 + Thuốc Phóng Nén)\nKhông kích Napalm diện rộng phát nổ để lại biển lửa thiêu rụi bầy quái!" if not is_en else "TACTICAL EVOLUTION!\n(Molotov Lv.5 + High Explosive)\nCarpet bombing airstrike leaving incinerating firestorms!",
+			"is_evolution": true
+		})
+	if weapon_levels.get("axe", 0) >= 5 and not evolved_weapons.get("axe", false):
+		options.append({
+			"id": "evolve_axe",
+			"title": "[TIỆT KỸ] ĐẦU ĐẠN CHÙM (Cluster Warhead)" if not is_en else "[EVOLUTION] CLUSTER WARHEAD",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Lựu Đạn Lv.5 + Kíp Nổ Nén)\n3 đầu đạn phân mảnh xoay tròn tạo lực hút chân không gom zombie phát nổ!" if not is_en else "TACTICAL EVOLUTION!\n(Frag Grenade Lv.5 + Heavy Ordinance)\n3 cluster warheads with vortex vacuum pulling infected into blasts!",
+			"is_evolution": true
+		})
+	if weapon_levels.get("slash", 0) >= 5 and not evolved_weapons.get("slash", false):
+		options.append({
+			"id": "evolve_slash",
+			"title": "[TIỆT KỸ] CƯA MÁY CUỒNG NỘ (Chainsaw Ripper)" if not is_en else "[EVOLUTION] CHAINSAW RIPPER",
+			"desc": "NÂNG CẤP TỐI THƯỢNG!\n(Dao Rựa Lv.5 + Động Cơ Tăng Áp)\nLưỡi cưa máy 180° uy lực vô song nghiền nát mọi thây ma áp sát!" if not is_en else "TACTICAL EVOLUTION!\n(Combat Machete Lv.5 + Turbo Motor)\n180° motorized chainsaw cleave tearing through incoming hordes!",
+			"is_evolution": true
+		})
+
+	# 2. Dual-Weapon Synergy Fusions
+	if weapon_levels.get("dagger", 0) >= 5 and weapon_levels.get("axe", 0) >= 5 and not synergies_evolved.get("bao_vu", false):
+		options.append({
+			"id": "synergy_bao_vu",
+			"title": "[HỢP NHẤT] MƯA ĐẠN BÃO TÁP (Bullet Hell Barrage)" if not is_en else "[SYNERGY] BULLET HELL BARRAGE",
+			"desc": "VŨ KHÍ HỢP NHẤT (Súng Lục Lv.5 + Lựu Đạn Mảnh Lv.5)!\nBắn ra 16 loạt đạn nổ mảnh xoay tròn 360 độ xé toạc toàn màn hình!" if not is_en else "TACTICAL FUSION (Pistol Lv.5 + Grenade Lv.5)!\nFires 16 high-explosive cluster flechettes in full 360° shredding screen!",
+			"is_synergy": true
+		})
+	if weapon_levels.get("slash", 0) >= 5 and weapon_levels.get("shield", 0) >= 5 and not synergies_evolved.get("bang_phach", false):
+		options.append({
+			"id": "synergy_bang_phach",
+			"title": "[HỢP NHẤT] LƯỠI CẮT ĐÔNG CỨNG (Cryo-Shock Cleaver)" if not is_en else "[SYNERGY] CRYO-SHOCK CLEAVER",
+			"desc": "VŨ KHÍ HỢP NHẤT (Dao Rựa Lv.5 + Khiên Bạo Động Lv.5)!\nTrảm kích khí lạnh làm đông cứng kẻ địch non-boss trong 1.5s và phát nổ vụn băng!" if not is_en else "TACTICAL FUSION (Machete Lv.5 + Riot Shield Lv.5)!\nSub-zero cryogenic shockwave freezes non-boss infected for 1.5s!",
+			"is_synergy": true
+		})
+
+	# 3. Weapon Unlocks
+	if get_active_weapon_count() < MAX_WEAPONS:
+		if weapon_levels.get("dagger", 0) == 0:
+			options.append({
+				"id": "unlock_dagger",
+				"title": "[MỚI] Súng Lục Tác Chiến" if not is_en else "[NEW] Tactical Pistol",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nSúng ngắn tự động nhắm bắn thây ma gần nhất." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nSemi-automatic tactical sidearm targeting nearest infected." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+		if weapon_levels.get("shield", 0) == 0:
+			options.append({
+				"id": "unlock_shield",
+				"title": "[MỚI] Khiên Chống Bạo Động" if not is_en else "[NEW] Riot Shield Orbit",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nLá chắn cảnh sát xoay quanh đẩy lùi zombie áp sát." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nReinforced police riot shield orbiting and repelling infected." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+		if weapon_levels.get("lightning", 0) == 0:
+			options.append({
+				"id": "unlock_lightning",
+				"title": "[MỚI] Súng Phóng Điện Tesla" if not is_en else "[NEW] Tesla Arc Coil",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nPhóng hồ quang điện cao thế giật liên hoàn tiêu diệt bầy nhiễm bệnh." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nHigh-voltage electrostatic arcs shocking multiple infected." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+		if weapon_levels.get("fireball", 0) == 0:
+			options.append({
+				"id": "unlock_fireball",
+				"title": "[MỚI] Bom Xăng Molotov" if not is_en else "[NEW] Molotov Launcher",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nNém chai bom xăng gây cháy nổ diện rộng." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nHurls incendiary bottles dealing wide-area fire damage." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+		if weapon_levels.get("axe", 0) == 0:
+			options.append({
+				"id": "unlock_axe",
+				"title": "[MỚI] Lựu Đạn Mảnh" if not is_en else "[NEW] Frag Grenade",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nNém lựu đạn theo hình vòng cung xuyên phá bầy thây ma." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nLobs high-explosive fragmentation grenades over hordes." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+		if weapon_levels.get("slash", 0) == 0:
+			options.append({
+				"id": "unlock_slash",
+				"title": "[MỚI] Dao Rựa Dã Chiến" if not is_en else "[NEW] Combat Machete",
+				"desc": "[VŨ KHÍ MỚI - Ô %d/%d]\nChém quét hình bán nguyệt dọn sạch zombie áp sát." % [get_active_weapon_count() + 1, MAX_WEAPONS] if not is_en else "[NEW WEAPON - SLOT %d/%d]\nWide directional cleaving slashes carving paths through hordes." % [get_active_weapon_count() + 1, MAX_WEAPONS]
+			})
+
+	# 4. Standard Weapon Upgrades (Rank 1 to 4)
+	if weapon_levels.get("dagger", 0) >= 1 and weapon_levels.get("dagger", 0) < 5:
+		options.append({"id": "damage", "title": "Đạn Xuyên Giáp Hollow-point" if not is_en else "Hollow-Point Rounds", "desc": "+25%% Sát Thương Súng Lục (Cấp %d/5)" % (weapon_levels["dagger"] + 1) if not is_en else "+25%% Pistol Damage (Rank %d/5)" % (weapon_levels["dagger"] + 1)})
+		options.append({"id": "attack_speed", "title": "Cò Súng Nhạy" if not is_en else "Hair Trigger", "desc": "+20%% Tốc Đánh Súng Lục (Cấp %d/5)" % (weapon_levels["dagger"] + 1) if not is_en else "+20%% Pistol Fire Rate (Rank %d/5)" % (weapon_levels["dagger"] + 1)})
+		options.append({"id": "projectile_count", "title": "Nòng Đôi Tác Chiến" if not is_en else "Twin Barrel Burst", "desc": "+1 Súng Lục mỗi lượt bắn (Cấp %d/5)" % (weapon_levels["dagger"] + 1) if not is_en else "+1 Pistol Round per burst (Rank %d/5)" % (weapon_levels["dagger"] + 1)})
+		
+	if weapon_levels.get("shield", 0) >= 1 and weapon_levels.get("shield", 0) < 5:
+		options.append({"id": "orbit_shield", "title": "Tấm Chắn Cường Lực" if not is_en else "Reinforced Plating", "desc": "+1 Tấm Chống Bạo Động (Cấp %d/5)" % (weapon_levels["shield"] + 1) if not is_en else "+1 Riot Shield Barrier (Rank %d/5)" % (weapon_levels["shield"] + 1)})
+		options.append({"id": "orbit_speed", "title": "Khớp Xoay Thủy Lực" if not is_en else "Hydraulic Swivel", "desc": "+30%% Tốc Độ Xoay Khiên (Cấp %d/5)" % (weapon_levels["shield"] + 1) if not is_en else "+30%% Shield Orbit Speed (Rank %d/5)" % (weapon_levels["shield"] + 1)})
+		
+	if weapon_levels.get("lightning", 0) >= 1 and weapon_levels.get("lightning", 0) < 5:
+		options.append({"id": "lightning_strike", "title": "Cuộn Cảm Tăng Áp" if not is_en else "Arc Inductor", "desc": "+1 Luồng Phóng Điện đồng thời (Cấp %d/5)" % (weapon_levels["lightning"] + 1) if not is_en else "+1 Tesla Arc Discharge (Rank %d/5)" % (weapon_levels["lightning"] + 1)})
+		options.append({"id": "lightning_damage", "title": "Tụ Điện Cao Thế" if not is_en else "High-Voltage Capacitor", "desc": "+30%% Sát Thương Súng Tesla (Cấp %d/5)" % (weapon_levels["lightning"] + 1) if not is_en else "+30%% Tesla Arc Damage (Rank %d/5)" % (weapon_levels["lightning"] + 1)})
+		options.append({"id": "lightning_speed", "title": "Xung Nhịp Siêu Tốc" if not is_en else "Rapid Pulse Clock", "desc": "+25%% Tốc Đánh Súng Tesla (Cấp %d/5)" % (weapon_levels["lightning"] + 1) if not is_en else "+25%% Tesla Fire Rate (Rank %d/5)" % (weapon_levels["lightning"] + 1)})
+		
+	if weapon_levels.get("fireball", 0) >= 1 and weapon_levels.get("fireball", 0) < 5:
+		options.append({"id": "fireball_count", "title": "Băng Chuyền Molotov" if not is_en else "Molotov Bandolier", "desc": "+1 Bom Xăng đồng thời (Cấp %d/5)" % (weapon_levels["fireball"] + 1) if not is_en else "+1 Molotov per throw (Rank %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_damage", "title": "Dung Dịch Phốt Pho" if not is_en else "Phosphorus Fuel", "desc": "+35%% Sát Thương Bom Xăng (Cấp %d/5)" % (weapon_levels["fireball"] + 1) if not is_en else "+35%% Molotov Damage (Rank %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_radius", "title": "Bán Kính Bùng Cháy" if not is_en else "Conflagration Blast", "desc": "+35%% Phạm Vi Nổ Bom Xăng (Cấp %d/5)" % (weapon_levels["fireball"] + 1) if not is_en else "+35%% Molotov Explosion Radius (Rank %d/5)" % (weapon_levels["fireball"] + 1)})
+		options.append({"id": "fireball_speed", "title": "Ống Phóng Áp Suất" if not is_en else "Pressurized Launcher", "desc": "+25%% Tốc Đánh Bom Xăng (Cấp %d/5)" % (weapon_levels["fireball"] + 1) if not is_en else "+25%% Molotov Fire Rate (Rank %d/5)" % (weapon_levels["fireball"] + 1)})
+		
+	if weapon_levels.get("axe", 0) >= 1 and weapon_levels.get("axe", 0) < 5:
+		options.append({"id": "axe_count", "title": "Túi Lựu Đạn Tác Chiến" if not is_en else "Grenade Pouch", "desc": "+1 Lựu Đạn ném ra (Cấp %d/5)" % (weapon_levels["axe"] + 1) if not is_en else "+1 Grenade thrown (Rank %d/5)" % (weapon_levels["axe"] + 1)})
+		options.append({"id": "axe_damage", "title": "Thuốc Nổ C4" if not is_en else "C4 Explosive", "desc": "+35%% Sát Thương Lựu Đạn (Cấp %d/5)" % (weapon_levels["axe"] + 1) if not is_en else "+35%% Grenade Damage (Rank %d/5)" % (weapon_levels["axe"] + 1)})
+		options.append({"id": "axe_speed", "title": "Sức Ném Trợ Lực" if not is_en else "Assisted Launcher", "desc": "+25%% Tốc Độ Bay Của Lựu Đạn (Cấp %d/5)" % (weapon_levels["axe"] + 1) if not is_en else "+25%% Grenade Travel Speed (Rank %d/5)" % (weapon_levels["axe"] + 1)})
+
+	if weapon_levels.get("slash", 0) >= 1 and weapon_levels.get("slash", 0) < 5:
+		options.append({"id": "slash_damage", "title": "Lưỡi Thép Carbon" if not is_en else "Carbon Steel Edge", "desc": "+35%% Sát Thương Dao Rựa (Cấp %d/5)" % (weapon_levels["slash"] + 1) if not is_en else "+35%% Machete Damage (Rank %d/5)" % (weapon_levels["slash"] + 1)})
+		options.append({"id": "slash_speed", "title": "Vung Chém Tác Chiến" if not is_en else "Tactical Follow-Through", "desc": "+25%% Tốc Đánh Dao Rựa (Cấp %d/5)" % (weapon_levels["slash"] + 1) if not is_en else "+25%% Machete Attack Speed (Rank %d/5)" % (weapon_levels["slash"] + 1)})
+		options.append({"id": "slash_range", "title": "Tầm Quét Mở Rộng" if not is_en else "Extended Sweeping Arc", "desc": "+25%% Bán Kính & Tầm Chém (Cấp %d/5)" % (weapon_levels["slash"] + 1) if not is_en else "+25%% Machete Slash Range (Rank %d/5)" % (weapon_levels["slash"] + 1)})
+
+	# 5. Universal Passive Upgrades
+	options.append({"id": "move_speed", "title": "Giày Tác Chiến SWAT" if not is_en else "SWAT Tactical Boots", "desc": "+15% Tốc Độ Di Chuyển Thần Tốc" if not is_en else "+15% Tactical Movement Speed"})
+	options.append({"id": "magnet", "title": "Máy Dò Kim Loại Quân Dụng" if not is_en else "Military Loot Scanner", "desc": "+30% Phạm Vi Hút Ngọc & Vàng" if not is_en else "+30% Pickup & Magnet Radius"})
+	options.append({"id": "max_hp", "title": "Áo Giáp Chống Đạn Kép" if not is_en else "Kevlar Ballistic Vest", "desc": "+25 Máu Tối Đa & Hồi Phục 25 HP" if not is_en else "+25 Max HP & Restores 25 HP"})
+	options.append({"id": "might_surge", "title": "Kích Thích Tố Adrenaline" if not is_en else "Combat Adrenaline Shot", "desc": "+12% Sức Mạnh Sát Thương Toàn Thân" if not is_en else "+12% Total Outgoing Damage"})
 
 	return options
 

@@ -109,7 +109,11 @@ func evolve_to_thousand_blades() -> void:
 	base_damage = 32.0
 	base_cooldown = 0.42
 	projectile_count = 8
-	FloatingText.spawn(global_position + Vector2(0, -45), "⚡ EVOLVED: THOUSAND BLADES! ⚡", Color(1.0, 0.88, 0.2))
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		FloatingText.spawn(global_position + Vector2(0, -45), "⚡ EVOLVED: MINIGUN BARRAGE! ⚡", Color(1.0, 0.88, 0.2))
+	else:
+		FloatingText.spawn(global_position + Vector2(0, -45), "⚡ EVOLVED: THOUSAND BLADES! ⚡", Color(1.0, 0.88, 0.2))
 
 ## Expansion 20.0: Tinh Võ Hợp Nhất — Bão Vũ Lê Hoa Châm.
 ## 16 needles in a full 360° ring (step = 2*PI/16) that shred the whole screen.
@@ -121,7 +125,11 @@ func evolve_to_lotus_storm() -> void:
 	base_damage = max(base_damage, 90.0)
 	base_cooldown = 0.36
 	attack_range = max(attack_range, 620.0)
-	FloatingText.spawn(global_position + Vector2(0, -45), "🌟 HỢP NHẤT: BÃO VŨ LÊ HOA CHÂM! 🌟", Color(0.45, 1.0, 0.85))
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		FloatingText.spawn(global_position + Vector2(0, -45), "🌟 HỢP NHẤT: MƯA ĐẠN BÃO TÁP! 🌟", Color(0.45, 1.0, 0.85))
+	else:
+		FloatingText.spawn(global_position + Vector2(0, -45), "🌟 HỢP NHẤT: BÃO VŨ LÊ HOA CHÂM! 🌟", Color(0.45, 1.0, 0.85))
 	# Milestone 4p2: a synergy fusion is the biggest payoff in a run, so it earns
 	# the deepest stop the web export tolerates.
 	if GameManager and GameManager.has_method("trigger_hitstop"):

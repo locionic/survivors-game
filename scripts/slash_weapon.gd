@@ -240,7 +240,11 @@ func perform_slash(override_dir: Vector2 = Vector2.ZERO, combo_step_override: in
 					if is_frost_sovereign and "freeze_timer" in e and not e.get("is_boss"):
 						e.freeze_timer = FROST_SOVEREIGN_FREEZE
 						FloatingText.spawn(e.global_position + Vector2(0, -30), "❄️ BĂNG PHÁCH!", Color(0.45, 0.95, 1.0))
-					FloatingText.spawn(e.global_position + Vector2(0, -18), "⚔️ TRẢM!", Color(0.4, 0.95, 1.0))
+					var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+					if is_zombie:
+						FloatingText.spawn(e.global_position + Vector2(0, -18), "🔪 CHÉM!", Color(1.0, 0.4, 0.4))
+					else:
+						FloatingText.spawn(e.global_position + Vector2(0, -18), "⚔️ TRẢM!", Color(0.4, 0.95, 1.0))
 
 	# Milestone 3: Vạn Kiếm Quy Tông -- a connecting sweep calls the swarm. A
 	# whiffed slash sends nothing, so the reward tracks the hit, not the swing.
@@ -273,7 +277,15 @@ func _spawn_slash_visual(facing: Vector2, step: int = 0) -> void:
 	slash_sprite.scale = base_scale * 0.7
 	if step == 1:
 		slash_sprite.scale.x = -slash_sprite.scale.x
-	if not is_evolved and step == 2:
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		if is_evolved:
+			slash_sprite.modulate = Color(1.4, 0.4, 0.3, 0.98) # Chainsaw bloody spark
+		elif step == 2:
+			slash_sprite.modulate = Color(1.2, 0.3, 0.2, 0.95) # Red blood finisher
+		else:
+			slash_sprite.modulate = Color(0.9, 0.95, 1.0, 0.9) # Steel machete gleam
+	elif not is_evolved and step == 2:
 		slash_sprite.modulate = Color(1.4, 0.95, 0.35, 0.98)
 	else:
 		slash_sprite.modulate = Color(0.4, 0.9, 1.2, 0.95) if not is_evolved else Color(1.3, 1.1, 0.3, 0.95)

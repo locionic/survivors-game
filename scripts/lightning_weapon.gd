@@ -58,7 +58,11 @@ func strike_target(pos: Vector2, target: Node2D) -> void:
 	# Spawn Lightning Bolt Visual (Line2D)
 	var line = Line2D.new()
 	line.width = 6.0
-	line.default_color = Color(0.8, 0.95, 1.0, 1.0)
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		line.default_color = Color(0.2, 0.95, 1.0, 1.0) if not is_evolved else Color(0.4, 0.65, 1.0, 1.0)
+	else:
+		line.default_color = Color(0.8, 0.95, 1.0, 1.0)
 	
 	# Zig-zag bolt from sky
 	var current_pt = Vector2(pos.x + randf_range(-40, 40), pos.y - 700.0)

@@ -16,9 +16,15 @@ var current_angle: float = 0.0
 var active_shields: Array[Node2D] = []
 var is_evolved: bool = false
 var solar_shield_tex: Texture2D = null
+var riot_shield_tex: Texture2D = null
+var bio_barrier_tex: Texture2D = null
 
 func _ready() -> void:
 	solar_shield_tex = load("res://assets/textures/solar_shield.png")
+	if ResourceLoader.exists("res://assets/textures/riot_shield.png"):
+		riot_shield_tex = load("res://assets/textures/riot_shield.png")
+	if ResourceLoader.exists("res://assets/textures/bio_barrier.png"):
+		bio_barrier_tex = load("res://assets/textures/bio_barrier.png")
 	if is_active:
 		rebuild_shields()
 
@@ -59,13 +65,21 @@ func rebuild_shields() -> void:
 	if not shield_scene or not is_active:
 		return
 		
+	var is_zombie := GameManager and GameManager.selected_stage == "zombie_city"
 	for i in range(shield_count):
 		var shield = shield_scene.instantiate() as Node2D
 		if shield:
 			shield.set("damage", base_damage)
-			if is_evolved and solar_shield_tex:
-				var spr = shield.get_node_or_null("Sprite2D")
-				if spr:
+			var spr = shield.get_node_or_null("Sprite2D")
+			if spr:
+				if is_zombie:
+					if is_evolved and bio_barrier_tex:
+						spr.texture = bio_barrier_tex
+						spr.scale = Vector2(1.3, 1.3)
+					elif riot_shield_tex:
+						spr.texture = riot_shield_tex
+						spr.scale = Vector2(1.15, 1.15)
+				elif is_evolved and solar_shield_tex:
 					spr.texture = solar_shield_tex
 					spr.scale = Vector2(1.4, 1.4)
 			add_child(shield)

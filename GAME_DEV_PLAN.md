@@ -75,21 +75,24 @@ The project has transitioned to **Zombie Outbreak** as its primary default theme
   - 65/65 test suites green (`GATE PASSED`).
 - [x] Tactical Zombie Dossier UI (`scenes/zombie_dossier_ui.tscn`, `scripts/zombie_dossier_ui.gd`).
 - [x] Bio-vial XP pickups and zombie audio sfx (gunshots, groans, hits).
+- [x] **Milestone 1: Tactical Weapon Reskin & Modern Arsenal Evolutions**:
+  - Contextual weapon display names and tactical sprites when playing in Zombie City:
+    - Dagger -> Tactical Pistol (`weapon.dagger.name`), evolved to Minigun Barrage (`evo.dagger.name`). Uses `bullet.png`.
+    - Shield -> Riot Shield Orbit (`weapon.shield.name`), evolved to Bio-Barrier Array (`evo.shield.name`). Custom pixel textures `riot_shield.png` and `bio_barrier.png`.
+    - Lightning -> Tesla Arc Coil (`weapon.lightning.name`), evolved to EMP Storm Grid (`evo.lightning.name`). Cyan/electric blue arcs with EMP particle bursts.
+    - Fireball -> Molotov Launcher (`weapon.fireball.name`), evolved to Napalm Strike (`evo.fireball.name`). Custom pixel textures `molotov.png` and `napalm_strike.png`.
+    - Axe -> Frag Grenade (`weapon.axe.name`), evolved to Cluster Warhead (`evo.axe.name`). Custom pixel textures `frag_grenade.png` and `cluster_warhead.png`.
+    - Slash -> Combat Machete (`weapon.slash.name`), evolved to Chainsaw Ripper (`evo.slash.name`). Custom pixel texture `combat_machete.png` with metallic/bloody slash modulation.
+  - Context-aware upgrade card titles, descriptions, and icons (`🔫`, `🛡️`, `⚡`, `💣`, `🧨`, `🔪`, `🧲`, `🏃`, `💉`, `☣️`) in `UpgradeManager`.
+  - Contextual HUD lacquer badges with firearm icons in `scripts/hud.gd`.
+  - Comprehensive automated test suite `tests/test_zombie_arsenal.tscn` (all assertions verified green).
 
 ### Open / Next Zombie Outbreak Features
-- [ ] **Tactical Weapon Reskin & Modern Arsenal Evolutions**:
-  - Contextual weapon display names and tactical sprites when playing in Zombie City:
-    - Dagger -> Tactical Combat Knife / Trench Blade
-    - Aegis Shield -> Riot Shield / Kinetic Barrier
-    - Lightning -> EMP Shock Grenade / Taser Discharge
-    - Fireball -> Thermite Flask / Molotov Cocktail
-    - Axe -> Heavy Breaching Axe / Sledgehammer
-    - Slash -> Combat Machete / Cryo Wave
-- [ ] **Quarantine Arena Props & Destructibles**:
+- [ ] **Milestone 2: Quarantine Arena Props & Destructibles**:
   - Concrete jersey barriers, sandbag nests, military hazard drums (explosive on hit), flickering sodium streetlights.
-- [ ] **Emergency Airdrop Event System**:
+- [ ] **Milestone 3: Emergency Airdrop Event System**:
   - Timed supply drops delivering high-grade military crates, weapon fuses, and temporary adrenaline boosts.
-- [ ] **Bio-Contamination & Infection Mechanic**:
+- [ ] **Milestone 4: Bio-Contamination & Infection Mechanic**:
   - Hazardous toxic bile puddles left behind by Bloaters and Toxic Spitters requiring tactical movement.
 
 **Sequencing constraint.** P2 is one task, not five. Arena props touch

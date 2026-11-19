@@ -1000,16 +1000,26 @@ func _on_arsenal_updated(levels: Dictionary) -> void:
 	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
 	var ev = upgrade_mgr.evolved_weapons if upgrade_mgr else {}
 
-	# Milestone 3a: the base names come from Loc (the canonical table) and the
-	# evolved names from their own rows, so the badges cannot drift away from the
-	# dps report or the shop cards. Icon, evolved flag and level suffix per badge.
-	_badge(dagger_badge, "dagger", "⚔", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(shield_badge, "shield", "◈", levels, ev, Color(1.0, 0.85, 0.2))
-	_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
-	_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
-	_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
-	if slash_badge:
-		_badge(slash_badge, "slash", "🗡️", levels, ev, Color(0.4, 0.9, 1.0))
+	# Milestone 3a / Zombie Outbreak: base names come from Loc (canonical table)
+	# and evolved names from their own rows. When in zombie_city, tactical firearm icons
+	# are displayed; in martial_arts, wuxia weapon symbols are used.
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		_badge(dagger_badge, "dagger", "🔫", levels, ev, Color(1.0, 0.85, 0.2))
+		_badge(shield_badge, "shield", "🛡️", levels, ev, Color(0.4, 0.9, 1.0))
+		_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
+		_badge(fireball_badge, "fireball", "💣", levels, ev, Color(1.0, 0.5, 0.2))
+		_badge(axe_badge, "axe", "🧨", levels, ev, Color(1.0, 0.3, 0.4))
+		if slash_badge:
+			_badge(slash_badge, "slash", "🔪", levels, ev, Color(0.9, 0.9, 0.9))
+	else:
+		_badge(dagger_badge, "dagger", "⚔", levels, ev, Color(1.0, 0.85, 0.2))
+		_badge(shield_badge, "shield", "◈", levels, ev, Color(1.0, 0.85, 0.2))
+		_badge(thunder_badge, "lightning", "⚡", levels, ev, Color(0.4, 0.9, 1.0))
+		_badge(fireball_badge, "fireball", "🔥", levels, ev, Color(1.0, 0.5, 0.2))
+		_badge(axe_badge, "axe", "🪓", levels, ev, Color(1.0, 0.3, 0.4))
+		if slash_badge:
+			_badge(slash_badge, "slash", "🗡️", levels, ev, Color(0.4, 0.9, 1.0))
 
 	_update_passives_display()
 	_update_relic_slots()

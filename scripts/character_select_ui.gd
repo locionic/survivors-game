@@ -113,6 +113,12 @@ func open_ui() -> void:
 	was_paused_before_open = get_tree().paused
 	visible = true
 	get_tree().paused = true
+	var is_zombie_mode = (GameManager and GameManager.selected_stage == "zombie_city")
+	if title_label:
+		if is_zombie_mode:
+			title_label.text = "🪖 HỒ SƠ ĐẶC NHIỆM & TRANG BỊ SINH TỒN"
+		else:
+			title_label.text = "CHỌN HIỆP KHÁCH & TRANG BỊ"
 	render_cards()
 	_refresh_danger_row()
 

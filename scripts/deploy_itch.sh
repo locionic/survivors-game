@@ -25,8 +25,11 @@ if ! command -v "$BUTLER_BIN" &>/dev/null && [ ! -f "$BUTLER_BIN" ]; then
   chmod +x "$BUTLER_BIN"
 fi
 
+echo "Packaging latest game assets and scripts into $BUILD_DIR/index.pck..."
+godot --headless --path "$(dirname "${BASH_SOURCE[0]}")/.." --export-pack "Web" "$BUILD_DIR/index.pck"
+
 GIT_REV="$(git rev-parse --short HEAD 2>/dev/null || echo 'live')"
-VERSION="1.5.0-zombie-${GIT_REV}"
+VERSION="1.6.0-zombie-ui-${GIT_REV}"
 
 echo "Pushing $BUILD_DIR to $TARGET (version: $VERSION)..."
 "$BUTLER_BIN" push --userversion "$VERSION" "$BUILD_DIR" "$TARGET"

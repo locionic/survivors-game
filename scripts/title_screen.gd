@@ -248,6 +248,20 @@ func _refresh_stage() -> void:
 		if nav_zombie_btn:
 			nav_zombie_btn.text = "☣ Hồ Sơ Zombie [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+		if nav_hero_btn:
+			nav_hero_btn.text = "🪖 Đặc Nhiệm [C]"
+		if nav_map_btn:
+			nav_map_btn.text = "🗺️ Khu Cách Ly [M]"
+		if nav_shop_btn:
+			nav_shop_btn.text = "📦 Chợ Đen [B]"
+		if nav_rank_btn:
+			nav_rank_btn.text = "🏆 Vinh Danh [L]"
+		if nav_codex_btn:
+			nav_codex_btn.text = "📁 Hồ Sơ Dịch [X]"
+		if start_button:
+			start_button.text = "☣️ VÀO KHU CÁCH LY • SURVIVE"
+		if start_hint:
+			start_hint.text = "Nhấn SPACE hoặc CLICK để thâm nhập khu cách ly"
 	else:
 		if main_title:
 			main_title.text = "HIỆP KHÁCH SINH TỒN"
@@ -261,6 +275,20 @@ func _refresh_stage() -> void:
 		if nav_zombie_btn:
 			nav_zombie_btn.text = "☣ Chế Độ Zombie [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))
+		if nav_hero_btn:
+			nav_hero_btn.text = "Hiệp Khách [C]"
+		if nav_map_btn:
+			nav_map_btn.text = "Môn Phái [M]"
+		if nav_shop_btn:
+			nav_shop_btn.text = "Tiệm Rèn [B]"
+		if nav_rank_btn:
+			nav_rank_btn.text = "Bảng Vàng [L]"
+		if nav_codex_btn:
+			nav_codex_btn.text = "Tàng Kinh Các [X]"
+		if start_button:
+			start_button.text = "XUẤT TRẬN  ·  START RUN"
+		if start_hint:
+			start_hint.text = "Nhấn SPACE hoặc CLICK để bắt đầu hành hiệp"
 
 func _refresh_gold() -> void:
 	if gold_label and GameManager:

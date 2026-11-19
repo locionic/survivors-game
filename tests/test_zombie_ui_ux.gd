@@ -24,6 +24,8 @@ func _ready() -> void:
 	_test_kill_streak_announcer()
 	_test_overdrive_hud_indicator()
 	_test_dossier_ui_flow()
+	_test_tactical_zombie_hud_elements()
+	_test_tactical_wave_shop()
 
 	if GameManager:
 		GameManager.selected_stage = orig_stage
@@ -152,3 +154,65 @@ func _test_dossier_ui_flow() -> void:
 	
 	dossier.queue_free()
 	print("✔ Outbreak Dossier navigation flow verified.")
+
+func _test_tactical_zombie_hud_elements() -> void:
+	var main_scene = load("res://scenes/main.tscn")
+	var main = main_scene.instantiate()
+	add_child(main)
+
+	var hud = main.get_node_or_null("HUD")
+	if not hud:
+		main.queue_free()
+		return
+
+	# Wave label formatting in zombie_city
+	hud._on_wave_started(1, 60.0)
+	check(hud.wave_label.text.contains("SECTOR 1/20"),
+		"Wave label displays SECTOR in zombie mode: %s" % hud.wave_label.text)
+
+	# Tactical Bio-Nuke / EMP Awakening Button
+	check(hud.dragon_button != null, "Awakening widget exists")
+	if hud.dragon_button:
+		check(hud.dragon_button.text.contains("☢️"),
+			"Awakening button displays ☢️ icon: %s" % hud.dragon_button.text)
+		hud._on_player_dragon_soul_changed(100.0, 100.0)
+		check(hud.dragon_button.text.contains("BIO-NUKE"),
+			"Ready awakening button displays BIO-NUKE: %s" % hud.dragon_button.text)
+
+	# Bio-Cores / Antibodies Pearl Tray
+	check(hud.pearl_tray != null, "Pearl tray exists")
+	if hud.pearl_tray:
+		var has_bio_label = false
+		for c in hud.pearl_tray.get_children():
+			if c is Label and (c.text.contains("Kháng Thể") or c.text.contains("Bio-Cores") or c.text.contains("🧪")):
+				has_bio_label = true
+				break
+		check(has_bio_label, "Pearl tray carries biohazard antibodies label in zombie mode")
+
+	# Pause menu tactical labels
+	hud._refresh_pause_stats()
+	check(hud.pause_hero_button != null and hud.pause_hero_button.text.contains("Đặc Nhiệm"),
+		"Pause hero button displays Đặc Nhiệm: %s" % (hud.pause_hero_button.text if hud.pause_hero_button else ""))
+	check(hud.pause_map_button != null and (hud.pause_map_button.text.contains("Khu Dịch") or hud.pause_map_button.text.contains("Bản Đồ")),
+		"Pause map button displays tactical label: %s" % (hud.pause_map_button.text if hud.pause_map_button else ""))
+
+	main.queue_free()
+	print("✔ Tactical Zombie HUD elements & Pause buttons verified.")
+
+func _test_tactical_wave_shop() -> void:
+	var shop = WaveShopUI.new()
+	add_child(shop)
+
+	shop.open_for_wave(1)
+	shop._refresh_all()
+
+	check(shop._title_label != null and (shop._title_label.text.contains("NGHIÊN CỨU") or shop._title_label.text.contains("SECTOR 1/20")),
+		"Wave shop title displays tactical research / sector: %s" % (shop._title_label.text if shop._title_label else ""))
+	check(shop._next_button != null and shop._next_button.text.contains("SECTOR"),
+		"Wave shop next button displays SECTOR: %s" % (shop._next_button.text if shop._next_button else ""))
+	check(shop._reroll_button != null and shop._reroll_button.text.contains("TIẾP TẾ"),
+		"Wave shop reroll button displays TIẾP TẾ: %s" % (shop._reroll_button.text if shop._reroll_button else ""))
+
+	shop.close_shop()
+	shop.queue_free()
+	print("✔ Tactical Wave Shop UI verified.")

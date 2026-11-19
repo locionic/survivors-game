@@ -1192,6 +1192,7 @@ func buy_meridian_upgrade(stat: String) -> bool:
 func save_game_data() -> void:
 	# 1. ConfigFile persistent save (Desktop / Local)
 	var config = ConfigFile.new()
+	config.set_value("meta", "save_version", 2)
 	config.set_value("player", "total_gold", total_gold)
 	config.set_value("player", "selected_character", selected_character)
 	config.set_value("player", "selected_companion", selected_companion)
@@ -1209,6 +1210,7 @@ func save_game_data() -> void:
 	# 2. Web localStorage instant synchronous save (HTML5 / Web portals / itch.io)
 	if OS.has_feature("web"):
 		var save_dict: Dictionary = {
+			"save_version": 2,
 			"total_gold": total_gold,
 			"selected_character": selected_character,
 			"selected_companion": selected_companion,
@@ -1297,13 +1299,14 @@ func load_save_data() -> void:
 			if parsed is Dictionary:
 				var def_char = "knight" if is_test_environment() else "swat"
 				var def_stage = "plains" if is_test_environment() else "zombie_city"
+				var is_v2 = parsed.has("save_version") and int(parsed["save_version"]) >= 2
 				if parsed.has("total_gold"):
 					total_gold = int(parsed["total_gold"])
 				if parsed.has("is_first_run"):
 					is_first_run = bool(parsed["is_first_run"])
 				if parsed.has("danger_level"):
 					danger_level = clampi(int(parsed["danger_level"]), 0, MAX_DANGER_LEVEL)
-				if parsed.has("selected_character"):
+				if is_v2 and parsed.has("selected_character"):
 					var c_id = str(parsed["selected_character"])
 					if CHARACTERS.has(c_id) or ZOMBIE_CHARACTERS.has(c_id):
 						selected_character = c_id
@@ -1313,7 +1316,7 @@ func load_save_data() -> void:
 					var p_id = str(parsed["selected_companion"])
 					if COMPANIONS.has(p_id):
 						selected_companion = p_id
-				if parsed.has("selected_stage"):
+				if is_v2 and parsed.has("selected_stage"):
 					var s_id = str(parsed["selected_stage"])
 					if STAGES.has(s_id):
 						selected_stage = s_id
@@ -1340,10 +1343,14 @@ func load_save_data() -> void:
 	if err == OK:
 		var def_char = "knight" if is_test_environment() else "swat"
 		var def_stage = "plains" if is_test_environment() else "zombie_city"
+		var config_v = int(config.get_value("meta", "save_version", 1))
 		total_gold = config.get_value("player", "total_gold", total_gold)
-		selected_character = config.get_value("player", "selected_character", def_char)
-		selected_companion = config.get_value("player", "selected_companion", "dragon_whelp")
-		selected_stage = config.get_value("player", "selected_stage", def_stage)
+		if config_v >= 2:
+			selected_character = config.get_value("player", "selected_character", def_char)
+			selected_stage = config.get_value("player", "selected_stage", def_stage)
+		else:
+			selected_character = def_char
+			selected_stage = def_stage
 		is_first_run = config.get_value("player", "is_first_run", true)
 		danger_level = clampi(int(config.get_value("player", "danger_level", danger_level)), 0, MAX_DANGER_LEVEL)
 		for slot in equipment_slots.keys():

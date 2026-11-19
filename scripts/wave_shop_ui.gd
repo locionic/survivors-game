@@ -382,6 +382,12 @@ func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
 	return UITheme.make_card_panel(bg, border, 8, 2)
 
 func _refresh_all() -> void:
+	if _next_button:
+		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			_next_button.text = "TIẾN VÀO SECTOR TIẾP THEO (SPACE / ENTER)"
+		else:
+			_next_button.text = "VÀO HIỆP TIẾP THEO (SPACE / ENTER)"
 	_refresh_header()
 	_refresh_arsenal()
 	_refresh_cards()
@@ -389,7 +395,11 @@ func _refresh_all() -> void:
 
 func _refresh_header() -> void:
 	if _title_label:
-		_title_label.text = "TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
+		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			_title_label.text = "🔬 TRẠM NGHIÊN CỨU DÃ CHIẾN — HOÀN THÀNH SECTOR %d/20" % current_wave
+		else:
+			_title_label.text = "TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
 		var summary := get_wave_summary()
 		if summary != "":
 			_title_label.text += "\n" + summary
@@ -411,7 +421,11 @@ func _refresh_reroll_button() -> void:
 	if not _reroll_button:
 		return
 	var cost := get_reroll_cost()
-	_reroll_button.text = "TẨY TỦY (%d Vàng)" % cost
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		_reroll_button.text = "ĐỔI TIẾP TẾ (%d Vàng)" % cost
+	else:
+		_reroll_button.text = "TẨY TỦY (%d Vàng)" % cost
 	_reroll_button.disabled = get_gold() < cost
 
 func _refresh_arsenal() -> void:
@@ -424,9 +438,13 @@ func _refresh_arsenal() -> void:
 	if not is_instance_valid(up):
 		return
 	var arsenal: Array = up.arsenal
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	var title := _arsenal_row.get_parent().get_node_or_null("ArsenalTitle")
 	if title:
-		title.text = "TỦ BINH KHÍ (%d/%d)" % [arsenal.size(), up.MAX_WEAPONS]
+		if is_zombie:
+			title.text = "KHO TRANG BỊ TÁC CHIẾN (%d/%d)" % [arsenal.size(), up.MAX_WEAPONS]
+		else:
+			title.text = "TỦ BINH KHÍ (%d/%d)" % [arsenal.size(), up.MAX_WEAPONS]
 
 	for i in range(up.MAX_WEAPONS):
 		_arsenal_row.add_child(_build_slot(up, arsenal, i))

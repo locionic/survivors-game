@@ -784,17 +784,56 @@ func _refresh_pause_stats() -> void:
 			b_strs.append("%s [%s]" % [b.get("title", ""), status])
 		bounty_info = "\nBOUNTIES: " + " | ".join(b_strs)
 
-	pause_stats_label.text = "TIME: %02d:%02d   |   KILLS: %d   |   GOLD: %d\nHP: %d/%d   |   SPEED: %d   |   MAGNET: %d\nMIGHT: +%d%%   |   ARMOR: +%d   |   PYRO: +%d%%\nRELICS: %s%s" % [
-		mins, secs, GameManager.kills, GameManager.run_gold,
-		cur_hp, max_hp, spd, mag, might, armor, pyro,
-		relic_info, bounty_info
-	]
-	
-	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
+	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager") if get_tree() else null
 	var lvls = upgrade_mgr.weapon_levels if upgrade_mgr else {"dagger": 1, "shield": 1, "lightning": 1, "fireball": 1, "axe": 1}
-	pause_arsenal_label.text = "ACTIVE ARSENAL:\n• Daggers Spread: Rank %d\n• Aegis Orbiting Shield: Rank %d\n• Holy Thunder Strike: Rank %d\n• Inferno Fireballs: Rank %d\n• Piercing Battleaxes: Rank %d" % [
-		lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
-	]
+
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	if is_zombie:
+		pause_stats_label.text = "THỜI GIAN: %02d:%02d   |   DIỆT ZOMBIE: %d   |   VÀNG: %d\nSINH LỰC: %d/%d   |   TỐC ĐỘ: %d   |   TẦM HÚT: %d\nSỨC MẠNH: +%d%%   |   GIÁP: +%d   |   HỎA LỰC: +%d%%\nCỔ VẬT: %s%s" % [
+			mins, secs, GameManager.kills, GameManager.run_gold,
+			cur_hp, max_hp, spd, mag, might, armor, pyro,
+			relic_info, bounty_info
+		]
+		pause_arsenal_label.text = "TRANG BỊ TÁC CHIẾN:\n• Súng Lục Tác Chiến: Cấp %d\n• Khiên Chống Bạo Động: Cấp %d\n• Súng Phóng Điện Tesla: Cấp %d\n• Bom Xăng Molotov: Cấp %d\n• Lựu Đạn Mảnh: Cấp %d" % [
+			lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
+		]
+		if pause_map_button:
+			pause_map_button.text = "🗺️ Bản Đồ Khu Dịch [M]"
+		if pause_hero_button:
+			pause_hero_button.text = "🪖 Hồ Sơ Đặc Nhiệm [C]"
+		if pause_codex_button:
+			pause_codex_button.text = "📁 Hồ Sơ Đại Dịch [X]"
+		if pause_shop_button:
+			pause_shop_button.text = "📦 Chợ Đen Quân Sự [B]"
+		if pause_leaderboard_button:
+			pause_leaderboard_button.text = "🏆 Bảng Vinh Danh [L]"
+		if resume_button:
+			resume_button.text = "▶  Tiếp Tục Sinh Tồn (Esc / P)"
+		if restart_run_button:
+			restart_run_button.text = "☣️ Rút Lui & Tái Lập Chiến Dịch"
+	else:
+		pause_stats_label.text = "TIME: %02d:%02d   |   KILLS: %d   |   GOLD: %d\nHP: %d/%d   |   SPEED: %d   |   MAGNET: %d\nMIGHT: +%d%%   |   ARMOR: +%d   |   PYRO: +%d%%\nRELICS: %s%s" % [
+			mins, secs, GameManager.kills, GameManager.run_gold,
+			cur_hp, max_hp, spd, mag, might, armor, pyro,
+			relic_info, bounty_info
+		]
+		pause_arsenal_label.text = "ACTIVE ARSENAL:\n• Daggers Spread: Rank %d\n• Aegis Orbiting Shield: Rank %d\n• Holy Thunder Strike: Rank %d\n• Inferno Fireballs: Rank %d\n• Piercing Battleaxes: Rank %d" % [
+			lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
+		]
+		if pause_map_button:
+			pause_map_button.text = "Bản Đồ Môn Phái [M]"
+		if pause_hero_button:
+			pause_hero_button.text = "Hiệp Khách [C]"
+		if pause_codex_button:
+			pause_codex_button.text = "Tàng Kinh Các [X]"
+		if pause_shop_button:
+			pause_shop_button.text = "Tiệm Rèn [B]"
+		if pause_leaderboard_button:
+			pause_leaderboard_button.text = "Đại Hội Võ Lâm [L]"
+		if resume_button:
+			resume_button.text = "▶  Tiếp Tục (Esc / P)"
+		if restart_run_button:
+			restart_run_button.text = "Thoát & Bắt Đầu Lại"
 
 func _setup_ui_styles() -> void:
 	# TopBar typography. Wave and Timer carry the "what's happening now" read, but
@@ -820,32 +859,54 @@ func _setup_ui_styles() -> void:
 			meter_text.add_theme_color_override("font_outline_color", UITheme.INK)
 			meter_text.add_theme_constant_override("outline_size", 4)
 
+	var is_zombie_ui: bool = GameManager and GameManager.selected_stage == "zombie_city"
+
 	# Level badge styling
 	if level_badge:
 		var lvl_sb = StyleBoxFlat.new()
-		lvl_sb.bg_color = Color(0.1, 0.14, 0.22, 0.9)
-		lvl_sb.border_color = Color(0.0, 0.75, 1.0, 0.9)
+		if is_zombie_ui:
+			lvl_sb.bg_color = Color(0.06, 0.10, 0.08, 0.95)
+			lvl_sb.border_color = Color(0.2, 0.9, 0.4, 0.95)
+		else:
+			lvl_sb.bg_color = Color(0.1, 0.14, 0.22, 0.9)
+			lvl_sb.border_color = Color(0.0, 0.75, 1.0, 0.9)
 		lvl_sb.set_border_width_all(2)
 		lvl_sb.set_corner_radius_all(4)
 		level_badge.add_theme_stylebox_override("normal", lvl_sb)
 		
 	# HP Bar styling -- Vermilion per the Milestone 4 tokens with ornate golden lacquer accent
 	if hp_bar:
-		var hp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.GOLD.darkened(0.25), 4, 1)
-		hp_bg.shadow_color = Color(0.8, 0.2, 0.1, 0.25)
-		hp_bg.shadow_size = 3
+		var hp_bg: StyleBoxFlat
+		var hp_fill: StyleBoxFlat
+		if is_zombie_ui:
+			hp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#ef4444").darkened(0.5), 4, 1)
+			hp_bg.shadow_color = Color(0.9, 0.1, 0.1, 0.3)
+			hp_bg.shadow_size = 3
+			hp_fill = UITheme.make_zombie_panel(Color("#ef4444"), Color("#ef4444"), 4, 0)
+		else:
+			hp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.GOLD.darkened(0.25), 4, 1)
+			hp_bg.shadow_color = Color(0.8, 0.2, 0.1, 0.25)
+			hp_bg.shadow_size = 3
+			hp_fill = UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 4, 0)
 		hp_bar.add_theme_stylebox_override("background", hp_bg)
-		hp_bar.add_theme_stylebox_override("fill",
-			UITheme.make_card_panel(UITheme.VERMILION, UITheme.VERMILION, 4, 0))
+		hp_bar.add_theme_stylebox_override("fill", hp_fill)
 
 	# XP Bar styling -- Jade with radiant celestial glow
 	if xp_bar:
-		var xp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.40), 4, 1)
-		xp_bg.shadow_color = Color(0.2, 0.8, 0.4, 0.3)
-		xp_bg.shadow_size = 4
+		var xp_bg: StyleBoxFlat
+		var xp_fill: StyleBoxFlat
+		if is_zombie_ui:
+			xp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#22c55e").darkened(0.5), 4, 1)
+			xp_bg.shadow_color = Color(0.2, 0.9, 0.35, 0.4)
+			xp_bg.shadow_size = 4
+			xp_fill = UITheme.make_zombie_panel(Color("#22c55e"), Color("#22c55e"), 4, 0)
+		else:
+			xp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.40), 4, 1)
+			xp_bg.shadow_color = Color(0.2, 0.8, 0.4, 0.3)
+			xp_bg.shadow_size = 4
+			xp_fill = UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 4, 0)
 		xp_bar.add_theme_stylebox_override("background", xp_bg)
-		xp_bar.add_theme_stylebox_override("fill",
-			UITheme.make_card_panel(UITheme.JADE, UITheme.JADE, 4, 0))
+		xp_bar.add_theme_stylebox_override("fill", xp_fill)
 
 	# Boss Bar styling
 	if boss_hp_bar:
@@ -864,27 +925,49 @@ func _setup_ui_styles() -> void:
 	# Pause panel. It is the only way into Map / Hero / Leaderboard / Codex now,
 	# so it gets the full card treatment and its Resume button the CTA treatment.
 	if pause_panel:
-		pause_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel())
+		if is_zombie_ui:
+			pause_panel.add_theme_stylebox_override("panel", UITheme.make_zombie_panel(UITheme.ZOMBIE_PANEL, UITheme.ZOMBIE_BORDER, 8, 2))
+		else:
+			pause_panel.add_theme_stylebox_override("panel", UITheme.make_card_panel())
 	for nav_button in [pause_map_button, pause_hero_button, pause_leaderboard_button,
 			pause_codex_button, pause_shop_button, resume_button]:
 		if nav_button:
 			nav_button.add_theme_font_override("font", UITheme.get_body_bold_font())
-			nav_button.add_theme_stylebox_override("normal", UITheme.make_button_style())
-			nav_button.add_theme_stylebox_override("hover",
-				UITheme.make_button_style(UITheme.LACQUER.lightened(0.10), UITheme.GOLD_DIM))
-			nav_button.add_theme_stylebox_override("pressed",
-				UITheme.make_button_style(UITheme.LACQUER.darkened(0.20)))
-			nav_button.add_theme_stylebox_override("focus",
-				UITheme.make_card_panel(Color(0, 0, 0, 0), UITheme.GOLD_DIM))
+			if is_zombie_ui:
+				nav_button.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style())
+				nav_button.add_theme_stylebox_override("hover",
+					UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL.lightened(0.10), UITheme.ZOMBIE_GREEN))
+				nav_button.add_theme_stylebox_override("pressed",
+					UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL.darkened(0.20)))
+				nav_button.add_theme_stylebox_override("focus",
+					UITheme.make_zombie_panel(Color(0, 0, 0, 0), UITheme.ZOMBIE_GREEN))
+			else:
+				nav_button.add_theme_stylebox_override("normal", UITheme.make_button_style())
+				nav_button.add_theme_stylebox_override("hover",
+					UITheme.make_button_style(UITheme.LACQUER.lightened(0.10), UITheme.GOLD_DIM))
+				nav_button.add_theme_stylebox_override("pressed",
+					UITheme.make_button_style(UITheme.LACQUER.darkened(0.20)))
+				nav_button.add_theme_stylebox_override("focus",
+					UITheme.make_card_panel(Color(0, 0, 0, 0), UITheme.GOLD_DIM))
 	if resume_button:
-		resume_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
-		resume_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
-		resume_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
-		resume_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
-		resume_button.add_theme_stylebox_override("hover",
-			UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
-		resume_button.add_theme_stylebox_override("pressed",
-			UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
+		if is_zombie_ui:
+			resume_button.add_theme_color_override("font_color", Color("#0A0D12"))
+			resume_button.add_theme_color_override("font_hover_color", Color("#0A0D12"))
+			resume_button.add_theme_color_override("font_pressed_color", Color("#0A0D12"))
+			resume_button.add_theme_stylebox_override("normal", UITheme.make_zombie_cta_style())
+			resume_button.add_theme_stylebox_override("hover",
+				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.lightened(0.12), UITheme.ZOMBIE_GREEN, 6))
+			resume_button.add_theme_stylebox_override("pressed",
+				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.darkened(0.18), UITheme.ZOMBIE_GREEN.darkened(0.3), 6))
+		else:
+			resume_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+			resume_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+			resume_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+			resume_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+			resume_button.add_theme_stylebox_override("hover",
+				UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+			resume_button.add_theme_stylebox_override("pressed",
+				UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
 
 	# Arsenal badge styling - circular lacquer medallion aesthetics
 	var badges = [dagger_badge, shield_badge, thunder_badge, fireball_badge, axe_badge, slash_badge]
@@ -1028,7 +1111,7 @@ func _on_gold_updated(new_total: int) -> void:
 		shop_gold_label.text = "Tổng Vàng: %d" % new_total
 
 func _on_arsenal_updated(levels: Dictionary) -> void:
-	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager")
+	var upgrade_mgr = get_tree().get_first_node_in_group("upgrade_manager") if get_tree() else null
 	var ev = upgrade_mgr.evolved_weapons if upgrade_mgr else {}
 
 	# Milestone 3a / Zombie Outbreak: base names come from Loc (canonical table)
@@ -1649,15 +1732,27 @@ func _on_blood_moon_ended() -> void:
 
 func _on_wave_started(wave_num: int, duration: float) -> void:
 	if wave_label:
-		wave_label.text = "HIỆP: %d/20  ⏳ %s" % [wave_num, _fmt_wave_clock(duration)]
+		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			wave_label.text = "☣️ SECTOR %d/20  ⏳ %s" % [wave_num, _fmt_wave_clock(duration)]
+		else:
+			wave_label.text = "HIỆP: %d/20  ⏳ %s" % [wave_num, _fmt_wave_clock(duration)]
 
 func _on_wave_timer_updated(time_left: float, _duration: float) -> void:
 	if wave_label:
-		wave_label.text = "HIỆP: %d/20  ⏳ %s" % [wave_num_from_clock(), _fmt_wave_clock(time_left)]
+		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			wave_label.text = "☣️ SECTOR %d/20  ⏳ %s" % [wave_num_from_clock(), _fmt_wave_clock(time_left)]
+		else:
+			wave_label.text = "HIỆP: %d/20  ⏳ %s" % [wave_num_from_clock(), _fmt_wave_clock(time_left)]
 
 func _on_wave_completed(wave_num: int) -> void:
 	if wave_label:
-		wave_label.text = "HIỆP %d — KẾT THÚC!" % wave_num
+		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			wave_label.text = "☣️ SECTOR %d — BẢO VỆ AN TOÀN!" % wave_num
+		else:
+			wave_label.text = "HIỆP %d — KẾT THÚC!" % wave_num
 
 func _fmt_wave_clock(seconds: float) -> String:
 	var total := int(ceil(maxf(0.0, seconds)))
@@ -1673,7 +1768,11 @@ func _process(_delta: float) -> void:
 
 	if is_dragon_active_ui and player and is_instance_valid(player) and "dragon_duration_timer" in player:
 		if dragon_button:
-			dragon_button.text = "🔥\n%.1fs" % max(0.1, player.dragon_duration_timer)
+			var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+			if is_zombie:
+				dragon_button.text = "☣️\n%.1fs" % max(0.1, player.dragon_duration_timer)
+			else:
+				dragon_button.text = "🔥\n%.1fs" % max(0.1, player.dragon_duration_timer)
 
 	# Adrenaline Overdrive HUD Badge
 	if player and is_instance_valid(player) and "overdrive_buff_timer" in player:
@@ -1743,7 +1842,9 @@ func _setup_dragon_awakening_widget() -> void:
 	if not game_ui:
 		return
 		
-	# Dragon Soul Widget container (to the left of HeroSkillWidget)
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+		
+	# Dragon Soul / Bio-Nuke Widget container (to the left of HeroSkillWidget)
 	dragon_widget = Control.new()
 	dragon_widget.name = "DragonAwakeningWidget"
 	dragon_widget.custom_minimum_size = Vector2(85, 85)
@@ -1761,19 +1862,27 @@ func _setup_dragon_awakening_widget() -> void:
 	dragon_button = Button.new()
 	dragon_button.name = "DragonButton"
 	dragon_button.set_anchors_preset(Control.PRESET_FULL_RECT)
-	dragon_button.text = "🐉\n[R] 0%"
+	dragon_button.text = "☢️\n[R] 0%" if is_zombie else "🐉\n[R] 0%"
 	dragon_button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	var btn_sb = StyleBoxFlat.new()
-	btn_sb.bg_color = Color(0.18, 0.13, 0.05, 0.90)
-	btn_sb.border_color = Color(0.85, 0.65, 0.2, 0.95)
+	if is_zombie:
+		btn_sb.bg_color = Color(0.08, 0.12, 0.10, 0.90)
+		btn_sb.border_color = Color(0.2, 0.9, 0.4, 0.95)
+	else:
+		btn_sb.bg_color = Color(0.18, 0.13, 0.05, 0.90)
+		btn_sb.border_color = Color(0.85, 0.65, 0.2, 0.95)
 	btn_sb.set_border_width_all(2)
 	btn_sb.set_corner_radius_all(10)
 	dragon_button.add_theme_stylebox_override("normal", btn_sb)
 	
 	var btn_hover = btn_sb.duplicate()
-	btn_hover.bg_color = Color(0.32, 0.22, 0.08, 0.95)
-	btn_hover.border_color = Color(1.0, 0.88, 0.35, 1.0)
+	if is_zombie:
+		btn_hover.bg_color = Color(0.12, 0.20, 0.15, 0.95)
+		btn_hover.border_color = Color(0.35, 1.0, 0.55, 1.0)
+	else:
+		btn_hover.bg_color = Color(0.32, 0.22, 0.08, 0.95)
+		btn_hover.border_color = Color(1.0, 0.88, 0.35, 1.0)
 	dragon_button.add_theme_stylebox_override("hover", btn_hover)
 	
 	dragon_button.add_theme_font_size_override("font_size", 16)
@@ -1806,7 +1915,7 @@ func _setup_dragon_awakening_widget() -> void:
 	dragon_bar.add_theme_stylebox_override("background", bar_bg)
 	
 	var bar_fill = StyleBoxFlat.new()
-	bar_fill.bg_color = Color(1.0, 0.85, 0.2, 1.0)
+	bar_fill.bg_color = Color(0.3, 1.0, 0.45, 1.0) if is_zombie else Color(1.0, 0.85, 0.2, 1.0)
 	bar_fill.set_corner_radius_all(2)
 	dragon_bar.add_theme_stylebox_override("fill", bar_fill)
 	
@@ -1821,27 +1930,47 @@ func _on_player_dragon_soul_changed(current: float, max_val: float) -> void:
 	if is_dragon_active_ui:
 		return
 		
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	if pct >= 100.0:
-		dragon_button.text = "🐉\nREADY!\n[R]"
-		dragon_button.modulate = Color(1.3, 1.2, 0.6)
+		if is_zombie:
+			dragon_button.text = "☢️\nBIO-NUKE!\n[R]"
+			dragon_button.modulate = Color(0.4, 1.3, 0.6)
+		else:
+			dragon_button.text = "🐉\nREADY!\n[R]"
+			dragon_button.modulate = Color(1.3, 1.2, 0.6)
 		var btn_sb = dragon_button.get_theme_stylebox("normal")
 		if btn_sb is StyleBoxFlat:
-			btn_sb.border_color = Color(1.0, 0.9, 0.3)
+			btn_sb.border_color = Color(0.4, 1.0, 0.5) if is_zombie else Color(1.0, 0.9, 0.3)
 	else:
-		dragon_button.text = "🐉\n[R] %d%%" % int(pct)
-		dragon_button.modulate = Color(0.7, 0.7, 0.75) if pct < 10.0 else Color.WHITE
+		if is_zombie:
+			dragon_button.text = "☢️\n[R] %d%%" % int(pct)
+			dragon_button.modulate = Color(0.6, 0.8, 0.65) if pct < 10.0 else Color.WHITE
+		else:
+			dragon_button.text = "🐉\n[R] %d%%" % int(pct)
+			dragon_button.modulate = Color(0.7, 0.7, 0.75) if pct < 10.0 else Color.WHITE
 
 func _on_player_dragon_awakened(_duration: float) -> void:
 	is_dragon_active_ui = true
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	if dragon_button:
-		dragon_button.modulate = Color(1.5, 1.3, 0.4)
-	_on_wave_event_announced("🐉 LONG HỒN THÁNH GIÁNG! (Kim Long Thần Giáng) 🐉", true)
+		dragon_button.modulate = Color(0.5, 1.5, 0.6) if is_zombie else Color(1.5, 1.3, 0.4)
+	if is_zombie:
+		_on_wave_event_announced("☢️ TACTICAL BIO-NUKE / ADRENALINE OVERDRIVE! ☢️", true)
+	else:
+		_on_wave_event_announced("🐉 LONG HỒN THÁNH GIÁNG! (Kim Long Thần Giáng) 🐉", true)
 
 func _on_player_dragon_ended() -> void:
 	is_dragon_active_ui = false
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	if dragon_button:
-		dragon_button.text = "🐉\n[R] 0%"
+		dragon_button.text = "☢️\n[R] 0%" if is_zombie else "🐉\n[R] 0%"
 		dragon_button.modulate = Color.WHITE
+	if dragon_bar:
+		dragon_bar.value = 0.0
+	if is_zombie:
+		_on_wave_event_announced("⚡ Bio-Nuke radiation depleted.", false)
+	else:
+		_on_wave_event_announced("✨ Long Hồn quy nguyên, trở lại phàm thân.", false)
 	if dragon_bar:
 		dragon_bar.value = 0.0
 	_on_wave_event_announced("✨ Long Hồn quy nguyên, trở lại phàm thân.", false)
@@ -1856,10 +1985,15 @@ func _setup_dragon_pearl_tray() -> void:
 	pearl_tray.alignment = BoxContainer.ALIGNMENT_CENTER
 	pearl_tray.add_theme_constant_override("separation", 4)
 	
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	var t_lbl = Label.new()
-	t_lbl.text = "🐉 Long Châu:"
+	if is_zombie:
+		t_lbl.text = "🧪 Kháng Thể:"
+		t_lbl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+	else:
+		t_lbl.text = "🐉 Long Châu:"
+		t_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	t_lbl.add_theme_font_size_override("font_size", 11)
-	t_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
 	pearl_tray.add_child(t_lbl)
 	
 	pearl_labels.clear()
@@ -1879,10 +2013,15 @@ func _setup_dragon_pearl_tray() -> void:
 		GameManager.run_started.connect(_reset_pearl_tray)
 
 func _on_dragon_pearl_collected(pearl_index: int, _total: int) -> void:
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	for i in range(pearl_labels.size()):
 		if i < pearl_index:
-			pearl_labels[i].text = "⭐"
-			pearl_labels[i].add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
+			if is_zombie:
+				pearl_labels[i].text = "🧪"
+				pearl_labels[i].add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+			else:
+				pearl_labels[i].text = "⭐"
+				pearl_labels[i].add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 		else:
 			pearl_labels[i].text = "⚪"
 			pearl_labels[i].add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 0.6))
@@ -2161,15 +2300,24 @@ func _setup_shenron_modal() -> void:
 	vbox.add_theme_constant_override("separation", 16)
 	center.add_child(vbox)
 	
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+	
 	var title = Label.new()
-	title.text = "🐉 THẦN LONG GIÁNG THẾ 🐉"
+	if is_zombie:
+		title.text = "☣️ ĐỘT PHÁ CÔNG NGHỆ SINH HỌC ☣️"
+		title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
+	else:
+		title.text = "🐉 THẦN LONG GIÁNG THẾ 🐉"
+		title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
 	vbox.add_child(title)
 	
 	var subtitle = Label.new()
-	subtitle.text = "Ngươi đã tập hợp đủ 7 viên Thất Long Châu!\nHãy chọn một ước nguyện tối thượng của Thần Long:"
+	if is_zombie:
+		subtitle.text = "Đã thu gom đủ 7 Mẫu Kháng Thể Virus!\nHãy kích hoạt một giao thức công nghệ sinh học tối thượng:"
+	else:
+		subtitle.text = "Ngươi đã tập hợp đủ 7 viên Thất Long Châu!\nHãy chọn một ước nguyện tối thượng của Thần Long:"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.add_theme_font_size_override("font_size", 14)
 	subtitle.add_theme_color_override("font_color", Color(0.8, 0.88, 1.0))

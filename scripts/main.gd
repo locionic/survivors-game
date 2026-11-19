@@ -121,6 +121,14 @@ func _setup_zombie_arena_theming() -> void:
 	theme_parent.z_index = 500
 	add_child(theme_parent)
 
+	# Hide ancient wuxia shrines and pillars in modern zombie quarantine zone
+	var obs = get_node_or_null("Obstacles")
+	if obs:
+		obs.visible = false
+	var landmarks = get_node_or_null("Landmarks")
+	if landmarks:
+		landmarks.visible = false
+
 	# 1. Concrete Jersey Barriers (Checkpoints forming tactical bottlenecks)
 	_make_jersey_barriers(theme_parent)
 

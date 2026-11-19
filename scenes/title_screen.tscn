@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/title_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" path="res://assets/textures/title_bg.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://assets/textures/zombie_title_bg.png" id="2_bg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
 bg_color = Color(0.06, 0.08, 0.13, 0.92)

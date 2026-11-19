@@ -47,49 +47,82 @@ func _ready() -> void:
 ## Milestone 4. Baked in code rather than into the .tscn so the scene and the
 ## token module can never drift -- one edit here restyles the whole screen.
 func _apply_theme() -> void:
+	var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
 	var main_title := find_child("MainTitle", true, false) as Label
 	if main_title:
-		main_title.add_theme_font_override("font", UITheme.get_display_font())
-		main_title.add_theme_font_size_override("font_size", 52)
-		main_title.add_theme_color_override("font_color", UITheme.GOLD)
-		# A dark rim keeps Cinzel's thin serifs legible over the particle backdrop.
-		main_title.add_theme_color_override("font_outline_color", UITheme.INK)
-		main_title.add_theme_constant_override("outline_size", 10)
+		if is_zombie:
+			main_title.add_theme_font_override("font", UITheme.get_body_bold_font())
+			main_title.add_theme_font_size_override("font_size", 50)
+			main_title.add_theme_color_override("font_color", UITheme.ZOMBIE_GREEN)
+			main_title.add_theme_color_override("font_outline_color", Color(0.02, 0.08, 0.04, 1.0))
+			main_title.add_theme_constant_override("outline_size", 10)
+		else:
+			main_title.add_theme_font_override("font", UITheme.get_display_font())
+			main_title.add_theme_font_size_override("font_size", 52)
+			main_title.add_theme_color_override("font_color", UITheme.GOLD)
+			main_title.add_theme_color_override("font_outline_color", UITheme.INK)
+			main_title.add_theme_constant_override("outline_size", 10)
 
 	var sub_title := find_child("SubTitle", true, false) as Label
 	if sub_title:
-		sub_title.add_theme_color_override("font_color", UITheme.MUTED)
+		sub_title.add_theme_color_override("font_color", UITheme.ZOMBIE_MUTED if is_zombie else UITheme.MUTED)
 
 	for card_name in ["HeroCard", "StageCard"]:
 		var card := find_child(card_name, true, false) as PanelContainer
 		if card:
-			card.add_theme_stylebox_override("panel", UITheme.make_card_panel())
+			if is_zombie:
+				card.add_theme_stylebox_override("panel", UITheme.make_zombie_panel(UITheme.ZOMBIE_PANEL, UITheme.ZOMBIE_BORDER, 10, 2))
+			else:
+				card.add_theme_stylebox_override("panel", UITheme.make_card_panel())
 		for header_name in ["HeroTitle", "StageTitle"]:
 			var header := find_child(header_name, true, false) as Label
 			if header:
 				header.add_theme_font_override("font", UITheme.get_body_bold_font())
-				header.add_theme_color_override("font_color", UITheme.GOLD)
+				header.add_theme_color_override("font_color", UITheme.ZOMBIE_AMBER if is_zombie else UITheme.GOLD)
 
 	for desc_name in ["HeroDescLabel", "StageDescLabel"]:
 		var desc := find_child(desc_name, true, false) as Label
 		if desc:
-			desc.add_theme_color_override("font_color", UITheme.MUTED)
+			desc.add_theme_color_override("font_color", UITheme.ZOMBIE_TEXT if is_zombie else UITheme.MUTED)
+
+	for btn in [change_hero_btn, change_stage_btn]:
+		if btn:
+			btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+			if is_zombie:
+				btn.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style())
+				btn.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL.lightened(0.12), UITheme.ZOMBIE_GREEN))
+
+	for nav_b in [nav_hero_btn, nav_map_btn, nav_shop_btn, nav_rank_btn, nav_codex_btn, nav_zombie_btn]:
+		if nav_b:
+			nav_b.add_theme_font_override("font", UITheme.get_body_bold_font())
+			if is_zombie:
+				nav_b.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL, UITheme.ZOMBIE_BORDER, 6))
 
 	if start_button:
 		start_button.add_theme_font_override("font", UITheme.get_body_bold_font())
-		start_button.add_theme_font_size_override("font_size", 20)
-		start_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
-		start_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
-		start_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
-		start_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
-		start_button.add_theme_stylebox_override("hover",
-			UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
-		start_button.add_theme_stylebox_override("pressed",
-			UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
+		start_button.add_theme_font_size_override("font_size", 22)
+		if is_zombie:
+			start_button.add_theme_color_override("font_color", Color(0.04, 0.12, 0.06))
+			start_button.add_theme_color_override("font_hover_color", Color(0.02, 0.08, 0.04))
+			start_button.add_theme_color_override("font_pressed_color", Color(0.02, 0.08, 0.04))
+			start_button.add_theme_stylebox_override("normal", UITheme.make_zombie_cta_style())
+			start_button.add_theme_stylebox_override("hover",
+				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.lightened(0.15), UITheme.ZOMBIE_GREEN, 8))
+			start_button.add_theme_stylebox_override("pressed",
+				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.darkened(0.2), UITheme.ZOMBIE_GREEN.darkened(0.3), 8))
+		else:
+			start_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
+			start_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
+			start_button.add_theme_color_override("font_pressed_color", UITheme.TEXT_ON_GOLD)
+			start_button.add_theme_stylebox_override("normal", UITheme.make_cta_button_style())
+			start_button.add_theme_stylebox_override("hover",
+				UITheme.make_button_style(UITheme.GOLD.lightened(0.12), UITheme.GOLD, 8))
+			start_button.add_theme_stylebox_override("pressed",
+				UITheme.make_button_style(UITheme.GOLD.darkened(0.18), UITheme.GOLD_DIM, 8))
 
 	var gold_lbl := find_child("GoldLabel", true, false) as Label
 	if gold_lbl:
-		gold_lbl.add_theme_color_override("font_color", UITheme.GOLD)
+		gold_lbl.add_theme_color_override("font_color", UITheme.ZOMBIE_AMBER if is_zombie else UITheme.GOLD)
 
 ## Milestone 3a. Pinned to the top-right corner, above everything else, so the
 ## language is switchable from the very first frame. The button re-labels itself
@@ -246,22 +279,26 @@ func _refresh_stage() -> void:
 			sub_title.text = "☣ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
 			sub_title.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
 		if nav_zombie_btn:
-			nav_zombie_btn.text = "☣ Hồ Sơ Zombie [Z]"
+			nav_zombie_btn.text = "☣ Hồ Sơ Dịch"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 		if nav_hero_btn:
-			nav_hero_btn.text = "🪖 Đặc Nhiệm [C]"
+			nav_hero_btn.text = "🪖 Đặc Nhiệm"
 		if nav_map_btn:
-			nav_map_btn.text = "🗺️ Khu Cách Ly [M]"
+			nav_map_btn.text = "🗺️ Bản Đồ"
 		if nav_shop_btn:
-			nav_shop_btn.text = "📦 Chợ Đen [B]"
+			nav_shop_btn.text = "📦 Chợ Đen"
 		if nav_rank_btn:
-			nav_rank_btn.text = "🏆 Vinh Danh [L]"
+			nav_rank_btn.text = "🏆 Vinh Danh"
 		if nav_codex_btn:
-			nav_codex_btn.text = "📁 Hồ Sơ Dịch [X]"
+			nav_codex_btn.text = "📁 Kho Dữ Liệu"
+		if change_hero_btn:
+			change_hero_btn.text = "Đổi Đặc Nhiệm"
+		if change_stage_btn:
+			change_stage_btn.text = "Đổi Bản Đồ"
 		if start_button:
-			start_button.text = "☣️ VÀO KHU CÁCH LY • SURVIVE"
+			start_button.text = "☣️ VÀO KHU CÁCH LY • BATTLE NOW"
 		if start_hint:
-			start_hint.text = "Nhấn SPACE hoặc CLICK để thâm nhập khu cách ly"
+			start_hint.text = "Nhấn SPACE hoặc CLICK để bắt đầu sinh tồn"
 	else:
 		if main_title:
 			main_title.text = "HIỆP KHÁCH SINH TỒN"

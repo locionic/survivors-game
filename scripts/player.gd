@@ -251,6 +251,12 @@ func apply_character_data() -> void:
 	if ResourceLoader.exists(tex_path) and sprite:
 		sprite.texture = load(tex_path)
 
+	# In zombie apocalypse mode, hide ancient martial arts Qi halo
+	var halo = get_node_or_null("QiHalo")
+	if halo:
+		var is_zombie_p = GameManager and (GameManager.selected_stage == "zombie_city" or GameManager.ZOMBIE_CHARACTERS.has(GameManager.selected_character))
+		halo.visible = not is_zombie_p
+
 	# Configure starter weapons
 	var starters: Array = data.get("starter_weapons", ["dagger", "shield"])
 	_configure_weapons(starters)
@@ -733,7 +739,7 @@ func _physics_process(delta: float) -> void:
 			sprite.modulate = Color.WHITE
 
 		var halo = get_node_or_null("QiHalo")
-		if halo:
+		if halo and halo.visible:
 			var halo_pulse = 1.0 + sin(walk_phase * 2.5) * 0.08
 			halo.scale = Vector2(0.65, 0.45) * halo_pulse
 	

@@ -111,6 +111,13 @@ const KILL_MILESTONE_TITLES: Dictionary = {
 	500: "👑 VẠN QUÂN BẤT ĐỊCH! (+25% CUỒNG BẠO)",
 	1000: "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"
 }
+const ZOMBIE_KILL_MILESTONE_TITLES: Dictionary = {
+	50: "☣️ BƯỚC ĐẦU SINH TỒN! (+25% CUỒNG BẠO)",
+	100: "💀 SÁT THỦ THÂY MA! (+25% CUỒNG BẠO)",
+	250: "💥 CHIẾN BINH TẬN THẾ! (+25% CUỒNG BẠO)",
+	500: "☢️ KẺ HỦY DIỆT BIẾN DỊ! (+25% CUỒNG BẠO)",
+	1000: "👑 HUYỀN THOẠI SINH TỒN! (+25% CUỒNG BẠO)"
+}
 
 # Expansion 21.0: Bảo Rương Kim Quy — jackpot tiers. Chances must sum to 1.0.
 const CHEST_JACKPOTS: Array[Dictionary] = [
@@ -1070,7 +1077,8 @@ func _check_kill_milestones() -> void:
 		if kills < milestone or reached_kill_milestones.has(milestone):
 			continue
 		reached_kill_milestones.append(milestone)
-		emit_signal("kill_milestone_reached", milestone, Loc.t("hud.streak_%d" % milestone, KILL_MILESTONE_TITLES.get(milestone, "")))
+		var title_map = ZOMBIE_KILL_MILESTONE_TITLES if selected_stage == "zombie_city" else KILL_MILESTONE_TITLES
+		emit_signal("kill_milestone_reached", milestone, Loc.t("hud.streak_%d" % milestone, title_map.get(milestone, "")))
 		var p = get_tree().get_first_node_in_group("player")
 		if p and p.has_method("activate_blood_rush"):
 			p.activate_blood_rush(5.0)

@@ -789,12 +789,12 @@ func _refresh_pause_stats() -> void:
 
 	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 	if is_zombie:
-		pause_stats_label.text = "THỜI GIAN: %02d:%02d   |   DIỆT ZOMBIE: %d   |   VÀNG: %d\nSINH LỰC: %d/%d   |   TỐC ĐỘ: %d   |   TẦM HÚT: %d\nSỨC MẠNH: +%d%%   |   GIÁP: +%d   |   HỎA LỰC: +%d%%\nCỔ VẬT: %s%s" % [
+		pause_stats_label.text = "THỜI GIAN: %02d:%02d   |   DIỆT ZOMBIE: %d   |   VÀNG: %d\nSINH LỰC: %d/%d   |   TỐC ĐỘ: %d   |   TẦM HÚT: %d\nSỨC MẠNH: +%d%%   |   GIÁP: +%d   |   HỎA LỰC (PYRO): +%d%%\nCỔ VẬT: %s%s" % [
 			mins, secs, GameManager.kills, GameManager.run_gold,
 			cur_hp, max_hp, spd, mag, might, armor, pyro,
 			relic_info, bounty_info
 		]
-		pause_arsenal_label.text = "TRANG BỊ TÁC CHIẾN:\n• Súng Lục Tác Chiến: Cấp %d\n• Khiên Chống Bạo Động: Cấp %d\n• Súng Phóng Điện Tesla: Cấp %d\n• Bom Xăng Molotov: Cấp %d\n• Lựu Đạn Mảnh: Cấp %d" % [
+		pause_arsenal_label.text = "TRANG BỊ TÁC CHIẾN:\n• Súng Lục Tác Chiến: Cấp %d\n• Khiên Chống Bạo Động: Cấp %d\n• Súng Phóng Điện Tesla: Cấp %d\n• Bom Xăng Molotov: Cấp %d\n• Lựu Đạn Mảnh: Cấp %d\n\n🔬 CÔNG THỨC TIẾN HÓA (SURVIVOR EVO):\n• 🔫 Súng Lục + ⚡ Kích Thích = Súng Máy Gatling\n• 🛡️ Khiên Bạo Động + 🦺 Giáp Kevlar = Khiên Phản Lực\n• ⚡ Súng Tesla + 🔋 Pin Năng Lượng = Đại Bác Plasma\n• 💣 Bom Xăng + 🛢️ Thùng Dầu = Bão Lửa Napalm\n• 🧨 Lựu Đạn + 🔬 Kíp Nổ = Pháo Cối Tự Động" % [
 			lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
 		]
 		if pause_map_button:
@@ -1144,19 +1144,24 @@ func _badge(badge: Label, weapon_id: String, icon: String, levels: Dictionary, e
 		return
 	var level: int = int(levels.get(weapon_id, 0))
 	var wname := Loc.weapon_name(weapon_id)
+	var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
+
 	if ev.get(weapon_id, false):
-		badge.text = "%s %s MAX" % [icon, Loc.t("evo.%s.name" % weapon_id, weapon_id)]
+		badge.text = "%s MAX" % [icon] if is_zombie else ("%s %s MAX" % [icon, Loc.t("evo.%s.name" % weapon_id, weapon_id)])
 		badge.add_theme_color_override("font_color", evo_color)
 		_style_badge_box(badge, evo_color, Color(0.22, 0.17, 0.05, 0.94), true)
 	elif level > 0:
-		var pips := ""
-		for p in 5:
-			pips += "●" if p < level else "○"
-		badge.text = "%s %s %s" % [icon, wname, pips]
+		if is_zombie:
+			badge.text = "%s Lv.%d" % [icon, level]
+		else:
+			var pips := ""
+			for p in 5:
+				pips += "●" if p < level else "○"
+			badge.text = "%s %s %s" % [icon, wname, pips]
 		badge.add_theme_color_override("font_color", Color.WHITE)
 		_style_badge_box(badge, Color(0.35, 0.60, 0.85, 0.85), Color(0.08, 0.12, 0.18, 0.88), false)
 	else:
-		badge.text = "%s %s 🔒" % [icon, wname]
+		badge.text = "%s 🔒" % [icon] if is_zombie else ("%s %s 🔒" % [icon, wname])
 		badge.add_theme_color_override("font_color", Color(0.55, 0.60, 0.70, 0.65))
 		_style_badge_box(badge, Color(0.20, 0.24, 0.30, 0.50), Color(0.06, 0.08, 0.10, 0.75), false)
 
@@ -1492,13 +1497,14 @@ func render_shop_items() -> void:
 	for child in shop_items_container.get_children():
 		child.queue_free()
 		
+	var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
 	var stats = [
-		{"id": "might", "name": "⚔️ Cường Lực", "desc": "+10% Sát Thương Vũ Khí"},
-		{"id": "vitality", "name": "💖 Sinh Lực", "desc": "+25 Máu Tối Đa"},
-		{"id": "swiftness", "name": "👢 Nhanh Nhẹn", "desc": "+20 Tốc Độ Di Chuyển"},
-		{"id": "magnetism", "name": "🧲 Hút Nam Châm", "desc": "+30 Bán Kính Hút Ngọc"},
-		{"id": "pyro", "name": "🔥 Uy Lực Hỏa", "desc": "+12% Bán Kính Nổ AoE"},
-		{"id": "armor", "name": "🛡️ Giáp Bọc Thép", "desc": "-1 Sát Thương Phải Nhận"}
+		{"id": "might", "name": "🔫 Hỏa Lực Tác Chiến" if is_zombie else "⚔️ Cường Lực", "desc": "+10% Sát Thương Hỏa Lực Vũ Khí"},
+		{"id": "vitality", "name": "💉 Kháng Thể Sinh Lực" if is_zombie else "💖 Sinh Lực", "desc": "+25 Máu Sinh Tồn Tối Đa"},
+		{"id": "swiftness", "name": "🥾 Cơ Động Chiến Trường" if is_zombie else "👢 Nhanh Nhẹn", "desc": "+20 Tốc Độ Di Chuyển Cơ Động"},
+		{"id": "magnetism", "name": "🧲 Máy Quét Thu Gom" if is_zombie else "🧲 Hút Nam Châm", "desc": "+30 Bán Kính Thu Gom Huyết Thanh"},
+		{"id": "pyro", "name": "💣 Thuốc Nổ Quân Sự" if is_zombie else "🔥 Uy Lực Hỏa", "desc": "+12% Bán Kính Nổ AoE Diện Rộng"},
+		{"id": "armor", "name": "🦺 Giáp Chống Cắn Xé" if is_zombie else "🛡️ Giáp Bọc Thép", "desc": "-1 Sát Thương Phòng Ngự Phải Nhận"}
 	]
 	
 	for s in stats:
@@ -1518,10 +1524,10 @@ func render_shop_items() -> void:
 		var buy_btn = Button.new()
 		buy_btn.custom_minimum_size = Vector2(140, 42)
 		if is_max:
-			buy_btn.text = "ĐẠI THÀNH"
+			buy_btn.text = "TỐI ĐA" if is_zombie else "ĐẠI THÀNH"
 			buy_btn.disabled = true
 		else:
-			buy_btn.text = "Mua (%d 💰)" % cost
+			buy_btn.text = "Nâng Cấp (%d 💰)" % cost if is_zombie else ("Mua (%d 💰)" % cost)
 			buy_btn.disabled = GameManager.total_gold < cost
 			buy_btn.pressed.connect(func():
 				if GameManager.buy_meta_upgrade(stat_id):
@@ -1532,14 +1538,14 @@ func render_shop_items() -> void:
 			)
 		shop_items_container.add_child(row)
 		
-	# Section 2: Tu Luyện Kinh Mạch (Võ Lâm Bát Mạch)
+	# Section 2: Tu Luyện Kinh Mạch / Đột Phá Công Nghệ Sinh Học
 	var m_sep = HSeparator.new()
 	shop_items_container.add_child(m_sep)
 	
 	var m_header = Label.new()
-	m_header.text = "🧘 TU LUYỆN KINH MẠCH (VÕ HỌC CHÂN KHÍ)"
+	m_header.text = "🧬 ĐỘT PHÁ CÔNG NGHỆ SINH HỌC (BIO-GENETIC RESEARCH)" if is_zombie else "🧘 TU LUYỆN KINH MẠCH (VÕ HỌC CHÂN KHÍ)"
 	m_header.add_theme_font_size_override("font_size", 14)
-	m_header.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	m_header.add_theme_color_override("font_color", Color(0.2, 0.95, 0.45) if is_zombie else Color(1.0, 0.85, 0.3))
 	shop_items_container.add_child(m_header)
 	
 	for m_id in GameManager.MERIDIANS.keys():
@@ -1553,16 +1559,26 @@ func render_shop_items() -> void:
 		
 		var m_info = Label.new()
 		m_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		m_info.text = "%s %s (Tầng %d/%d)\n%s" % [m_data["icon"], m_data["name"], cur_lvl, GameManager.MAX_MERIDIAN_LEVEL, m_data["desc"]]
+		var m_name = m_data["name"]
+		if is_zombie:
+			var tactical_meridian_names = {
+				"doc_mach": "Đột Biến Gai Đốt Sống",
+				"nham_mach": "Cường Hóa Tim Phổi",
+				"xung_mach": "Tủy Xương Siêu Tốc",
+				"doi_mach": "Lớp Biểu Bì Nano",
+				"dan_dien": "Lõi Năng Lượng Sinh Học"
+			}
+			m_name = tactical_meridian_names.get(m_id, m_name)
+		m_info.text = "%s %s (Tầng %d/%d)\n%s" % [m_data["icon"], m_name, cur_lvl, GameManager.MAX_MERIDIAN_LEVEL, m_data["desc"]]
 		m_row.add_child(m_info)
 		
 		var m_btn = Button.new()
 		m_btn.custom_minimum_size = Vector2(140, 42)
 		if is_max:
-			m_btn.text = "ĐẠI THÀNH"
+			m_btn.text = "TỐI ĐA" if is_zombie else "ĐẠI THÀNH"
 			m_btn.disabled = true
 		else:
-			m_btn.text = "Đả Thông (%d 💰)" % cost
+			m_btn.text = "Cấy Ghép (%d 💰)" % cost if is_zombie else ("Đả Thông (%d 💰)" % cost)
 			m_btn.disabled = GameManager.total_gold < cost
 			m_btn.pressed.connect(func():
 				if GameManager.buy_meridian_upgrade(m_id):
@@ -1574,14 +1590,14 @@ func render_shop_items() -> void:
 		m_row.add_child(m_btn)
 		shop_items_container.add_child(m_row)
 		
-	# Section 3: Linh Thú Đồng Hành (Martial Companions)
+	# Section 3: Drone Tác Chiến / Linh Thú Đồng Hành
 	var c_sep = HSeparator.new()
 	shop_items_container.add_child(c_sep)
 	
 	var c_header = Label.new()
-	c_header.text = "🐾 LINH THÚ ĐỒNG HÀNH (MARTIAL SPIRITS)"
+	c_header.text = "🤖 DRONE TÁC CHIẾN & THÚ TRINH SÁT (TACTICAL DRONES)" if is_zombie else "🐾 LINH THÚ ĐỒNG HÀNH (MARTIAL SPIRITS)"
 	c_header.add_theme_font_size_override("font_size", 14)
-	c_header.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	c_header.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
 	shop_items_container.add_child(c_header)
 	
 	for c_id in GameManager.COMPANIONS.keys():

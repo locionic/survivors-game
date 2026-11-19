@@ -42,7 +42,8 @@ func _test_zombie_enemies() -> void:
 	var scenes = [
 		{"path": "res://scenes/zombie_walker.tscn", "hp": 26.0},
 		{"path": "res://scenes/zombie_runner.tscn", "hp": 16.0},
-		{"path": "res://scenes/zombie_bloater.tscn", "hp": 52.0}
+		{"path": "res://scenes/zombie_bloater.tscn", "hp": 52.0},
+		{"path": "res://scenes/zombie_spitter.tscn", "hp": 36.0}
 	]
 	for sc in scenes:
 		check(ResourceLoader.exists(sc["path"]), "Scene file must exist: %s" % sc["path"])

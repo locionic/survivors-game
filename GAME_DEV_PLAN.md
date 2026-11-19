@@ -101,9 +101,20 @@ The project has transitioned to **Zombie Outbreak** as its primary default theme
   - Viral Kill Streak Announcer banners for `zombie_city` ("HORDE MASSACRE!", "BIO-CONTAMINATOR!", "APOCALYPSE REAPER!", "UNSTOPPABLE SLAYER!", "GOD OF SURVIVORS!").
   - Automated test suite `tests/test_zombie_viral_features.tscn` (100% green).
 
-### Open / Next Zombie Outbreak Features
-- [ ] **Milestone 4: Bio-Contamination & Infection Mechanic**:
-  - Hazardous toxic bile puddles left behind by Bloaters and Toxic Spitters requiring tactical movement.
+- [x] **Milestone 4: Bio-Contamination, Toxic Sludge & Mutant Apex Bosses**:
+  - Persistent corrosive toxic bile puddles (`assets/textures/toxic_bile_puddle.png`, `scenes/toxic_bile_puddle.tscn`, `scripts/toxic_bile_puddle.gd`):
+    - Left behind by ruptured Bloaters and Toxic Spitters on death.
+    - Sizzling acid bubbling particle FX, tick damage (4.0/0.5s), and -20% toxic movement slow debuff on players without immunity.
+    - **Interactive Neutralization Synergy**: Explosive barrels detonating near toxic sludge incinerate the bile into harmless vapor!
+  - Toxic Spitter mutant ranged enemy (`assets/textures/zombie_spitter.png`, `scenes/zombie_spitter.tscn`):
+    - Fires corrosive toxic globs (`assets/textures/toxic_glob.png`, `scenes/toxic_projectile.tscn`) that splash into bile puddles.
+  - Mutant Juggernaut & Bio-Titan Apex Bosses (`assets/textures/mutant_juggernaut.png`, `assets/textures/bio_titan.png`, `scenes/mutant_juggernaut.tscn`, `scenes/bio_titan.tscn`):
+    - Custom high-res pixel art models for the Quarantine Zone's mid-bosses and final apocalypse titan.
+  - Automated test suite `tests/test_zombie_bio_contamination.tscn` (100% green, 68/68 gate passed).
+
+### Upcoming Opportunities & Future Polish
+- [ ] Viral Audiovisual Juice: Cinematic slow-mo hitstop moments on boss defeats, bass-boosted impact sounds.
+- [ ] Helicopter Extraction Minigame: High-stakes 30-second evac zone event at final wave survival.
 
 **Sequencing constraint.** P2 is one task, not five. Arena props touch
 `arena.tscn` and `arena.gd` together; splitting them puts five agents in the

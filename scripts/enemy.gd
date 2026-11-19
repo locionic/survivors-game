@@ -13,6 +13,7 @@ signal boss_defeated
 @export var knockback_resistance: float = 0.0
 @export var is_boss: bool = false
 @export var boss_name: String = ""
+@export var leaves_bile_puddle: bool = false
 @export var gem_scene: PackedScene
 @export var chest_scene: PackedScene
 @export var coin_scene: PackedScene
@@ -730,6 +731,12 @@ func die() -> void:
 	if is_champion and champion_affix == "volatile" and projectile_scene:
 		_shoot_radial_wave()
 	
+	# Zombie Bloater / Spitter corrosive bile drop
+	if GameManager and GameManager.selected_stage == "zombie_city":
+		var node_name := name.to_lower()
+		if leaves_bile_puddle or node_name.contains("bloater") or node_name.contains("spitter"):
+			_spawn_toxic_bile_puddle()
+
 	# Spawn explosion particles
 	spawn_death_particles()
 	
@@ -882,4 +889,15 @@ func spawn_death_particles() -> void:
 	get_tree().current_scene.add_child(particles)
 	var timer = get_tree().create_timer(0.55)
 	timer.timeout.connect(particles.queue_free)
+
+func _spawn_toxic_bile_puddle() -> void:
+	var puddle_scene = load("res://scenes/toxic_bile_puddle.tscn") as PackedScene
+	if puddle_scene and get_tree():
+		var parent = get_tree().current_scene if get_tree().current_scene else (get_parent() if get_parent() else get_tree().root)
+		if parent:
+			var puddle = puddle_scene.instantiate()
+			if puddle:
+				puddle.global_position = global_position
+				parent.add_child(puddle)
+
 

@@ -18,6 +18,7 @@ max_health = 52.0
 move_speed = 68.0
 contact_damage = 22.0
 knockback_resistance = 0.55
+leaves_bile_puddle = true
 gem_scene = ExtResource("2_gem")
 coin_scene = ExtResource("4_coin")
 coin_drop_chance = 0.7

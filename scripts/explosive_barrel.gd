@@ -116,6 +116,13 @@ func detonate() -> void:
 			if global_position.distance_to(b.global_position) <= explosion_radius + 40.0:
 				b.call_deferred("prime_and_detonate")
 
+	# 6b. Incinerate toxic bile sludge puddles in the blast radius!
+	var puddles = get_tree().get_nodes_in_group("toxic_puddles")
+	for p_node in puddles:
+		if is_instance_valid(p_node) and global_position.distance_to(p_node.global_position) <= explosion_radius + 35.0:
+			if p_node.has_method("incinerate"):
+				p_node.incinerate()
+
 	# 7. Drop Bio-Vials and Gold
 	_spawn_loot()
 

@@ -18,6 +18,9 @@ signal wave_event_announced(message: String, is_boss: bool)
 var zombie_walker_scene: PackedScene = preload("res://scenes/zombie_walker.tscn")
 var zombie_runner_scene: PackedScene = preload("res://scenes/zombie_runner.tscn")
 var zombie_bloater_scene: PackedScene = preload("res://scenes/zombie_bloater.tscn")
+var zombie_spitter_scene: PackedScene = preload("res://scenes/zombie_spitter.tscn")
+var mutant_juggernaut_scene: PackedScene = preload("res://scenes/mutant_juggernaut.tscn")
+var bio_titan_scene: PackedScene = preload("res://scenes/bio_titan.tscn")
 
 @export var spawn_interval: float = 0.70
 @export var spawn_distance: float = 460.0
@@ -354,12 +357,16 @@ func spawn_enemy_wave() -> void:
 		if GameManager and GameManager.selected_stage == "zombie_city":
 			if r_time > 180.0:
 				var roll = randf()
-				if roll < 0.35 and zombie_bloater_scene:
+				if roll < 0.25 and zombie_bloater_scene:
 					chosen_scene = zombie_bloater_scene
-				elif roll < 0.75 and zombie_runner_scene:
+				elif roll < 0.50 and zombie_spitter_scene:
+					chosen_scene = zombie_spitter_scene
+				elif roll < 0.80 and zombie_runner_scene:
 					chosen_scene = zombie_runner_scene
 				else:
 					chosen_scene = zombie_walker_scene
+			elif r_time > 45.0 and zombie_spitter_scene and randf() < 0.22:
+				chosen_scene = zombie_spitter_scene
 			elif r_time > 35.0 and zombie_bloater_scene and randf() < 0.22:
 				chosen_scene = zombie_bloater_scene
 			elif r_time > 20.0 and zombie_runner_scene and randf() < 0.45:
@@ -495,6 +502,13 @@ func spawn_boss_1() -> void:
 		if boss:
 			_scale_for_wave(boss)
 			boss.global_position = spawn_pos
+			if GameManager and GameManager.selected_stage == "zombie_city":
+				boss.set("boss_name", "☣️ TOXIC SPITTER ABOMINATION")
+				if ResourceLoader.exists("res://assets/textures/zombie_spitter.png"):
+					var spr = boss.find_child("Sprite2D", true, false)
+					if spr:
+						spr.texture = load("res://assets/textures/zombie_spitter.png")
+						spr.scale = Vector2(2.5, 2.5)
 			get_tree().current_scene.add_child(boss)
 			
 			var hud = get_tree().get_first_node_in_group("hud")
@@ -512,7 +526,7 @@ func spawn_boss_2() -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(22.0)
 		
-	var b_scene = behemoth_scene if behemoth_scene else boss_scene
+	var b_scene = mutant_juggernaut_scene if (GameManager and GameManager.selected_stage == "zombie_city" and mutant_juggernaut_scene) else (behemoth_scene if behemoth_scene else boss_scene)
 	if b_scene and is_instance_valid(player):
 		var angle = randf() * TAU
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
@@ -537,7 +551,7 @@ func spawn_boss_3() -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(22.0)
 		
-	var b_scene = behemoth_scene if behemoth_scene else boss_scene
+	var b_scene = mutant_juggernaut_scene if (GameManager and GameManager.selected_stage == "zombie_city" and mutant_juggernaut_scene) else (behemoth_scene if behemoth_scene else boss_scene)
 	if b_scene and is_instance_valid(player):
 		var angle = randf() * TAU
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 640.0
@@ -570,7 +584,7 @@ func spawn_demon_emperor() -> void:
 	if cam and cam.has_method("shake"):
 		cam.shake(28.0)
 		
-	var de_scene = demon_emperor_scene if demon_emperor_scene else behemoth_scene
+	var de_scene = bio_titan_scene if (GameManager and GameManager.selected_stage == "zombie_city" and bio_titan_scene) else (demon_emperor_scene if demon_emperor_scene else behemoth_scene)
 	if de_scene and is_instance_valid(player):
 		var angle = randf() * TAU
 		var spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * 650.0

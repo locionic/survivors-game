@@ -67,6 +67,7 @@ var might_flat_bonus: float = 1.0
 ## back on its own when the player walks away or kills it.
 var glacial_slow_timer: float = 0.0
 const GLACIAL_SLOW: float = 0.65
+var toxic_slime_timer: float = 0.0
 
 # Expansion 21.0: Vạn Nhân Trảm — Blood Rush (kill-streak rampage buff)
 var blood_rush_timer: float = 0.0
@@ -566,6 +567,8 @@ func _physics_process(delta: float) -> void:
 	# A timer's decay belongs with the other timers.
 	if blizzard_slow_timer > 0.0:
 		blizzard_slow_timer = maxf(0.0, blizzard_slow_timer - delta)
+	if toxic_slime_timer > 0.0:
+		toxic_slime_timer = maxf(0.0, toxic_slime_timer - delta)
 	if blood_rush_timer > 0.0:
 		blood_rush_timer = max(0.0, blood_rush_timer - delta)
 	if thunderfire_cd > 0.0:
@@ -1630,7 +1633,14 @@ func get_slow_multiplier() -> float:
 		mult *= GLACIAL_SLOW
 	if blizzard_slow_timer > 0.0:
 		mult *= 0.75
+	if toxic_slime_timer > 0.0:
+		mult *= 0.80
 	return mult
+
+func apply_toxic_slow(duration: float = 0.65) -> void:
+	if is_slow_immune():
+		return
+	toxic_slime_timer = maxf(toxic_slime_timer, duration)
 
 func apply_blizzard_slow(duration: float = 3.0) -> void:
 	if is_slow_immune():

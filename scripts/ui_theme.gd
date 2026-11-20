@@ -24,14 +24,17 @@ const TEXT: Color = Color("#EDEFF3")
 const TEXT_ON_GOLD: Color = Color("#1A1405")  # Ink, for legible text on gold
 
 # --- Tactical Zombie Outbreak Tokens ------------------------------------
-const ZOMBIE_INK: Color = Color("#0A0D12")          # Tactical dark terminal
-const ZOMBIE_PANEL: Color = Color("#12161E")        # Heavy ballistic panel
+const ZOMBIE_INK: Color = Color("#070A0F")          # Tactical dark terminal
+const ZOMBIE_PANEL: Color = Color("#0F141D")        # Heavy ballistic panel
 const ZOMBIE_AMBER: Color = Color("#F59E0B")        # Warning amber / CTA
 const ZOMBIE_GREEN: Color = Color("#22C55E")        # Bio-hazard radioactive green
 const ZOMBIE_CRIMSON: Color = Color("#EF4444")      # Bio-threat alert / HP
-const ZOMBIE_BORDER: Color = Color("#243040")       # Gunmetal alloy border
-const ZOMBIE_TEXT: Color = Color("#F1F5F9")         # Tactical white
-const ZOMBIE_MUTED: Color = Color("#64748B")        # Slate secondary text
+const ZOMBIE_BORDER: Color = Color("#222E3F")       # Gunmetal alloy border
+const ZOMBIE_BORDER_BRIGHT: Color = Color("#38BDF8") # High-tech cyber blue border
+const ZOMBIE_TEXT: Color = Color("#F8FAFC")         # Tactical white
+const ZOMBIE_MUTED: Color = Color("#94A3B8")        # Slate secondary text
+
+const ZOMBIE_RARITY_NAMES: Array[String] = ["TIÊU CHUẨN", "QUÂN DỤNG", "CHIẾN THUẬT", "TỐI THƯỢNG"]
 
 # --- Font paths ----------------------------------------------------------
 const DISPLAY_FONT_PATH: String = "res://assets/fonts/Cinzel-Bold.ttf"
@@ -116,38 +119,87 @@ static func make_button_style(
 static func make_cta_button_style() -> StyleBoxFlat:
 	return make_button_style(GOLD, GOLD_DIM, 8)
 
-## Tactical Zombie Outbreak Panel
+## Tactical Zombie Outbreak Panel with rich drop shadow and bevel
 static func make_zombie_panel(
 		bg: Color = ZOMBIE_PANEL,
 		border: Color = ZOMBIE_BORDER,
-		radius: int = 6,
-		border_w: int = 1) -> StyleBoxFlat:
+		radius: int = 10,
+		border_w: int = 2) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = bg
 	sb.border_color = border
 	sb.set_border_width_all(border_w)
 	sb.set_corner_radius_all(radius)
-	sb.content_margin_left = 14
-	sb.content_margin_right = 14
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.65)
+	sb.shadow_size = 8
+	sb.shadow_offset = Vector2(0, 4)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
+	return sb
+
+## Tactical Zombie Outbreak Button with physical bottom-bevel press
+static func make_zombie_button_style(
+		bg: Color = Color("#131924"),
+		border: Color = Color("#222E3F"),
+		radius: int = 8) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 3
+	sb.set_corner_radius_all(radius)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(0, 2)
+	sb.content_margin_left = 16
+	sb.content_margin_right = 16
 	sb.content_margin_top = 10
 	sb.content_margin_bottom = 10
 	return sb
 
-## Tactical Zombie Outbreak Button
-static func make_zombie_button_style(
-		bg: Color = ZOMBIE_PANEL,
-		border: Color = ZOMBIE_BORDER,
-		radius: int = 6) -> StyleBoxFlat:
-	var sb := make_zombie_panel(bg, border, radius, 1)
-	sb.content_margin_left = 18
-	sb.content_margin_right = 18
-	sb.content_margin_top = 9
-	sb.content_margin_bottom = 9
+## Tactical Zombie Outbreak CTA Button (Signature juicy emerald button with 3D bevel)
+static func make_zombie_cta_style(
+		bg: Color = ZOMBIE_GREEN,
+		border: Color = Color("#15803D"),
+		radius: int = 12) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.border_width_left = 2
+	sb.border_width_top = 1
+	sb.border_width_right = 2
+	sb.border_width_bottom = 5
+	sb.set_corner_radius_all(radius)
+	sb.shadow_color = Color(0.1, 0.8, 0.35, 0.45)
+	sb.shadow_size = 12
+	sb.shadow_offset = Vector2(0, 4)
+	sb.content_margin_left = 24
+	sb.content_margin_right = 24
+	sb.content_margin_top = 12
+	sb.content_margin_bottom = 12
 	return sb
 
-## Tactical Zombie Outbreak CTA Button (Bio-hazard green with dark outline)
-static func make_zombie_cta_style() -> StyleBoxFlat:
-	return make_zombie_button_style(ZOMBIE_GREEN, ZOMBIE_GREEN.darkened(0.2), 6)
+## Tactical pill badge for HUD readouts
+static func make_tactical_pill(
+		bg: Color = Color(0.05, 0.08, 0.12, 0.92),
+		border: Color = Color(0.18, 0.25, 0.36, 0.85),
+		radius: int = 16) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border
+	sb.set_border_width_all(1)
+	sb.set_corner_radius_all(radius)
+	sb.content_margin_left = 12
+	sb.content_margin_right = 12
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
+	sb.shadow_size = 4
+	return sb
 
 # --- Rarity (level-up cards) -------------------------------------------------
 

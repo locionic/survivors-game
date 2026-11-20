@@ -683,28 +683,42 @@ func _ensure_ui_nodes() -> void:
 		action_bar.add_child(skip_button)
 
 func _update_action_bar_ui() -> void:
+	var is_z = GameManager and GameManager.selected_stage == "zombie_city"
 	if reroll_button:
 		reroll_button.add_theme_font_override("font", UITheme.get_body_bold_font())
 		reroll_button.add_theme_font_size_override("font_size", 14)
 		if rerolls_remaining > 0:
 			reroll_button.text = Loc.tf("hud.reroll", [rerolls_remaining, max_rerolls])
 			reroll_button.disabled = false
-			reroll_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.BORDER, 8))
-			reroll_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
-			reroll_button.add_theme_color_override("font_color", UITheme.GOLD)
+			if is_z:
+				reroll_button.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style())
+				reroll_button.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(Color("#1A2332"), Color("#22C55E")))
+				reroll_button.add_theme_color_override("font_color", Color("#22C55E"))
+			else:
+				reroll_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.BORDER, 8))
+				reroll_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
+				reroll_button.add_theme_color_override("font_color", UITheme.GOLD)
 		else:
 			reroll_button.text = Loc.t("hud.reroll_spent")
 			reroll_button.disabled = true
-			reroll_button.add_theme_stylebox_override("disabled", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
+			if is_z:
+				reroll_button.add_theme_stylebox_override("disabled", UITheme.make_zombie_button_style(Color("#0B0E14"), Color("#1E293B"), 8))
+			else:
+				reroll_button.add_theme_stylebox_override("disabled", UITheme.make_button_style(UITheme.INK_DIM, UITheme.BORDER, 8))
 			reroll_button.add_theme_color_override("font_disabled_color", UITheme.MUTED)
 			
 	if skip_button:
 		skip_button.add_theme_font_override("font", UITheme.get_body_bold_font())
 		skip_button.add_theme_font_size_override("font_size", 14)
 		skip_button.text = "BỎ QUA (+30 VÀNG) / SKIP (X)"
-		skip_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.GOLD_DIM, 8))
-		skip_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
-		skip_button.add_theme_color_override("font_color", UITheme.GOLD)
+		if is_z:
+			skip_button.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style())
+			skip_button.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(Color("#1A2332"), Color("#EF4444")))
+			skip_button.add_theme_color_override("font_color", Color("#94A3B8"))
+		else:
+			skip_button.add_theme_stylebox_override("normal", UITheme.make_button_style(UITheme.LACQUER, UITheme.GOLD_DIM, 8))
+			skip_button.add_theme_stylebox_override("hover", UITheme.make_button_style(UITheme.LACQUER.lightened(0.1), UITheme.GOLD, 8))
+			skip_button.add_theme_color_override("font_color", UITheme.GOLD)
 
 func show_upgrade_selection() -> void:
 	get_tree().paused = true
@@ -774,7 +788,9 @@ func _build_card(upgrade: Dictionary, idx: int) -> Button:
 			14, UITheme.rarity_text(rarity), Rect2(12, 60, 208, 44), true)
 	_card_label(btn, String(upgrade.get("desc", "")), UITheme.get_body_font(),
 			11, UITheme.MUTED, Rect2(12, 106, 208, 76), true)
-	_card_label(btn, UITheme.RARITY_NAMES[rarity], UITheme.get_body_bold_font(),
+	var is_z := GameManager and GameManager.selected_stage == "zombie_city"
+	var r_name := UITheme.ZOMBIE_RARITY_NAMES[rarity] if is_z else UITheme.RARITY_NAMES[rarity]
+	_card_label(btn, r_name, UITheme.get_body_bold_font(),
 			9, accent.darkened(0.15), Rect2(12, 4, 208, 14), false, HORIZONTAL_ALIGNMENT_RIGHT)
 
 	if rarity >= UITheme.RARITY_EPIC:

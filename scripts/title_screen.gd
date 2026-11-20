@@ -52,10 +52,10 @@ func _apply_theme() -> void:
 	if main_title:
 		if is_zombie:
 			main_title.add_theme_font_override("font", UITheme.get_body_bold_font())
-			main_title.add_theme_font_size_override("font_size", 50)
+			main_title.add_theme_font_size_override("font_size", 54)
 			main_title.add_theme_color_override("font_color", UITheme.ZOMBIE_GREEN)
-			main_title.add_theme_color_override("font_outline_color", Color(0.02, 0.08, 0.04, 1.0))
-			main_title.add_theme_constant_override("outline_size", 10)
+			main_title.add_theme_color_override("font_outline_color", Color(0.01, 0.05, 0.02, 1.0))
+			main_title.add_theme_constant_override("outline_size", 12)
 		else:
 			main_title.add_theme_font_override("font", UITheme.get_display_font())
 			main_title.add_theme_font_size_override("font_size", 52)
@@ -65,51 +65,76 @@ func _apply_theme() -> void:
 
 	var sub_title := find_child("SubTitle", true, false) as Label
 	if sub_title:
+		sub_title.add_theme_font_override("font", UITheme.get_body_bold_font())
+		sub_title.add_theme_font_size_override("font_size", 14)
 		sub_title.add_theme_color_override("font_color", UITheme.ZOMBIE_MUTED if is_zombie else UITheme.MUTED)
+
+	var header_badge := find_child("HeaderBadge", true, false) as Label
+	if header_badge:
+		header_badge.add_theme_font_override("font", UITheme.get_body_bold_font())
+		header_badge.add_theme_font_size_override("font_size", 13)
+		header_badge.add_theme_color_override("font_color", Color("#22C55E") if is_zombie else Color(1, 0.82, 0.28, 1))
 
 	for card_name in ["HeroCard", "StageCard"]:
 		var card := find_child(card_name, true, false) as PanelContainer
 		if card:
 			if is_zombie:
-				card.add_theme_stylebox_override("panel", UITheme.make_zombie_panel(UITheme.ZOMBIE_PANEL, UITheme.ZOMBIE_BORDER, 10, 2))
+				card.add_theme_stylebox_override("panel", UITheme.make_zombie_panel())
 			else:
 				card.add_theme_stylebox_override("panel", UITheme.make_card_panel())
 		for header_name in ["HeroTitle", "StageTitle"]:
 			var header := find_child(header_name, true, false) as Label
 			if header:
 				header.add_theme_font_override("font", UITheme.get_body_bold_font())
-				header.add_theme_color_override("font_color", UITheme.ZOMBIE_AMBER if is_zombie else UITheme.GOLD)
+				header.add_theme_font_size_override("font_size", 14)
+				header.add_theme_color_override("font_color", Color("#22C55E") if is_zombie else UITheme.GOLD)
 
 	for desc_name in ["HeroDescLabel", "StageDescLabel"]:
 		var desc := find_child(desc_name, true, false) as Label
 		if desc:
-			desc.add_theme_color_override("font_color", UITheme.ZOMBIE_TEXT if is_zombie else UITheme.MUTED)
+			desc.add_theme_font_override("font", UITheme.get_body_font())
+			desc.add_theme_font_size_override("font_size", 13)
+			desc.add_theme_color_override("font_color", Color("#94A3B8") if is_zombie else UITheme.MUTED)
+
+	for name_lbl_id in ["HeroNameLabel", "StageNameLabel"]:
+		var n_lbl := find_child(name_lbl_id, true, false) as Label
+		if n_lbl:
+			n_lbl.add_theme_font_override("font", UITheme.get_body_bold_font())
+			n_lbl.add_theme_font_size_override("font_size", 18)
+			n_lbl.add_theme_color_override("font_color", Color("#F8FAFC") if is_zombie else Color.WHITE)
 
 	for btn in [change_hero_btn, change_stage_btn]:
 		if btn:
 			btn.add_theme_font_override("font", UITheme.get_body_bold_font())
+			btn.add_theme_font_size_override("font_size", 13)
 			if is_zombie:
 				btn.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style())
-				btn.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL.lightened(0.12), UITheme.ZOMBIE_GREEN))
+				btn.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(Color("#1E293B"), Color("#22C55E")))
+				btn.add_theme_stylebox_override("pressed", UITheme.make_zombie_button_style(Color("#0F172A"), Color("#15803D")))
+				btn.add_theme_color_override("font_color", Color("#E2E8F0"))
+				btn.add_theme_color_override("font_hover_color", Color("#22C55E"))
 
 	for nav_b in [nav_hero_btn, nav_map_btn, nav_shop_btn, nav_rank_btn, nav_codex_btn, nav_zombie_btn]:
 		if nav_b:
 			nav_b.add_theme_font_override("font", UITheme.get_body_bold_font())
+			nav_b.add_theme_font_size_override("font_size", 13)
 			if is_zombie:
-				nav_b.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style(UITheme.ZOMBIE_PANEL, UITheme.ZOMBIE_BORDER, 6))
+				nav_b.add_theme_stylebox_override("normal", UITheme.make_zombie_button_style(Color("#0F141D"), Color("#1E293B"), 8))
+				nav_b.add_theme_stylebox_override("hover", UITheme.make_zombie_button_style(Color("#1A2332"), Color("#22C55E"), 8))
+				nav_b.add_theme_stylebox_override("pressed", UITheme.make_zombie_button_style(Color("#0B0E14"), Color("#15803D"), 8))
+				nav_b.add_theme_color_override("font_color", Color("#CBD5E1"))
+				nav_b.add_theme_color_override("font_hover_color", Color("#4ADE80"))
 
 	if start_button:
 		start_button.add_theme_font_override("font", UITheme.get_body_bold_font())
-		start_button.add_theme_font_size_override("font_size", 22)
+		start_button.add_theme_font_size_override("font_size", 24)
 		if is_zombie:
-			start_button.add_theme_color_override("font_color", Color(0.04, 0.12, 0.06))
-			start_button.add_theme_color_override("font_hover_color", Color(0.02, 0.08, 0.04))
-			start_button.add_theme_color_override("font_pressed_color", Color(0.02, 0.08, 0.04))
+			start_button.add_theme_color_override("font_color", Color("#052E16"))
+			start_button.add_theme_color_override("font_hover_color", Color("#02200F"))
+			start_button.add_theme_color_override("font_pressed_color", Color("#02200F"))
 			start_button.add_theme_stylebox_override("normal", UITheme.make_zombie_cta_style())
-			start_button.add_theme_stylebox_override("hover",
-				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.lightened(0.15), UITheme.ZOMBIE_GREEN, 8))
-			start_button.add_theme_stylebox_override("pressed",
-				UITheme.make_zombie_button_style(UITheme.ZOMBIE_GREEN.darkened(0.2), UITheme.ZOMBIE_GREEN.darkened(0.3), 8))
+			start_button.add_theme_stylebox_override("hover", UITheme.make_zombie_cta_style(Color("#4ADE80"), Color("#16A34A")))
+			start_button.add_theme_stylebox_override("pressed", UITheme.make_zombie_button_style(Color("#16A34A"), Color("#14532D")))
 		else:
 			start_button.add_theme_color_override("font_color", UITheme.TEXT_ON_GOLD)
 			start_button.add_theme_color_override("font_hover_color", UITheme.TEXT_ON_GOLD)
@@ -122,7 +147,8 @@ func _apply_theme() -> void:
 
 	var gold_lbl := find_child("GoldLabel", true, false) as Label
 	if gold_lbl:
-		gold_lbl.add_theme_color_override("font_color", UITheme.ZOMBIE_AMBER if is_zombie else UITheme.GOLD)
+		gold_lbl.add_theme_font_override("font", UITheme.get_body_bold_font())
+		gold_lbl.add_theme_color_override("font_color", Color("#F59E0B") if is_zombie else UITheme.GOLD)
 
 ## Milestone 3a. Pinned to the top-right corner, above everything else, so the
 ## language is switchable from the very first frame. The button re-labels itself

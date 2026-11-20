@@ -798,23 +798,23 @@ func _refresh_pause_stats() -> void:
 			cur_hp, max_hp, spd, mag, might, armor, pyro,
 			relic_info, bounty_info
 		]
-		pause_arsenal_label.text = "TRANG BỊ TÁC CHIẾN:\n• Súng Lục Tác Chiến: Cấp %d\n• Khiên Chống Bạo Động: Cấp %d\n• Súng Phóng Điện Tesla: Cấp %d\n• Bom Xăng Molotov: Cấp %d\n• Lựu Đạn Mảnh: Cấp %d\n\n🔬 CÔNG THỨC TIẾN HÓA (SURVIVOR EVO):\n• 🔫 Súng Lục + ⚡ Kích Thích = Súng Máy Gatling\n• 🛡️ Khiên Bạo Động + 🦺 Giáp Kevlar = Khiên Phản Lực\n• ⚡ Súng Tesla + 🔋 Pin Năng Lượng = Đại Bác Plasma\n• 💣 Bom Xăng + 🛢️ Thùng Dầu = Bão Lửa Napalm\n• 🧨 Lựu Đạn + 🔬 Kíp Nổ = Pháo Cối Tự Động" % [
+		pause_arsenal_label.text = "TRANG BỊ TÁC CHIẾN:\n• Súng Lục Tác Chiến: Cấp %d\n• Khiên Chống Bạo Động: Cấp %d\n• Súng Phóng Điện Tesla: Cấp %d\n• Bom Xăng Molotov: Cấp %d\n• Lựu Đạn Mảnh: Cấp %d\n\nCÔNG THỨC TIẾN HÓA (SURVIVOR EVO):\n• Súng Lục + Kích Thích = Súng Máy Gatling\n• Khiên Bạo Động + Giáp Kevlar = Khiên Phản Lực\n• Súng Tesla + Pin Năng Lượng = Đại Bác Plasma\n• Bom Xăng + Thùng Dầu = Bão Lửa Napalm\n• Lựu Đạn + Kíp Nổ = Pháo Cối Tự Động" % [
 			lvls.get("dagger", 1), lvls.get("shield", 1), lvls.get("lightning", 1), lvls.get("fireball", 1), lvls.get("axe", 1)
 		]
 		if pause_map_button:
-			pause_map_button.text = "🗺️ Bản Đồ Khu Dịch [M]"
+			pause_map_button.text = "Bản Đồ Khu Dịch [M]"
 		if pause_hero_button:
-			pause_hero_button.text = "🪖 Hồ Sơ Đặc Nhiệm [C]"
+			pause_hero_button.text = "Hồ Sơ Đặc Nhiệm [C]"
 		if pause_codex_button:
-			pause_codex_button.text = "📁 Hồ Sơ Đại Dịch [X]"
+			pause_codex_button.text = "Hồ Sơ Đại Dịch [X]"
 		if pause_shop_button:
-			pause_shop_button.text = "📦 Chợ Đen Quân Sự [B]"
+			pause_shop_button.text = "Tiếp Tế Quân Sự [B]"
 		if pause_leaderboard_button:
-			pause_leaderboard_button.text = "🏆 Bảng Vinh Danh [L]"
+			pause_leaderboard_button.text = "Bảng Vinh Danh [L]"
 		if resume_button:
-			resume_button.text = "▶  Tiếp Tục Sinh Tồn (Esc / P)"
+			resume_button.text = "Tiếp Tục Sinh Tồn [ESC / P]"
 		if restart_run_button:
-			restart_run_button.text = "☣️ Rút Lui & Tái Lập Chiến Dịch"
+			restart_run_button.text = "Rút Lui & Tái Lập Chiến Dịch"
 	else:
 		pause_stats_label.text = "TIME: %02d:%02d   |   KILLS: %d   |   GOLD: %d\nHP: %d/%d   |   SPEED: %d   |   MAGNET: %d\nMIGHT: +%d%%   |   ARMOR: +%d   |   PYRO: +%d%%\nRELICS: %s%s" % [
 			mins, secs, GameManager.kills, GameManager.run_gold,
@@ -871,22 +871,33 @@ func _setup_ui_styles() -> void:
 		if is_zombie_ui:
 			lvl_sb.bg_color = Color(0.06, 0.10, 0.08, 0.95)
 			lvl_sb.border_color = Color(0.2, 0.9, 0.4, 0.95)
+			lvl_sb.set_border_width_all(2)
+			lvl_sb.set_corner_radius_all(12)
+			lvl_sb.content_margin_left = 10
+			lvl_sb.content_margin_right = 10
+			level_badge.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
 		else:
 			lvl_sb.bg_color = Color(0.1, 0.14, 0.22, 0.9)
 			lvl_sb.border_color = Color(0.0, 0.75, 1.0, 0.9)
-		lvl_sb.set_border_width_all(2)
-		lvl_sb.set_corner_radius_all(4)
+			lvl_sb.set_border_width_all(2)
+			lvl_sb.set_corner_radius_all(4)
 		level_badge.add_theme_stylebox_override("normal", lvl_sb)
+		
+	# Tactical pill styling for Timer, Kills, Gold in zombie mode
+	if is_zombie_ui:
+		for readout in [timer_label, kills_label, gold_label]:
+			if readout:
+				readout.add_theme_stylebox_override("normal", UITheme.make_tactical_pill())
 		
 	# HP Bar styling -- Vermilion per the Milestone 4 tokens with ornate golden lacquer accent
 	if hp_bar:
 		var hp_bg: StyleBoxFlat
 		var hp_fill: StyleBoxFlat
 		if is_zombie_ui:
-			hp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#ef4444").darkened(0.5), 4, 1)
+			hp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#ef4444").darkened(0.5), 6, 1)
 			hp_bg.shadow_color = Color(0.9, 0.1, 0.1, 0.3)
-			hp_bg.shadow_size = 3
-			hp_fill = UITheme.make_zombie_panel(Color("#ef4444"), Color("#ef4444"), 4, 0)
+			hp_bg.shadow_size = 4
+			hp_fill = UITheme.make_zombie_panel(Color("#ef4444"), Color("#dc2626"), 6, 0)
 		else:
 			hp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.GOLD.darkened(0.25), 4, 1)
 			hp_bg.shadow_color = Color(0.8, 0.2, 0.1, 0.25)
@@ -900,10 +911,10 @@ func _setup_ui_styles() -> void:
 		var xp_bg: StyleBoxFlat
 		var xp_fill: StyleBoxFlat
 		if is_zombie_ui:
-			xp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#22c55e").darkened(0.5), 4, 1)
+			xp_bg = UITheme.make_zombie_panel(Color("#0B0E14"), Color("#22c55e").darkened(0.5), 6, 1)
 			xp_bg.shadow_color = Color(0.2, 0.9, 0.35, 0.4)
-			xp_bg.shadow_size = 4
-			xp_fill = UITheme.make_zombie_panel(Color("#22c55e"), Color("#22c55e"), 4, 0)
+			xp_bg.shadow_size = 5
+			xp_fill = UITheme.make_zombie_panel(Color("#22c55e"), Color("#16a34a"), 6, 0)
 		else:
 			xp_bg = UITheme.make_card_panel(UITheme.INK_DIM, UITheme.JADE.darkened(0.40), 4, 1)
 			xp_bg.shadow_color = Color(0.2, 0.8, 0.4, 0.3)

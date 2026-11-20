@@ -298,15 +298,27 @@ func render_cards() -> void:
 		# Style card
 		var card_sb = StyleBoxFlat.new()
 		if is_current:
-			card_sb.bg_color = Color(0.12, 0.20, 0.32, 0.95)
-			card_sb.border_color = Color(0.0, 0.85, 1.0, 1.0)
+			if is_zombie_mode:
+				card_sb.bg_color = Color("#0D1A14")
+				card_sb.border_color = Color("#22C55E")
+				card_sb.shadow_color = Color(0.1, 0.8, 0.35, 0.35)
+				card_sb.shadow_size = 10
+			else:
+				card_sb.bg_color = Color(0.12, 0.20, 0.32, 0.95)
+				card_sb.border_color = Color(0.0, 0.85, 1.0, 1.0)
 			card_sb.set_border_width_all(3)
 		else:
-			card_sb.bg_color = Color(0.08, 0.10, 0.15, 0.92)
-			card_sb.border_color = Color(0.25, 0.30, 0.40, 0.8)
+			if is_zombie_mode:
+				card_sb.bg_color = Color("#0F141D")
+				card_sb.border_color = Color("#222E3F")
+				card_sb.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+				card_sb.shadow_size = 6
+			else:
+				card_sb.bg_color = Color(0.08, 0.10, 0.15, 0.92)
+				card_sb.border_color = Color(0.25, 0.30, 0.40, 0.8)
 			card_sb.set_border_width_all(1)
-		card_sb.set_corner_radius_all(8)
-		card_sb.set_content_margin_all(12)
+		card_sb.set_corner_radius_all(10)
+		card_sb.set_content_margin_all(14)
 		card.add_theme_stylebox_override("panel", card_sb)
 		
 		var vbox = VBoxContainer.new()
@@ -315,9 +327,9 @@ func render_cards() -> void:
 		
 		# Portrait container
 		var portrait_ctr = CenterContainer.new()
-		portrait_ctr.custom_minimum_size = Vector2(0, 72)
+		portrait_ctr.custom_minimum_size = Vector2(0, 76)
 		var tex_rect = TextureRect.new()
-		tex_rect.custom_minimum_size = Vector2(68, 68)
+		tex_rect.custom_minimum_size = Vector2(72, 72)
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		var sprite_path = char_data.get("texture_path", "")
@@ -338,15 +350,19 @@ func render_cards() -> void:
 		var name_lbl = Label.new()
 		name_lbl.text = Loc.t("char.%s.name" % char_id, char_data["name"])
 		name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_lbl.add_theme_font_size_override("font_size", 17)
+		name_lbl.add_theme_font_override("font", UITheme.get_body_bold_font())
+		name_lbl.add_theme_font_size_override("font_size", 16)
 		if is_current:
-			name_lbl.add_theme_color_override("font_color", Color(0.0, 0.9, 1.0))
+			name_lbl.add_theme_color_override("font_color", Color("#4ADE80") if is_zombie_mode else Color(0.0, 0.9, 1.0))
+		else:
+			name_lbl.add_theme_color_override("font_color", Color("#F8FAFC"))
 		vbox.add_child(name_lbl)
 
 		var title_lbl = Label.new()
 		title_lbl.text = Loc.t("char.%s.title" % char_id, char_data["title"])
 		title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title_lbl.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85, 0.8))
+		title_lbl.add_theme_font_override("font", UITheme.get_body_font())
+		title_lbl.add_theme_color_override("font_color", Color("#94A3B8") if is_zombie_mode else Color(0.7, 0.75, 0.85, 0.8))
 		title_lbl.add_theme_font_size_override("font_size", 12)
 		vbox.add_child(title_lbl)
 		
@@ -359,18 +375,26 @@ func render_cards() -> void:
 		desc_lbl.text = char_data["description"]
 		desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		desc_lbl.add_theme_font_override("font", UITheme.get_body_font())
 		desc_lbl.add_theme_font_size_override("font_size", 11)
 		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.9, 0.95, 0.9))
 		vbox.add_child(desc_lbl)
 		
 		# Action Button
 		var btn = Button.new()
-		btn.custom_minimum_size = Vector2(0, 36)
+		btn.custom_minimum_size = Vector2(0, 38)
+		btn.add_theme_font_override("font", UITheme.get_body_bold_font())
 		if is_current:
-			btn.text = "✓ " + Loc.t("ui.active_hero", "ACTIVE HERO")
+			btn.text = "✓ " + Loc.t("ui.active_hero", "ACTIVE OPERATOR" if is_zombie_mode else "ACTIVE HERO")
 			btn.disabled = true
+			if is_zombie_mode:
+				btn.add_theme_stylebox_override("disabled", UITheme.make_zombie_button_style(Color("#13281C"), Color("#22C55E"), 6))
+				btn.add_theme_color_override("font_disabled_color", Color("#4ADE80"))
 		else:
-			btn.text = Loc.t("ui.select_hero", "Select Hero")
+			btn.text = Loc.t("ui.select_hero", "Deploy Operator" if is_zombie_mode else "Select Hero")
+			if is_zombie_mode:
+				btn.add_theme_stylebox_override("normal", UITheme.make_zombie_cta_style())
+				btn.add_theme_color_override("font_color", Color(0.04, 0.12, 0.06))
 			btn.pressed.connect(func():
 				_on_hero_selected(char_id)
 			)

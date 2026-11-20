@@ -112,11 +112,11 @@ const KILL_MILESTONE_TITLES: Dictionary = {
 	1000: "🌌 ĐỘC BỘ THIÊN HẠ! (+25% CUỒNG BẠO)"
 }
 const ZOMBIE_KILL_MILESTONE_TITLES: Dictionary = {
-	50: "☣️ BƯỚC ĐẦU SINH TỒN! (+25% CUỒNG BẠO)",
-	100: "💀 SÁT THỦ THÂY MA! (+25% CUỒNG BẠO)",
-	250: "💥 CHIẾN BINH TẬN THẾ! (+25% CUỒNG BẠO)",
-	500: "☢️ KẺ HỦY DIỆT BIẾN DỊ! (+25% CUỒNG BẠO)",
-	1000: "👑 HUYỀN THOẠI SINH TỒN! (+25% CUỒNG BẠO)"
+	50: "50 KILLS // BƯỚC ĐẦU SINH TỒN (+25% CUỒNG BẠO)",
+	100: "100 KILLS // SÁT THỦ THÂY MA (+25% CUỒNG BẠO)",
+	250: "250 KILLS // CHIẾN BINH TẬN THẾ (+25% CUỒNG BẠO)",
+	500: "500 KILLS // KẺ HỦY DIỆT BIẾN DỊ (+25% CUỒNG BẠO)",
+	1000: "1000 KILLS // HUYỀN THOẠI SINH TỒN (+25% CUỒNG BẠO)"
 }
 
 # Expansion 21.0: Bảo Rương Kim Quy — jackpot tiers. Chances must sum to 1.0.
@@ -417,7 +417,7 @@ const ZOMBIE_CHARACTERS: Dictionary = {
 		"skill_name": "Lăn Tác Chiến Flashbang",
 		"skill_icon": "🛡️",
 		"skill_desc": "Lướt né 0.8s bất tử và ném lựu đạn choáng làm bất động zombie xung quanh",
-		"description": "Đặc nhiệm SWAT sống sót sau đợt bùng phát đại dịch.\n🔫 Vũ khí: Súng lục tác chiến & Dao găm dã chiến\n🛡️ Kỹ năng: Lăn Tác Chiến Flashbang (SPACE)\n🦺 Thiên phú: +30 HP, +3 Giáp chống cắn xé"
+		"description": "Đặc nhiệm SWAT sống sót sau đợt bùng phát đại dịch.\n• Vũ khí: Súng lục tác chiến & Dao găm dã chiến\n• Kỹ năng: Lăn Tác Chiến Flashbang (SPACE)\n• Thiên phú: +30 HP, +3 Giáp chống cắn xé"
 	},
 	"medic": {
 		"id": "medic",
@@ -437,7 +437,7 @@ const ZOMBIE_CHARACTERS: Dictionary = {
 		"skill_name": "Sóng Khử Khuẩn Sinh Học",
 		"skill_icon": "💉",
 		"skill_desc": "Phát xung sóng sinh học hồi 35 HP và làm chậm toàn bộ zombie 60%",
-		"description": "Bác sĩ nghiên cứu huyết thanh kháng virus.\n🧬 Vũ khí: Vòng Khử Trùng Kháng Khuẩn & Súng lục\n💉 Kỹ năng: Sóng Khử Khuẩn Sinh Học (SPACE)\n🧪 Thiên phú: +25% Thu hoạch ống nghiệm XP, +40 Tầm hút"
+		"description": "Bác sĩ nghiên cứu huyết thanh kháng virus.\n• Vũ khí: Vòng Khử Trùng Kháng Khuẩn & Súng lục\n• Kỹ năng: Sóng Khử Khuẩn Sinh Học (SPACE)\n• Thiên phú: +25% Thu hoạch ống nghiệm XP, +40 Tầm hút"
 	},
 	"pyro_z": {
 		"id": "pyro_z",
@@ -457,7 +457,7 @@ const ZOMBIE_CHARACTERS: Dictionary = {
 		"skill_name": "Bộc Phá Napalm",
 		"skill_icon": "🔥",
 		"skill_desc": "Kích nổ bình xăng thiêu rụi toàn bộ thây ma trong diện rộng",
-		"description": "Thợ phá dỡ trang bị súng phun lửa và bom xăng Molotov.\n🔥 Vũ khí: Bom Xăng Napalm & Lựu Đạn Mảnh\n💥 Kỹ năng: Bộc Phá Napalm (SPACE)\n🧨 Thiên phú: +55% Sát thương hỏa lực diện rộng"
+		"description": "Thợ phá dỡ trang bị súng phun lửa và bom xăng Molotov.\n• Vũ khí: Bom Xăng Napalm & Lựu Đạn Mảnh\n• Kỹ năng: Bộc Phá Napalm (SPACE)\n• Thiên phú: +55% Sát thương hỏa lực diện rộng"
 	},
 	"scout": {
 		"id": "scout",
@@ -477,7 +477,7 @@ const ZOMBIE_CHARACTERS: Dictionary = {
 		"skill_name": "Tiêm Adrenaline Khẩn Cấp",
 		"skill_icon": "⚡",
 		"skill_desc": "Tăng tốc độ di chuyển +80% và tốc độ bắn gấp đôi trong 4s",
-		"description": "Thợ săn cơ động lướt qua bầy zombie như bóng ma.\n⚡ Vũ khí: Tiểu Liên Kép & Tia Xung Điện\n💨 Kỹ năng: Tiêm Adrenaline Khẩn Cấp (SPACE)\n🏃 Thiên phú: +30% Tốc độ di chuyển, +10% Sát thương chí mạng"
+		"description": "Thợ săn cơ động lướt qua bầy zombie như bóng ma.\n• Vũ khí: Tiểu Liên Kép & Tia Xung Điện\n• Kỹ năng: Tiêm Adrenaline Khẩn Cấp (SPACE)\n• Thiên phú: +30% Tốc độ di chuyển, +10% Sát thương chí mạng"
 	},
 	"biker": {
 		"id": "biker",
@@ -497,7 +497,7 @@ const ZOMBIE_CHARACTERS: Dictionary = {
 		"skill_name": "Cuồng Nộ Búa Tạ",
 		"skill_icon": "🪓",
 		"skill_desc": "Vung búa tạ 360 độ hất văng mọi zombie và hồi 20 Máu",
-		"description": "Tay đua mô tô trang bị búa tạ và xích sắt đập nát bầy thây ma.\n🪓 Vũ khí: Búa Tạ Cận Chiến & Lưỡi Rìu Hạng Nặng\n🩸 Kỹ năng: Cuồng Nộ Búa Tạ (SPACE)\n💪 Thiên phú: +40 HP, +35% Sát thương đập cận chiến"
+		"description": "Tay đua mô tô trang bị búa tạ và xích sắt đập nát bầy thây ma.\n• Vũ khí: Búa Tạ Cận Chiến & Lưỡi Rìu Hặng Nặng\n• Kỹ năng: Cuồng Nộ Búa Tạ (SPACE)\n• Thiên phú: +40 HP, +35% Sát thương đập cận chiến"
 	}
 }
 
@@ -1200,7 +1200,7 @@ func buy_meridian_upgrade(stat: String) -> bool:
 func save_game_data() -> void:
 	# 1. ConfigFile persistent save (Desktop / Local)
 	var config = ConfigFile.new()
-	config.set_value("meta", "save_version", 2)
+	config.set_value("meta", "save_version", 3)
 	config.set_value("player", "total_gold", total_gold)
 	config.set_value("player", "selected_character", selected_character)
 	config.set_value("player", "selected_companion", selected_companion)
@@ -1218,7 +1218,7 @@ func save_game_data() -> void:
 	# 2. Web localStorage instant synchronous save (HTML5 / Web portals / itch.io)
 	if OS.has_feature("web"):
 		var save_dict: Dictionary = {
-			"save_version": 2,
+			"save_version": 3,
 			"total_gold": total_gold,
 			"selected_character": selected_character,
 			"selected_companion": selected_companion,
@@ -1307,14 +1307,14 @@ func load_save_data() -> void:
 			if parsed is Dictionary:
 				var def_char = "knight" if is_test_environment() else "swat"
 				var def_stage = "plains" if is_test_environment() else "zombie_city"
-				var is_v2 = parsed.has("save_version") and int(parsed["save_version"]) >= 2
+				var is_v3 = parsed.has("save_version") and int(parsed["save_version"]) >= 3
 				if parsed.has("total_gold"):
 					total_gold = int(parsed["total_gold"])
 				if parsed.has("is_first_run"):
 					is_first_run = bool(parsed["is_first_run"])
 				if parsed.has("danger_level"):
 					danger_level = clampi(int(parsed["danger_level"]), 0, MAX_DANGER_LEVEL)
-				if is_v2 and parsed.has("selected_character"):
+				if is_v3 and parsed.has("selected_character"):
 					var c_id = str(parsed["selected_character"])
 					if CHARACTERS.has(c_id) or ZOMBIE_CHARACTERS.has(c_id):
 						selected_character = c_id
@@ -1324,7 +1324,7 @@ func load_save_data() -> void:
 					var p_id = str(parsed["selected_companion"])
 					if COMPANIONS.has(p_id):
 						selected_companion = p_id
-				if is_v2 and parsed.has("selected_stage"):
+				if is_v3 and parsed.has("selected_stage"):
 					var s_id = str(parsed["selected_stage"])
 					if STAGES.has(s_id):
 						selected_stage = s_id
@@ -1353,7 +1353,7 @@ func load_save_data() -> void:
 		var def_stage = "plains" if is_test_environment() else "zombie_city"
 		var config_v = int(config.get_value("meta", "save_version", 1))
 		total_gold = config.get_value("player", "total_gold", total_gold)
-		if config_v >= 2:
+		if config_v >= 3:
 			selected_character = config.get_value("player", "selected_character", def_char)
 			selected_stage = config.get_value("player", "selected_stage", def_stage)
 		else:

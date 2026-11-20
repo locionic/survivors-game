@@ -229,14 +229,18 @@ func _refresh_hero() -> void:
 	if not GameManager:
 		return
 	var char_data = GameManager.get_selected_character_data()
+	var s_id = GameManager.selected_stage
+	var is_zombie = (s_id == "zombie_city")
 	if hero_name_label:
 		hero_name_label.text = "%s - %s" % [char_data.get("name", "Sir Kaelen"), char_data.get("title", "The Royal Knight")]
 	if hero_desc_label:
 		hero_desc_label.text = char_data.get("description", "").split("\n")[0]
 	if hero_sprite:
-		var tex_path = char_data.get("portrait_path", char_data.get("texture_path", ""))
+		var tex_path = char_data.get("texture_path", "") if is_zombie else char_data.get("portrait_path", char_data.get("texture_path", ""))
 		if ResourceLoader.exists(tex_path):
 			hero_sprite.texture = load(tex_path)
+		hero_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		hero_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		hero_sprite.pivot_offset = Vector2(36, 36)
 		if hero_bob_tween and hero_bob_tween.is_valid():
 			hero_bob_tween.kill()
@@ -270,35 +274,35 @@ func _refresh_stage() -> void:
 	var sub_title := find_child("SubTitle", true, false) as Label
 	if s_id == "zombie_city":
 		if main_title:
-			main_title.text = "Z-SURVIVOR: OUTBREAK"
+			main_title.text = "Z-SURVIVOR"
 			main_title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 		if header_badge:
-			header_badge.text = "PROJECT Z-SURVIVOR • BIO-HAZARD ROGUELIKE"
+			header_badge.text = "OPERATIONAL PROTOCOL // SECTOR 1"
 			header_badge.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 		if sub_title:
-			sub_title.text = "☣ KHU CÁCH LY • ĐẠI DỊCH THÂY MA BIẾN DỊ"
+			sub_title.text = "KHU CÁCH LY • OUTBREAK ROGUELITE"
 			sub_title.add_theme_color_override("font_color", Color(0.4, 0.9, 0.6))
 		if nav_zombie_btn:
-			nav_zombie_btn.text = "☣ Hồ Sơ Dịch"
+			nav_zombie_btn.text = "Hồ Sơ Dịch [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 		if nav_hero_btn:
-			nav_hero_btn.text = "🪖 Đặc Nhiệm"
+			nav_hero_btn.text = "Đặc Nhiệm [C]"
 		if nav_map_btn:
-			nav_map_btn.text = "🗺️ Bản Đồ"
+			nav_map_btn.text = "Chiến Trường [M]"
 		if nav_shop_btn:
-			nav_shop_btn.text = "📦 Chợ Đen"
+			nav_shop_btn.text = "Tiếp Tế [B]"
 		if nav_rank_btn:
-			nav_rank_btn.text = "🏆 Vinh Danh"
+			nav_rank_btn.text = "Bảng Vàng [L]"
 		if nav_codex_btn:
-			nav_codex_btn.text = "📁 Kho Dữ Liệu"
+			nav_codex_btn.text = "Kho Dữ Liệu [Q]"
 		if change_hero_btn:
 			change_hero_btn.text = "Đổi Đặc Nhiệm"
 		if change_stage_btn:
 			change_stage_btn.text = "Đổi Bản Đồ"
 		if start_button:
-			start_button.text = "☣️ VÀO KHU CÁCH LY • BATTLE NOW"
+			start_button.text = "XUẤT TRẬN  ·  DEPLOY"
 		if start_hint:
-			start_hint.text = "Nhấn SPACE hoặc CLICK để bắt đầu sinh tồn"
+			start_hint.text = "Nhấn SPACE hoặc CLICK để xuất trận"
 	else:
 		if main_title:
 			main_title.text = "HIỆP KHÁCH SINH TỒN"
@@ -310,7 +314,7 @@ func _refresh_stage() -> void:
 			sub_title.text = "ĐẠI HỘI VÕ LÂM • TRĂM NĂM TRANH ĐOẠT"
 			sub_title.add_theme_color_override("font_color", Color(0.35, 0.88, 1, 1))
 		if nav_zombie_btn:
-			nav_zombie_btn.text = "☣ Chế Độ Zombie [Z]"
+			nav_zombie_btn.text = "Chế Độ Zombie [Z]"
 			nav_zombie_btn.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))
 		if nav_hero_btn:
 			nav_hero_btn.text = "Hiệp Khách [C]"

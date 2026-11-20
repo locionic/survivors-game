@@ -397,7 +397,7 @@ func _refresh_header() -> void:
 	if _title_label:
 		var is_zombie: bool = GameManager and GameManager.selected_stage == "zombie_city"
 		if is_zombie:
-			_title_label.text = "🔬 TRẠM NGHIÊN CỨU DÃ CHIẾN — HOÀN THÀNH SECTOR %d/20" % current_wave
+			_title_label.text = "TRẠM NGHIÊN CỨU DÃ CHIẾN // HOÀN THÀNH SECTOR %d/20" % current_wave
 		else:
 			_title_label.text = "TÀNG KINH CÁC — KẾT THÚC HIỆP %d/20" % current_wave
 		var summary := get_wave_summary()

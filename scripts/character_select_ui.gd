@@ -116,7 +116,7 @@ func open_ui() -> void:
 	var is_zombie_mode = (GameManager and GameManager.selected_stage == "zombie_city")
 	if title_label:
 		if is_zombie_mode:
-			title_label.text = "🪖 HỒ SƠ ĐẶC NHIỆM & TRANG BỊ SINH TỒN"
+			title_label.text = "HỒ SƠ ĐẶC NHIỆM & TRANG BỊ SINH TỒN"
 		else:
 			title_label.text = "CHỌN HIỆP KHÁCH & TRANG BỊ"
 	render_cards()
@@ -203,31 +203,31 @@ func _update_stage_and_gear_ui() -> void:
 		
 	var st = GameManager.selected_stage
 	if stage_plains_btn:
-		stage_plains_btn.text = ("✓ " if st == "plains" else "") + "🌲 Ba Lăng Huyện"
+		stage_plains_btn.text = ("✓ " if st == "plains" else "") + "Ba Lăng Huyện"
 		stage_plains_btn.modulate = Color(0.4, 1.0, 0.5) if st == "plains" else Color(0.8, 0.8, 0.8)
 	if stage_hua_btn:
-		stage_hua_btn.text = ("✓ " if st == "mount_hua" else "") + "❄️ Đỉnh Hoa Sơn (Bão Tuyết)"
+		stage_hua_btn.text = ("✓ " if st == "mount_hua" else "") + "Đỉnh Hoa Sơn"
 		stage_hua_btn.modulate = Color(0.4, 0.9, 1.0) if st == "mount_hua" else Color(0.8, 0.8, 0.8)
 	var is_z = (st == "zombie_city")
 	if stage_zombie_btn:
-		stage_zombie_btn.text = ("✓ " if st == "zombie_city" else "") + ("☣️ Khu Cách Ly (Zombie City)" if is_z else "☣️ Thành Phố Zombie")
+		stage_zombie_btn.text = ("✓ " if st == "zombie_city" else "") + "Khu Cách Ly (Sector 01)"
 		stage_zombie_btn.modulate = Color(0.3, 1.0, 0.4) if st == "zombie_city" else Color(0.8, 0.8, 0.8)
 		
 	if gear_weapon_btn:
 		var has_wpn = GameManager.has_equipped("y_thien_kiem")
-		var wpn_title = "🔪 Dao Tác Chiến Mk.II" if is_z else "⚔️ Ỷ Thiên Kiếm"
+		var wpn_title = "Dao Tác Chiến Mk.II" if is_z else "Ỷ Thiên Kiếm"
 		gear_weapon_btn.text = ("✓ " if has_wpn else "+ ") + wpn_title
 		gear_weapon_btn.modulate = Color(0.3, 0.85, 1.0) if has_wpn else Color(0.7, 0.7, 0.7)
 		
 	if gear_armor_btn:
 		var has_arm = GameManager.has_equipped("nhuyen_vi_giap")
-		var arm_title = "🦺 Áo Giáp Kevlar" if is_z else "🛡️ Nhuyễn Vị Giáp"
+		var arm_title = "Áo Giáp Kevlar" if is_z else "Nhuyễn Vị Giáp"
 		gear_armor_btn.text = ("✓ " if has_arm else "+ ") + arm_title
 		gear_armor_btn.modulate = Color(1.0, 0.8, 0.25) if has_arm else Color(0.7, 0.7, 0.7)
 		
 	if gear_boots_btn:
 		var has_bts = GameManager.has_equipped("van_hac_hai")
-		var bts_title = "🥾 Giày Trinh Sát" if is_z else "🥾 Vân Hạc Hài"
+		var bts_title = "Giày Trinh Sát" if is_z else "Vân Hạc Hài"
 		gear_boots_btn.text = ("✓ " if has_bts else "+ ") + bts_title
 		gear_boots_btn.modulate = Color(0.4, 0.95, 0.6) if has_bts else Color(0.7, 0.7, 0.7)
 
@@ -319,14 +319,18 @@ func render_cards() -> void:
 		var tex_rect = TextureRect.new()
 		tex_rect.custom_minimum_size = Vector2(68, 68)
 		tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		var portrait_path = char_data.get("portrait_path", char_data.get("texture_path", ""))
-		if portrait_path.ends_with("_art.png"):
-			tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-			tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		var sprite_path = char_data.get("texture_path", "")
+		if is_zombie_mode:
+			if ResourceLoader.exists(sprite_path):
+				tex_rect.texture = load(sprite_path)
 		else:
-			tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		if ResourceLoader.exists(portrait_path):
-			tex_rect.texture = load(portrait_path)
+			var portrait_path = char_data.get("portrait_path", sprite_path)
+			if portrait_path.ends_with("_art.png"):
+				tex_rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+				tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			if ResourceLoader.exists(portrait_path):
+				tex_rect.texture = load(portrait_path)
 		portrait_ctr.add_child(tex_rect)
 		vbox.add_child(portrait_ctr)
 		

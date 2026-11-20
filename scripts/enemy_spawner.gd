@@ -535,7 +535,7 @@ func spawn_boss_1() -> void:
 
 func spawn_boss_2() -> void:
 	if GameManager and GameManager.selected_stage == "zombie_city":
-		emit_signal("wave_event_announced", "☣️ MUTANT JUGGERNAUT AWAKENS! ☣️", true)
+		emit_signal("wave_event_announced", "MUTANT JUGGERNAUT", true)
 	else:
 		emit_signal("wave_event_announced", "👑 INFERNAL BEHEMOTH AWAKENS! 👑", true)
 	SoundManager.play("boss_alarm", 0.05)

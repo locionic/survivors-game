@@ -659,11 +659,15 @@ func _on_wave_event_announced(message: String, is_boss: bool) -> void:
 	
 	if is_boss:
 		# Boss entrance: localized dramatic banner + audio cue
-		var boss_name = message.replace("🏯 ", "").replace(" - ARENA OPEN!", "").replace("HIỆP ", "").replace("WAVE ", "")
-		var warning_text = Loc.tf("hud.boss_warning", [boss_name])
-		warning_banner.text = "⚠️ %s ⚠️" % warning_text
-		
 		var is_zombie = GameManager and GameManager.selected_stage == "zombie_city"
+		if is_zombie:
+			var clean_boss = message.replace("☣️", "").replace("!", "").strip_edges()
+			warning_banner.text = "BIO-THREAT // %s DETECTED" % clean_boss
+		else:
+			var boss_name = message.replace("🏯 ", "").replace(" - ARENA OPEN!", "").replace("HIỆP ", "").replace("WAVE ", "")
+			var warning_text = Loc.tf("hud.boss_warning", [boss_name])
+			warning_banner.text = "⚠️ %s ⚠️" % warning_text
+		
 		var sb = StyleBoxFlat.new()
 		if is_zombie:
 			sb.bg_color = Color(0.06, 0.16, 0.08, 0.95)
@@ -1067,22 +1071,22 @@ func _on_score_updated(kills: int, time: float) -> void:
 	if is_zombie:
 		if kills >= 1000 and last_streak_announced < 1000:
 			last_streak_announced = 1000
-			_on_wave_event_announced(Loc.t("streak.1000", "👑 1000 KILLS: GOD OF SURVIVORS!"), true)
+			_on_wave_event_announced(Loc.t("streak.1000", "1000 KILLS // APEX SURVIVOR"), true)
 		elif kills >= 500 and last_streak_announced < 500:
 			last_streak_announced = 500
-			_on_wave_event_announced(Loc.t("streak.500", "🔥 500 KILLS: UNSTOPPABLE SLAYER!"), true)
+			_on_wave_event_announced(Loc.t("streak.500", "500 KILLS // UNSTOPPABLE SLAYER"), true)
 		elif kills >= 250 and last_streak_announced < 250:
 			last_streak_announced = 250
-			_on_wave_event_announced(Loc.t("streak.250", "⚡ 250 KILLS: APOCALYPSE REAPER!"), true)
+			_on_wave_event_announced(Loc.t("streak.250", "250 KILLS // APOCALYPSE REAPER"), true)
 		elif kills >= 100 and last_streak_announced < 100:
 			last_streak_announced = 100
-			_on_wave_event_announced(Loc.t("streak.100", "☣️ 100 KILLS: BIO-CONTAMINATOR!"), false)
+			_on_wave_event_announced(Loc.t("streak.100", "100 KILLS // BIO-SLAYER"), false)
 		elif kills >= 50 and last_streak_announced < 50:
 			last_streak_announced = 50
-			_on_wave_event_announced(Loc.t("streak.50", "💥 50 KILLS: HORDE MASSACRE!"), false)
+			_on_wave_event_announced(Loc.t("streak.50", "50 KILLS // HORDE MASSACRE"), false)
 		elif kills >= 25 and last_streak_announced < 25:
 			last_streak_announced = 25
-			_on_wave_event_announced("🔫 25 KILLS: OUTBREAK BREAKER!", false)
+			_on_wave_event_announced("25 KILLS // FIRST STRIKE", false)
 	else:
 		if kills >= 350 and last_streak_announced < 350:
 			last_streak_announced = 350
@@ -1971,7 +1975,7 @@ func _on_player_dragon_awakened(_duration: float) -> void:
 	if dragon_button:
 		dragon_button.modulate = Color(0.5, 1.5, 0.6) if is_zombie else Color(1.5, 1.3, 0.4)
 	if is_zombie:
-		_on_wave_event_announced("☢️ TACTICAL BIO-NUKE / ADRENALINE OVERDRIVE! ☢️", true)
+		_on_wave_event_announced("BIO-NUKE DETONATED // ADRENALINE OVERDRIVE!", true)
 	else:
 		_on_wave_event_announced("🐉 LONG HỒN THÁNH GIÁNG! (Kim Long Thần Giáng) 🐉", true)
 
@@ -2065,9 +2069,9 @@ const CHEST_ANNOUNCEMENTS: Dictionary = {
 }
 
 const ZOMBIE_CHEST_ANNOUNCEMENTS: Dictionary = {
-	1: "📦 THÙNG TIẾP TẾ TÁC CHIẾN ⭐ (%d TRANG BỊ) +%d VÀNG!",
-	2: "🎰 SIÊU TIẾP TẾ: TRIPLE SUPPLY ⭐⭐⭐ (%d TRANG BỊ) +%d VÀNG!",
-	3: "☢️ TIẾP TẾ TỐI THƯỢNG: MEGA JACKPOT ⭐⭐⭐⭐⭐ (%d TRANG BỊ) +%d VÀNG!"
+	1: "THÙNG TIẾP TẾ TÁC CHIẾN (%d TRANG BỊ) +%d VÀNG",
+	2: "SIÊU TIẾP TẾ: TRIPLE SUPPLY (%d TRANG BỊ) +%d VÀNG",
+	3: "TIẾP TẾ TỐI THƯỢNG: MEGA AIRDROP (%d TRANG BỊ) +%d VÀNG"
 }
 
 func _setup_chest_modal() -> void:
@@ -2342,7 +2346,7 @@ func _setup_shenron_modal() -> void:
 	
 	var title = Label.new()
 	if is_zombie:
-		title.text = "☣️ ĐỘT PHÁ CÔNG NGHỆ SINH HỌC ☣️"
+		title.text = "ĐỘT PHÁ CÔNG NGHỆ SINH HỌC"
 		title.add_theme_color_override("font_color", Color(0.3, 1.0, 0.45))
 	else:
 		title.text = "🐉 THẦN LONG GIÁNG THẾ 🐉"
